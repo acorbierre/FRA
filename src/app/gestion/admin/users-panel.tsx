@@ -34,7 +34,7 @@ export default function UsersPanel({ users, currentUserEmail, registeredEmails }
   const filtered = users.filter(u =>
     tab === 'Admin'
       ? u.role.includes('Admin') || u.role.includes('Super-Admin')
-      : u.role.includes(ROLE_MAP[tab])
+      : u.role.includes(ROLE_MAP[tab] as never)
   )
   const selectable = filtered.filter(u =>
     !u.role.includes('Super-Admin') &&
@@ -137,7 +137,7 @@ export default function UsersPanel({ users, currentUserEmail, registeredEmails }
               {t} <span className="text-muted-foreground font-normal">
                 ({t === 'Admin'
                   ? users.filter(u => u.role.includes('Admin') || u.role.includes('Super-Admin')).length
-                  : users.filter(u => u.role.includes(ROLE_MAP[t])).length
+                  : users.filter(u => u.role.includes(ROLE_MAP[t] as never)).length
                 })
               </span>
             </button>
@@ -354,7 +354,7 @@ function EditUserModal({ user, onClose, onSaved }: { user: Chercheur; onClose: (
           </div>
           <div className="space-y-1.5">
             <label className="text-xs font-medium text-muted-foreground">Rôle</label>
-            <select value={form.role} onChange={e => setForm(f => ({ ...f, role: e.target.value }))}
+            <select value={form.role} onChange={e => setForm(f => ({ ...f, role: e.target.value as typeof form.role }))}
               className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30">
               <option value="Examinateur">Comité scientifique</option>
               <option value="Admin">Admin</option>

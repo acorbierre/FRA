@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { ArrowUp } from 'lucide-react'
 import Link from 'next/link'
-import { useChatMessages } from '@/components/layout/chat-provider'
+import { useChatMessages, type Message } from '@/components/layout/chat-provider'
 
 function parseContent(text: string): React.ReactNode[] {
   const parts = text.split(/(\[SOURCE:[^\]]+\])/g)

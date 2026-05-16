@@ -24,7 +24,7 @@ export default async function ActivitePage() {
     projets.filter(p => p.dateDebut && new Date(p.dateDebut).getFullYear() === annee).map(p => p.id)
   )
   const fondsAttribues = conventions
-    .filter(c => c.projetId?.some(pid => projetsAnnee.has(pid)))
+    .filter(c => c.projetId && projetsAnnee.has(c.projetId))
     .reduce((sum, c) => sum + (c.montantTotal ?? 0), 0)
 
   // KPI 3 — Chercheurs lauréats (rôle Lauréat)

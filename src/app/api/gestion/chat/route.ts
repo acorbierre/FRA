@@ -87,7 +87,7 @@ Début: ${p.dateDebut ?? '—'} | Fin prévue: ${p.dateFinPrevue ?? '—'}${p.da
 
   // Rapports
   const rapportsStr = rapports.map(r =>
-    `- Rapport ID:${r.id} | Statut: ${r.statut}${r.dateEcheance ? ` | Échéance: ${r.dateEcheance}` : ''}`
+    `- Rapport ID:${r.id} | Statut: ${r.statut}${r.dateAttendue ? ` | Échéance: ${r.dateAttendue}` : ''}`
   ).join('\n')
 
   return `## Candidatures (Appel à projets FRA)

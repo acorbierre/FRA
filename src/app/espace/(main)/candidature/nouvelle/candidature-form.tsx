@@ -57,7 +57,8 @@ export default function CandidatureForm({ candidatureId, defaultValues }: Props)
     watch,
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({
-    resolver: zodResolver(schema),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    resolver: zodResolver(schema) as any,
     mode: 'onTouched',
     defaultValues: {
       titre:         defaultValues?.titre         ?? '',
