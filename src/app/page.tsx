@@ -11,6 +11,7 @@ export default async function Home() {
   const email = clerkUser.emailAddresses[0]?.emailAddress
   const chercheur = email ? await getChercheurByEmail(email) : null
   const isAdmin = chercheur?.role.some(r => r === 'Admin' || r === 'Super-Admin')
+  const isReviewer = chercheur?.role.some(r => r === 'Examinateur')
 
-  redirect(isAdmin ? '/gestion' : '/espace')
+  redirect(isAdmin ? '/gestion' : isReviewer ? '/reviewer' : '/espace')
 }
