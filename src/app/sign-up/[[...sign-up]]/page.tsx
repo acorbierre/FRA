@@ -33,7 +33,7 @@ const localization: any = {
 export default function SignUpPage() {
   return (
     <main className="min-h-screen flex items-center justify-center bg-muted/40 p-4">
-      <SignUp appearance={appearance} fallbackRedirectUrl="/redirect" />
+      <SignUp appearance={appearance} fallbackRedirectUrl="/" />
     </main>
   )
 }
