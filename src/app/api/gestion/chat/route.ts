@@ -77,7 +77,7 @@ Début: ${p.dateDebut ?? '—'} | Fin prévue: ${p.dateFinPrevue ?? '—'}${p.da
 
   // Conventions
   const conventionsStr = conventions.map(c =>
-    `- Convention ID:${c.id} | Statut: ${c.statut}${c.montant ? ` | Montant: ${c.montant.toLocaleString('fr-FR')} €` : ''}`
+    `- Convention ID:${c.id} | Statut: ${c.statut}${c.montantTotal ? ` | Montant: ${c.montantTotal.toLocaleString('fr-FR')} €` : ''}`
   ).join('\n')
 
   // Versements
