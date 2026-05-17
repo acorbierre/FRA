@@ -101,7 +101,7 @@ export default function AgendaCalendar({ jalons }: Props) {
           {cells.map((day, i) => {
             const events = day ? jalonsForDay(day) : []
             return (
-              <div key={day?.toISOString() ?? `cell-${i}`} className={cn('min-h-[90px] p-1.5', !day && 'bg-muted/20')}>
+              <div key={day ?? `cell-${i}`} className={cn('min-h-[90px] p-1.5', !day && 'bg-muted/20')}>
                 {day && (
                   <>
                     <span className={cn(
