@@ -3,8 +3,9 @@
 import { useState } from 'react'
 import type { AppSettings } from '@/services/neon/settings'
 import AppearancePanel from './appearance-panel'
+import ResourcesPanel from './resources-panel'
 
-const TABS = ['Utilisateurs', 'Apparence'] as const
+const TABS = ['Utilisateurs', 'Apparence', 'Ressources'] as const
 type Tab = typeof TABS[number]
 
 interface Props {
@@ -35,6 +36,7 @@ export default function AdminTabs({ usersPanel, settings }: Props) {
 
       {tab === 'Utilisateurs' && usersPanel}
       {tab === 'Apparence' && <AppearancePanel settings={settings} />}
+      {tab === 'Ressources' && <ResourcesPanel />}
     </div>
   )
 }
