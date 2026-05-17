@@ -1,4 +1,5 @@
 import { getCandidatureById, getChercheurById, getChercheursByRole, getEvaluationsByCandidature } from '@/services/neon'
+import { getAppSettings } from '@/services/neon/settings'
 import { notFound } from 'next/navigation'
 import { APPEL_ANNEE } from '@/lib/config'
 import CandidatureDetailTabs from '@/components/gestion/candidature-detail-tabs'
@@ -10,10 +11,11 @@ export default async function CandidatureDetailPage({ params }: { params: Promis
   const c = await getCandidatureById(id).catch(() => null)
   if (!c) notFound()
 
-  const [chercheur, reviewers, evaluations] = await Promise.all([
+  const [chercheur, reviewers, evaluations, settings] = await Promise.all([
     c.chercheurId ? getChercheurById(c.chercheurId).catch(() => null) : Promise.resolve(null),
     getChercheursByRole('Examinateur'),
     getEvaluationsByCandidature(id),
+    getAppSettings(),
   ])
 
   return (
@@ -34,6 +36,8 @@ export default async function CandidatureDetailPage({ params }: { params: Promis
         chercheurNom={chercheur?.nomComplet}
         reviewers={reviewers}
         evaluations={evaluations}
+        statutColors={settings.statut_colors}
+        statutLabelsGestion={settings.statut_labels_gestion}
       />
 
     </div>

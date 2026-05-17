@@ -1,8 +1,13 @@
 import { getAllCandidatures, getAllChercheurs } from '@/services/neon'
+import { getAppSettings } from '@/services/neon/settings'
 import CandidaturesTabs from './candidatures-tabs'
 
 export default async function CandidaturesPage() {
-  const [candidatures, chercheurs] = await Promise.all([getAllCandidatures(), getAllChercheurs()])
+  const [candidatures, chercheurs, settings] = await Promise.all([
+    getAllCandidatures(),
+    getAllChercheurs(),
+    getAppSettings(),
+  ])
   const chercheurMap = Object.fromEntries(chercheurs.map(c => [c.id, c.nomComplet]))
   const actives = candidatures.filter(c => c.statut !== 'Brouillon')
 
@@ -12,7 +17,12 @@ export default async function CandidaturesPage() {
         <h1 className="page-title">Candidatures</h1>
         <p className="page-subtitle">{actives.length} candidature{actives.length > 1 ? 's' : ''}</p>
       </div>
-      <CandidaturesTabs candidatures={actives} chercheurMap={chercheurMap} />
+      <CandidaturesTabs
+        candidatures={actives}
+        chercheurMap={chercheurMap}
+        statutColors={settings.statut_colors}
+        statutLabelsGestion={settings.statut_labels_gestion}
+      />
     </div>
   )
 }

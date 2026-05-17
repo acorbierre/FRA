@@ -8,13 +8,13 @@ import { Input } from '@/components/ui/input'
 import ProjetTimeline from '@/components/gestion/projet-timeline'
 import type { Projet } from '@/types'
 
-const STATUT_COLORS: Record<Projet['statut'], string> = {
-  'En cours':  'bg-green-50 text-green-700',
-  'Suspendu':  'bg-amber-50 text-amber-700',
-  'Terminé':   'bg-muted text-muted-foreground',
+interface Props {
+  projets: Projet[]
+  projetColors: Record<string, string>
+  projetLabels: Record<string, string>
 }
 
-export default function ProjetsListe({ projets }: { projets: Projet[] }) {
+export default function ProjetsListe({ projets, projetColors, projetLabels }: Props) {
   const [query, setQuery] = useState('')
 
   const filtered = query.trim()
@@ -58,8 +58,8 @@ export default function ProjetsListe({ projets }: { projets: Projet[] }) {
                   <Microscope className="size-10 text-muted-foreground/30" />
                 </div>
               )}
-              <span className={`absolute top-3 right-3 rounded-full px-2.5 py-0.5 text-xs font-medium ${STATUT_COLORS[p.statut]}`}>
-                {p.statut}
+              <span className={`absolute top-3 right-3 rounded-full px-2.5 py-0.5 text-xs font-medium ${projetColors[p.statut] ?? 'bg-zinc-100 text-zinc-700'}`}>
+                {projetLabels[p.statut] ?? p.statut}
               </span>
             </div>
 

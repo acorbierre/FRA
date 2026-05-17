@@ -1,8 +1,9 @@
 import { getProjets } from '@/services/neon'
+import { getAppSettings } from '@/services/neon/settings'
 import ProjetsListe from './projets-list'
 
 export default async function ProjetsPage() {
-  const projets = await getProjets()
+  const [projets, settings] = await Promise.all([getProjets(), getAppSettings()])
 
   return (
     <div className="max-w-5xl space-y-6">
@@ -11,7 +12,11 @@ export default async function ProjetsPage() {
         <p className="page-subtitle">{projets.length} projet{projets.length > 1 ? 's' : ''}</p>
       </div>
 
-      <ProjetsListe projets={projets} />
+      <ProjetsListe
+        projets={projets}
+        projetColors={settings.projet_colors}
+        projetLabels={settings.projet_labels}
+      />
     </div>
   )
 }

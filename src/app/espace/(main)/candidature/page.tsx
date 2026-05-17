@@ -3,7 +3,8 @@ import { redirect } from 'next/navigation'
 import { getChercheurByEmail, getCandidaturesByChercheur } from '@/services/neon'
 import { CheckCircle2 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { APPEL_ANNEE, FIELD_LABELS, STATUT_COLORS, STATUT_LABELS } from '@/lib/config'
+import { APPEL_ANNEE, FIELD_LABELS } from '@/lib/config'
+import { getAppSettings } from '@/services/neon/settings'
 import type { Candidature } from '@/types'
 
 export default async function CandidaturePage() {
@@ -17,7 +18,10 @@ export default async function CandidaturePage() {
   if (!chercheur) redirect('/espace/profil/completer')
   const chercheurId = chercheur.id
 
-  const candidatures = await getCandidaturesByChercheur(chercheurId)
+  const [candidatures, settings] = await Promise.all([
+    getCandidaturesByChercheur(chercheurId),
+    getAppSettings(),
+  ])
   if (candidatures.length === 0) redirect('/espace/candidature/nouvelle')
 
   const c = candidatures[0]
@@ -40,8 +44,8 @@ export default async function CandidaturePage() {
       <Card>
         <CardHeader className="flex flex-row items-start justify-between gap-4 pb-3">
           <CardTitle className="text-base leading-snug">{c.titre}</CardTitle>
-          <span className={`shrink-0 rounded-full px-3.5 py-1 text-sm font-medium ${STATUT_COLORS[statut]}`}>
-            {STATUT_LABELS[statut]}
+          <span className={`shrink-0 rounded-full px-3.5 py-1 text-sm font-medium ${settings.statut_colors[statut] ?? 'bg-zinc-100 text-zinc-700'}`}>
+            {settings.statut_labels[statut] ?? statut}
           </span>
         </CardHeader>
         {statut === 'Brouillon' && (

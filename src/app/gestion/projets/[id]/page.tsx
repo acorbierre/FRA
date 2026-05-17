@@ -1,15 +1,9 @@
 import { getProjetById, getConventions, getRapports, getVersements, getCandidatureById } from '@/services/neon'
+import { getAppSettings } from '@/services/neon/settings'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import ProjetTimeline from '@/components/gestion/projet-timeline'
 import Link from 'next/link'
 import { ArrowLeft, FileText, Banknote, NotebookPen, AlertTriangle, Euro, CalendarDays } from 'lucide-react'
-import type { Projet } from '@/types'
-
-const STATUT_COLORS: Record<Projet['statut'], string> = {
-  'En cours':  'bg-green-50 text-green-700',
-  'Suspendu':  'bg-amber-50 text-amber-700',
-  'Terminé':   'bg-muted text-muted-foreground',
-}
 
 const RAPPORT_STATUT_COLORS: Record<string, string> = {
   'Attendu':  'bg-amber-50 text-amber-700',
@@ -27,11 +21,12 @@ const VERSEMENT_STATUT_COLORS: Record<string, string> = {
 export default async function ProjetFichePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
 
-  const [projet, allConventions, allRapports, allVersements] = await Promise.all([
+  const [projet, allConventions, allRapports, allVersements, settings] = await Promise.all([
     getProjetById(id),
     getConventions(),
     getRapports(),
     getVersements(),
+    getAppSettings(),
   ])
 
   const conventions = allConventions.filter(c => c.projetId?.includes(id))
@@ -68,8 +63,8 @@ export default async function ProjetFichePage({ params }: { params: Promise<{ id
         </Link>
         <div className="flex items-start justify-between gap-3">
           <h1 className="page-title">{projet.titre}</h1>
-          <span className={`shrink-0 rounded-full px-3 py-1 text-sm font-medium ${STATUT_COLORS[projet.statut]}`}>
-            {projet.statut}
+          <span className={`shrink-0 rounded-full px-3 py-1 text-sm font-medium ${settings.projet_colors[projet.statut] ?? 'bg-zinc-100 text-zinc-700'}`}>
+            {settings.projet_labels[projet.statut] ?? projet.statut}
           </span>
         </div>
         <ProjetTimeline

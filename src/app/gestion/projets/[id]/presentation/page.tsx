@@ -1,15 +1,9 @@
 import { getProjetById, getCandidatureById } from '@/services/neon'
+import { getAppSettings } from '@/services/neon/settings'
 import Link from 'next/link'
 import { ArrowLeft, CalendarDays, Euro, Globe, Users } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import ProjetPhotoUpload from '@/components/gestion/projet-photo-upload'
-import type { Projet } from '@/types'
-
-const STATUT_LABELS: Record<Projet['statut'], { label: string; color: string }> = {
-  'En cours':  { label: 'Projet en cours',  color: 'bg-green-100 text-green-800' },
-  'Suspendu':  { label: 'Projet suspendu',  color: 'bg-amber-100 text-amber-800' },
-  'Terminé':   { label: 'Projet terminé',   color: 'bg-muted text-muted-foreground' },
-}
 
 function fmtDate(dateStr: string) {
   return new Date(dateStr).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
@@ -26,12 +20,13 @@ function duree(debut?: string, fin?: string): string | null {
 
 export default async function ProjetPresentationPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  const projet = await getProjetById(id)
+  const [projet, settings] = await Promise.all([getProjetById(id), getAppSettings()])
 
   const candidatureId = projet.candidatureId?.[0]
   const candidature = candidatureId ? await getCandidatureById(candidatureId).catch(() => null) : null
 
-  const statut = STATUT_LABELS[projet.statut]
+  const statutColor = settings.projet_colors[projet.statut] ?? 'bg-zinc-100 text-zinc-700'
+  const statutLabel = settings.projet_labels[projet.statut] ?? projet.statut
   const dureeProjet = duree(projet.dateDebut, projet.dateFinPrevue)
 
   return (
@@ -53,8 +48,8 @@ export default async function ProjetPresentationPage({ params }: { params: Promi
           initialPhotoUrl={projet.photo?.[0]?.url}
         />
         <div className="absolute bottom-0 left-0 right-0 p-6 pointer-events-none">
-          <span className={`inline-block rounded-full px-3 py-1 text-xs font-semibold mb-3 ${statut.color}`}>
-            {statut.label}
+          <span className={`inline-block rounded-full px-3 py-1 text-xs font-semibold mb-3 ${statutColor}`}>
+            {statutLabel}
           </span>
           <h1 className="text-2xl font-bold text-white leading-snug">{projet.titre}</h1>
           {candidature?.thematique && (

@@ -5,7 +5,7 @@ import CandidatureTimeline from '@/components/gestion/candidature-timeline'
 import EvaluationTab from '@/components/gestion/evaluation-tab'
 import type { Candidature, Chercheur } from '@/types'
 import type { Evaluation } from '@/services/neon/evaluations'
-import { FIELD_LABELS, STATUT_LABELS_GESTION, STATUT_COLORS } from '@/lib/config'
+import { FIELD_LABELS } from '@/lib/config'
 import { cn } from '@/lib/utils'
 
 interface Props {
@@ -13,11 +13,13 @@ interface Props {
   chercheurNom?: string | null
   reviewers: Chercheur[]
   evaluations: Evaluation[]
+  statutColors: Record<string, string>
+  statutLabelsGestion: Record<string, string>
 }
 
 type Tab = 'dossier' | 'evaluation'
 
-export default function CandidatureDetailTabs({ candidature: c, chercheurNom, reviewers, evaluations }: Props) {
+export default function CandidatureDetailTabs({ candidature: c, chercheurNom, reviewers, evaluations, statutColors, statutLabelsGestion }: Props) {
   const [activeTab, setActiveTab] = useState<Tab>('dossier')
   const statut = c.statut ?? 'Brouillon'
   const nbSoumises = evaluations.filter(e => e.statut === 'Soumise').length
@@ -59,8 +61,8 @@ export default function CandidatureDetailTabs({ candidature: c, chercheurNom, re
           <>
             <div className="px-8 py-6 flex items-center gap-8">
               <div className="space-y-1.5 shrink-0">
-                <span className={`inline-block whitespace-nowrap rounded-full px-3.5 py-1.5 text-sm font-medium ${STATUT_COLORS[statut] ?? 'bg-zinc-100 text-zinc-700'}`}>
-                  {STATUT_LABELS_GESTION[statut as keyof typeof STATUT_LABELS_GESTION] ?? statut}
+                <span className={`inline-block whitespace-nowrap rounded-full px-3.5 py-1.5 text-sm font-medium ${statutColors[statut] ?? 'bg-zinc-100 text-zinc-700'}`}>
+                  {statutLabelsGestion[statut] ?? statut}
                 </span>
                 <p className="font-heading text-base font-medium leading-snug">{c.titre}</p>
                 {chercheurNom && <p className="text-sm text-muted-foreground">{chercheurNom}</p>}

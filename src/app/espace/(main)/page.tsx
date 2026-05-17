@@ -2,7 +2,8 @@ import { auth, clerkClient } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 import { getChercheurByEmail, getCandidaturesByChercheur } from '@/services/neon'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { APPEL_ANNEE, STATUT_COLORS, STATUT_LABELS } from '@/lib/config'
+import { APPEL_ANNEE } from '@/lib/config'
+import { getAppSettings } from '@/services/neon/settings'
 import Link from 'next/link'
 import type { Candidature } from '@/types'
 
@@ -16,7 +17,10 @@ export default async function EspacePage() {
   const chercheur = email ? await getChercheurByEmail(email) : null
   if (!chercheur) redirect('/espace/profil/completer')
 
-  const candidatures = chercheur ? await getCandidaturesByChercheur(chercheur.id) : []
+  const [candidatures, settings] = await Promise.all([
+    chercheur ? getCandidaturesByChercheur(chercheur.id) : Promise.resolve([]),
+    getAppSettings(),
+  ])
   const candidature = candidatures[0] ?? null
 
   return (
@@ -42,8 +46,8 @@ export default async function EspacePage() {
             </CardDescription>
           </div>
           {candidature && (
-            <span className={`shrink-0 rounded-full px-3.5 py-1 text-sm font-medium ${STATUT_COLORS[candidature.statut]}`}>
-              {STATUT_LABELS[candidature.statut]}
+            <span className={`shrink-0 rounded-full px-3.5 py-1 text-sm font-medium ${settings.statut_colors[candidature.statut] ?? 'bg-zinc-100 text-zinc-700'}`}>
+              {settings.statut_labels[candidature.statut] ?? candidature.statut}
             </span>
           )}
         </CardHeader>

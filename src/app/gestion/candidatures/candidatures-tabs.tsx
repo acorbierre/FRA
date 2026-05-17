@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { STATUT_LABELS_GESTION, STATUT_COLORS } from '@/lib/config'
 import CandidatureTimeline from '@/components/gestion/candidature-timeline'
 import type { Candidature, Chercheur } from '@/types'
 
@@ -18,9 +17,11 @@ const TAB_STATUTS: Record<Tab, string[]> = {
 interface Props {
   candidatures: Candidature[]
   chercheurMap: Record<string, string>
+  statutColors: Record<string, string>
+  statutLabelsGestion: Record<string, string>
 }
 
-export default function CandidaturesTabs({ candidatures, chercheurMap }: Props) {
+export default function CandidaturesTabs({ candidatures, chercheurMap, statutColors, statutLabelsGestion }: Props) {
   const [tab, setTab] = useState<Tab>('En cours')
 
   const filtered = candidatures.filter(c => TAB_STATUTS[tab].includes(c.statut))
@@ -58,8 +59,8 @@ export default function CandidaturesTabs({ candidatures, chercheurMap }: Props) 
               <div className="flex gap-8 items-start">
                 {/* Col 1 : titre + statut */}
                 <div className="w-52 shrink-0 space-y-2">
-                  <span className={`inline-block whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium ${STATUT_COLORS[c.statut] ?? 'bg-zinc-100 text-zinc-700'}`}>
-                    {STATUT_LABELS_GESTION[c.statut as keyof typeof STATUT_LABELS_GESTION] ?? c.statut}
+                  <span className={`inline-block whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium ${statutColors[c.statut] ?? 'bg-zinc-100 text-zinc-700'}`}>
+                    {statutLabelsGestion[c.statut] ?? c.statut}
                   </span>
                   <p className="font-heading text-base font-medium leading-snug">{c.titre}</p>
                   <p className="text-xs text-muted-foreground">{c.thematique ?? '—'}</p>
