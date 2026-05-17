@@ -37,7 +37,7 @@ export default function AssignReviewers({ candidatureId, reviewers, evaluations 
     startTransition(() => router.refresh())
   }
 
-  const changed = JSON.stringify(selected.sort()) !== JSON.stringify(evaluations.map(e => e.reviewerId).sort())
+  const changed = JSON.stringify(selected.sort((a, b) => a.localeCompare(b))) !== JSON.stringify(evaluations.map(e => e.reviewerId).sort((a, b) => a.localeCompare(b)))
   const hasSubmitted = evaluations.some(e => e.statut === 'Soumise')
 
   return (

@@ -46,7 +46,7 @@ export default function ChercheursListe({ chercheurs }: { chercheurs: Chercheur[
     if (!groups[letter]) groups[letter] = []
     groups[letter].push(c)
   }
-  const letters = Object.keys(groups).sort()
+  const letters = Object.keys(groups).sort((a, b) => a.localeCompare(b))
 
   return (
     <div className="space-y-6">

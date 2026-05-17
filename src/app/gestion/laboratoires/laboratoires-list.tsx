@@ -23,7 +23,7 @@ export default function LaboratoiresListe({ labos }: { labos: Laboratoire[] }) {
     if (!groups[letter]) groups[letter] = []
     groups[letter].push(l)
   }
-  const letters = Object.keys(groups).sort()
+  const letters = Object.keys(groups).sort((a, b) => a.localeCompare(b))
 
   return (
     <div className="space-y-6">
