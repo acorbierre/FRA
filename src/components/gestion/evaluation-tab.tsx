@@ -56,7 +56,7 @@ export default function EvaluationTab({ candidatureId, reviewers, evaluations, n
         <div className="space-y-2">
           {[eval1, eval2].map((e, i) => {
             if (!e) return (
-              <div key={i} className="rounded-lg border border-dashed border-border p-3 text-xs text-muted-foreground">
+              <div key={`slot-${i + 1}`} className="rounded-lg border border-dashed border-border p-3 text-xs text-muted-foreground">
                 Examinateur {i + 1} non assigné
               </div>
             )

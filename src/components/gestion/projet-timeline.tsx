@@ -96,13 +96,13 @@ export default function ProjetTimeline({
       {/* Marqueurs rapports */}
       {rapports.length > 0 && ready && (
         <div className="relative h-5">
-          {rapports.map((r, i) => {
+          {rapports.map((r) => {
             if (!r.date) return null
             const left = pct(r.date, start, total)
             const isLate = r.statut === 'Attendu' && new Date(r.date) < new Date()
             return (
               <div
-                key={i}
+                key={r.reference}
                 className="absolute -translate-x-1/2 group/rmark"
                 style={{ left: `${left}%` }}
               >
@@ -137,13 +137,13 @@ export default function ProjetTimeline({
           />
         )}
         {/* Marqueurs versements sur la barre */}
-        {versements.map((v, i) => {
+        {versements.map((v) => {
           const dateStr = v.dateRealisee ?? v.datePrevue
           if (!dateStr || !ready) return null
           const left = pct(dateStr, start, total)
           return (
             <div
-              key={i}
+              key={`bar-${v.id}`}
               className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2"
               style={{ left: `${left}%` }}
             />
@@ -154,14 +154,14 @@ export default function ProjetTimeline({
       {/* Marqueurs versements */}
       {versements.length > 0 && ready && (
         <div className="relative h-5">
-          {versements.map((v, i) => {
+          {versements.map((v) => {
             const dateStr = v.datePrevue
             if (!dateStr) return null
             const left = pct(dateStr, start, total)
             const done = v.statut === 'Réalisé'
             return (
               <div
-                key={i}
+                key={v.id}
                 className="absolute -translate-x-1/2 group/vmark"
                 style={{ left: `${left}%` }}
               >

@@ -135,7 +135,7 @@ export default function CandidatureForm({ candidatureId, defaultValues }: Props)
       {/* Step indicator */}
       <div className="flex items-center gap-0">
         {STEPS.map((label, i) => (
-          <div key={i} className="flex items-center">
+          <div key={label} className="flex items-center">
             <div className="flex items-center gap-2">
               <div className={[
                 'size-7 rounded-full flex items-center justify-center text-xs font-semibold border-2 transition-colors',

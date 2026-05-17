@@ -70,9 +70,9 @@ export default function WeekCalendar({ weekDays, todayStr, events, moreHref }: P
 
                 {/* Events */}
                 <div className="flex flex-col gap-1">
-                  {dayEvents.map((e, i) => (
+                  {dayEvents.map((e) => (
                     <span
-                      key={i}
+                      key={e.label}
                       className={cn(
                         'text-[10px] leading-tight px-1.5 py-1 rounded font-medium break-words',
                         TYPE_STYLES[e.type]

@@ -13,7 +13,7 @@ function parseContent(text: string): React.ReactNode[] {
       const [, href, label] = match
       return (
         <Link
-          key={i}
+          key={href}
           href={href}
           className="inline-flex items-center gap-1 mx-1 px-2 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-medium hover:bg-primary/20 transition-colors"
           target="_blank"
@@ -38,7 +38,7 @@ function AssistantMessage({ content }: { content: string }) {
   return (
     <div className="space-y-3 text-sm leading-relaxed text-foreground">
       {paragraphs.map((p, i) => (
-        <p key={i}>{parseContent(p)}</p>
+        <p key={`para-${i}`}>{parseContent(p)}</p>
       ))}
     </div>
   )
@@ -118,7 +118,7 @@ export default function ChatInterface() {
           )}
 
           {messages.map((m, i) => (
-            <div key={i} className={m.role === 'user' ? 'flex justify-end' : ''}>
+            <div key={`msg-${i}`} className={m.role === 'user' ? 'flex justify-end' : ''}>
               {m.role === 'user' ? (
                 <div className="max-w-md rounded-2xl bg-zinc-200 px-5 py-3.5 text-sm leading-relaxed text-foreground">
                   {m.content}
@@ -137,7 +137,7 @@ export default function ChatInterface() {
             <div className="flex gap-1">
               {[0, 1, 2].map(i => (
                 <span
-                  key={i}
+                  key={`dot-${i}`}
                   className="size-1.5 rounded-full bg-muted-foreground/40 animate-bounce"
                   style={{ animationDelay: `${i * 0.15}s` }}
                 />

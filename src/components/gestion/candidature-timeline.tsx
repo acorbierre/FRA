@@ -62,7 +62,7 @@ export default function CandidatureTimeline({ statut, dateSoumission }: Props) {
 
           return (
             <div
-              key={i}
+              key={stage.label}
               className={`flex flex-col ${isFirst ? 'items-start' : isLast ? 'items-end' : 'items-center'}`}
             >
               <div className={dotClass} />

@@ -60,9 +60,9 @@ export default function DonutChart({ data }: Props) {
     <div className="flex items-center gap-8">
       <div className="relative shrink-0" style={{ width: 180, height: 180 }}>
         <svg viewBox="0 0 180 180" width={180} height={180}>
-          {segments.map((seg, i) => (
+          {segments.map((seg) => (
             <path
-              key={i}
+              key={seg.label}
               d={seg.path}
               fill={seg.color}
               opacity={hovered === null || hovered === i ? 1 : 0.4}
@@ -90,7 +90,7 @@ export default function DonutChart({ data }: Props) {
       <ul className="space-y-2 min-w-0">
         {segments.map((seg, i) => (
           <li
-            key={i}
+            key={seg.label}
             className="flex items-center gap-2 text-sm cursor-default"
             onMouseEnter={() => setHovered(i)}
             onMouseLeave={() => setHovered(null)}
