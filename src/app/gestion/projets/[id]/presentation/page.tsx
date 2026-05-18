@@ -58,11 +58,13 @@ export default async function ProjetPresentationPage({ params }: { params: Promi
         </div>
       </div>
 
-      {/* Résumé */}
-      {candidature?.resume && (
+      {/* Description / résumé */}
+      {(projet.description || candidature?.resume) && (
         <div>
           <h2 className="text-base font-semibold mb-2">À propos de ce projet</h2>
-          <p className="text-sm text-muted-foreground leading-relaxed">{candidature.resume}</p>
+          <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">
+            {projet.description ?? candidature?.resume}
+          </p>
         </div>
       )}
 

@@ -96,7 +96,7 @@ export default function ProjetsListe({ projets, projetColors, projetLabels, them
             <span className={`absolute top-0.5 left-0.5 size-4 rounded-full bg-white shadow transition-transform ${internat ? 'translate-x-4' : ''}`} />
           </div>
           <Globe className="size-3.5 text-muted-foreground" />
-          <span className="text-muted-foreground">Dim. internationale</span>
+          <span className="text-muted-foreground">International</span>
         </label>
 
         {hasFilters && (
@@ -157,12 +157,6 @@ export default function ProjetsListe({ projets, projetColors, projetLabels, them
                   {p.ville && <span className="ml-2">· {p.ville}</span>}
                 </p>
               </div>
-
-              {p.description && (
-                <p className="text-xs text-muted-foreground line-clamp-3 leading-relaxed">
-                  {p.description}
-                </p>
-              )}
 
               <div className="mt-auto pt-1">
                 <ProjetTimeline
