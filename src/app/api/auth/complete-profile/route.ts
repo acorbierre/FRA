@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth, clerkClient } from '@clerk/nextjs/server'
-import { createChercheur, getChercheurByEmail } from '@/services/neon'
+import { createChercheur, getChercheurByEmail, updateChercheur } from '@/services/neon'
 
 export async function POST(request: NextRequest) {
   try {
@@ -17,13 +17,20 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Email introuvable.' }, { status: 400 })
     }
 
-    // Prevent duplicate profile
+    const { prenom, nom, telephone, laboratoire, bio } = await request.json()
+
     const existing = await getChercheurByEmail(email)
     if (existing) {
+      // User pre-created by admin — update with completed profile
+      await updateChercheur(existing.id, {
+        prenom: prenom.trim(),
+        nom: nom.trim(),
+        telephone: telephone?.trim(),
+        laboratoire: laboratoire?.trim(),
+        bio: bio?.trim(),
+      })
       return NextResponse.json({ chercheurId: existing.id })
     }
-
-    const { prenom, nom, telephone, laboratoire, bio } = await request.json()
 
     const chercheur = await createChercheur({
       prenom: prenom.trim(),

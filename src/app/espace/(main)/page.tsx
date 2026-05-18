@@ -15,7 +15,7 @@ export default async function EspacePage() {
   const clerkUser = await client.users.getUser(userId)
   const email = clerkUser.emailAddresses[0]?.emailAddress
   const chercheur = email ? await getChercheurByEmail(email) : null
-  if (!chercheur) redirect('/espace/profil/completer')
+  if (!chercheur || !chercheur.laboratoireDeclaratif) redirect('/espace/profil/completer')
 
   const [candidatures, settings] = await Promise.all([
     chercheur ? getCandidaturesByChercheur(chercheur.id) : Promise.resolve([]),
