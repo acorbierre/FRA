@@ -18,7 +18,7 @@ export default async function EspaceLayout({ children }: { children: React.React
     const email = clerkUser.emailAddresses[0]?.emailAddress
     if (email) {
       const chercheur = await getChercheurByEmail(email)
-      if (chercheur) {
+      if (chercheur && chercheur.laboratoireDeclaratif) {
         prenom = chercheur.prenom
         const candidatures = await getCandidaturesByChercheur(chercheur.id)
         hasCandidature = candidatures.length > 0
