@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Search, Microscope, Globe } from 'lucide-react'
+import { Search, Microscope, Globe, Check, Presentation, X, Loader2 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import ProjetTimeline from '@/components/gestion/projet-timeline'
 import type { Projet } from '@/types'
@@ -25,6 +25,39 @@ export default function ProjetsListe({ projets, projetColors, projetLabels, them
   const [villeQuery, setVilleQuery]     = useState('')
   const [statut, setStatut]             = useState('')
   const [internat, setInternat]         = useState(false)
+  const [selected, setSelected]         = useState<Set<string>>(new Set())
+  const [exporting, setExporting]       = useState(false)
+
+  function toggleSelect(id: string, e: React.MouseEvent) {
+    e.preventDefault()
+    e.stopPropagation()
+    setSelected(prev => {
+      const next = new Set(prev)
+      next.has(id) ? next.delete(id) : next.add(id)
+      return next
+    })
+  }
+
+  async function handleExport() {
+    setExporting(true)
+    try {
+      const res = await fetch('/api/gestion/export/ppt', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids: [...selected] }),
+      })
+      if (!res.ok) throw new Error()
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `projets-fra-${Date.now()}.pptx`
+      a.click()
+      URL.revokeObjectURL(url)
+    } finally {
+      setExporting(false)
+    }
+  }
 
   const annees = [...new Set(projets.map(p => p.anneeSelection).filter(Boolean))].sort((a, b) => b! - a!) as number[]
   const villes = [...new Set(projets.map(p => p.ville).filter(Boolean))].sort() as string[]
@@ -116,60 +149,98 @@ export default function ProjetsListe({ projets, projetColors, projetLabels, them
       )}
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {filtered.map(p => (
-          <Link
-            key={p.id}
-            href={`/gestion/projets/${p.id}/presentation`}
-            className="group flex flex-col rounded-xl bg-background overflow-hidden shadow-[0_0_14px_rgba(0,0,0,0.07)]"
-          >
-            {/* Photo */}
-            <div className="relative h-40 bg-muted shrink-0 overflow-hidden">
-              {p.photo?.[0]?.url ? (
-                <Image
-                  src={p.photo[0].url}
-                  alt={p.titre}
-                  fill
-                  className="object-cover group-hover:scale-105 transition-transform duration-300"
-                />
-              ) : (
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <Microscope className="size-10 text-muted-foreground/30" />
+        {filtered.map(p => {
+          const isSelected = selected.has(p.id)
+          return (
+            <div key={p.id} className={`relative rounded-xl transition-shadow ${isSelected ? 'ring-2 ring-primary shadow-[0_0_0_4px_oklch(0.82_0.08_303/0.15)]' : 'shadow-[0_0_14px_rgba(0,0,0,0.07)]'}`}>
+              {/* Checkbox */}
+              <button
+                onClick={e => toggleSelect(p.id, e)}
+                className={`absolute top-2.5 left-2.5 z-10 size-6 rounded-full border-2 flex items-center justify-center transition-all ${
+                  isSelected
+                    ? 'bg-primary border-primary text-white'
+                    : 'bg-white/80 border-white/80 backdrop-blur-sm hover:border-primary/60'
+                }`}
+              >
+                {isSelected && <Check className="size-3.5" strokeWidth={3} />}
+              </button>
+
+              <Link
+                href={`/gestion/projets/${p.id}/presentation`}
+                className="group flex flex-col rounded-xl bg-background overflow-hidden"
+              >
+                {/* Photo */}
+                <div className="relative h-40 bg-muted shrink-0 overflow-hidden rounded-t-xl">
+                  {p.photo?.[0]?.url ? (
+                    <Image
+                      src={p.photo[0].url}
+                      alt={p.titre}
+                      fill
+                      className="object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                  ) : (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <Microscope className="size-10 text-muted-foreground/30" />
+                    </div>
+                  )}
+                  <span className={`absolute top-2.5 right-2.5 rounded-full px-2.5 py-0.5 text-xs font-medium ${projetColors[p.statut] ?? 'bg-zinc-100 text-zinc-700'}`}>
+                    {projetLabels[p.statut] ?? p.statut}
+                  </span>
+                  {p.dimensionInternationale && (
+                    <span className="absolute bottom-2.5 left-2.5 rounded-full bg-black/40 backdrop-blur-sm px-2 py-0.5 text-xs text-white flex items-center gap-1">
+                      <Globe className="size-3" /> International
+                    </span>
+                  )}
                 </div>
-              )}
-              <span className={`absolute top-3 right-3 rounded-full px-2.5 py-0.5 text-xs font-medium ${projetColors[p.statut] ?? 'bg-zinc-100 text-zinc-700'}`}>
-                {projetLabels[p.statut] ?? p.statut}
-              </span>
-              {p.dimensionInternationale && (
-                <span className="absolute top-3 left-3 rounded-full bg-black/40 backdrop-blur-sm px-2 py-0.5 text-xs text-white flex items-center gap-1">
-                  <Globe className="size-3" /> International
-                </span>
-              )}
-            </div>
 
-            {/* Contenu */}
-            <div className="flex flex-col flex-1 p-4 space-y-2">
-              <div>
-                <p className="font-heading text-base font-medium leading-snug line-clamp-2">
-                  {p.titre}
-                </p>
-                <p className="text-xs text-muted-foreground mt-1 tabular-nums">
-                  {(p.montantAccorde ?? 0).toLocaleString('fr-FR')} €
-                  {p.ville && <span className="ml-2">· {p.ville}</span>}
-                </p>
-              </div>
-
-              <div className="mt-auto pt-1">
-                <ProjetTimeline
-                  dateDebut={p.dateDebut}
-                  dateFinPrevue={p.dateFinPrevue}
-                  dateFinReelle={p.dateFinReelle}
-                  statut={p.statut}
-                />
-              </div>
+                {/* Contenu */}
+                <div className="flex flex-col flex-1 p-4 space-y-2">
+                  <div>
+                    <p className="font-heading text-base font-medium leading-snug line-clamp-2">{p.titre}</p>
+                    <p className="text-xs text-muted-foreground mt-1 tabular-nums">
+                      {(p.montantAccorde ?? 0).toLocaleString('fr-FR')} €
+                      {p.ville && <span className="ml-2">· {p.ville}</span>}
+                    </p>
+                  </div>
+                  <div className="mt-auto pt-1">
+                    <ProjetTimeline
+                      dateDebut={p.dateDebut}
+                      dateFinPrevue={p.dateFinPrevue}
+                      dateFinReelle={p.dateFinReelle}
+                      statut={p.statut}
+                    />
+                  </div>
+                </div>
+              </Link>
             </div>
-          </Link>
-        ))}
+          )
+        })}
       </div>
+
+      {/* Barre sticky */}
+      {selected.size > 0 && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-5 py-3 rounded-2xl bg-foreground text-background shadow-2xl">
+          <span className="text-sm font-medium">
+            {selected.size} projet{selected.size > 1 ? 's' : ''} sélectionné{selected.size > 1 ? 's' : ''}
+          </span>
+          <button
+            onClick={() => setSelected(new Set())}
+            className="text-background/60 hover:text-background transition-colors"
+            title="Désélectionner tout"
+          >
+            <X className="size-4" />
+          </button>
+          <div className="w-px h-4 bg-background/20" />
+          <button
+            onClick={handleExport}
+            disabled={exporting}
+            className="flex items-center gap-2 px-4 py-1.5 rounded-xl bg-primary text-white text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-60"
+          >
+            {exporting ? <Loader2 className="size-4 animate-spin" /> : <Presentation className="size-4" />}
+            {exporting ? 'Génération…' : 'Exporter en PPT'}
+          </button>
+        </div>
+      )}
     </div>
   )
 }
