@@ -152,14 +152,14 @@ export default function ProjetsListe({ projets, projetColors, projetLabels, them
         {filtered.map(p => {
           const isSelected = selected.has(p.id)
           return (
-            <div key={p.id} className={`relative rounded-xl transition-shadow ${isSelected ? 'ring-2 ring-primary shadow-[0_0_0_4px_oklch(0.82_0.08_303/0.15)]' : 'shadow-[0_0_14px_rgba(0,0,0,0.07)]'}`}>
+            <div key={p.id} className={`relative rounded-xl transition-all ${isSelected ? 'ring-2 ring-primary/25 shadow-[0_0_14px_rgba(0,0,0,0.07)]' : 'shadow-[0_0_14px_rgba(0,0,0,0.07)]'}`}>
               {/* Checkbox */}
               <button
                 onClick={e => toggleSelect(p.id, e)}
-                className={`absolute top-2.5 left-2.5 z-10 size-6 rounded-full border-2 flex items-center justify-center transition-all ${
+                className={`absolute top-2.5 left-2.5 z-10 size-6 rounded border-2 flex items-center justify-center transition-all cursor-pointer ${
                   isSelected
                     ? 'bg-primary border-primary text-white'
-                    : 'bg-white/80 border-white/80 backdrop-blur-sm hover:border-primary/60'
+                    : 'bg-white/90 border-zinc-300 hover:border-primary/60'
                 }`}
               >
                 {isSelected && <Check className="size-3.5" strokeWidth={3} />}
@@ -219,22 +219,22 @@ export default function ProjetsListe({ projets, projetColors, projetLabels, them
 
       {/* Barre sticky */}
       {selected.size > 0 && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-5 py-3 rounded-2xl bg-foreground text-background shadow-2xl">
-          <span className="text-sm font-medium">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-5 py-3 rounded-xl bg-background shadow-[0_8px_32px_rgba(0,0,0,0.16)]">
+          <span className="text-sm font-medium text-foreground">
             {selected.size} projet{selected.size > 1 ? 's' : ''} sélectionné{selected.size > 1 ? 's' : ''}
           </span>
           <button
             onClick={() => setSelected(new Set())}
-            className="text-background/60 hover:text-background transition-colors"
+            className="text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
             title="Désélectionner tout"
           >
             <X className="size-4" />
           </button>
-          <div className="w-px h-4 bg-background/20" />
+          <div className="w-px h-4 bg-border" />
           <button
             onClick={handleExport}
             disabled={exporting}
-            className="flex items-center gap-2 px-4 py-1.5 rounded-xl bg-primary text-white text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-60"
+            className="flex items-center gap-2 px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 cursor-pointer"
           >
             {exporting ? <Loader2 className="size-4 animate-spin" /> : <Presentation className="size-4" />}
             {exporting ? 'Génération…' : 'Exporter en PPT'}
