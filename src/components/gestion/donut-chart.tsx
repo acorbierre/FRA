@@ -60,7 +60,7 @@ export default function DonutChart({ data }: Props) {
     <div className="flex items-center gap-8">
       <div className="relative shrink-0" style={{ width: 180, height: 180 }}>
         <svg viewBox="0 0 180 180" width={180} height={180}>
-          {segments.map((seg) => (
+          {segments.map((seg, i) => (
             <path
               key={seg.label}
               d={seg.path}
