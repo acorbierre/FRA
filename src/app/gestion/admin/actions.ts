@@ -3,7 +3,7 @@
 import { auth, clerkClient } from '@clerk/nextjs/server'
 import { getChercheurByEmail } from '@/services/neon/chercheurs'
 import { updateSetting, type AppSettings } from '@/services/neon/settings'
-import { createThematique, deleteThematique, getThematiques, type Thematique } from '@/services/neon/thematiques'
+import { createThematique, deleteThematique, getThematiques, updateThematiqueLabel, type Thematique } from '@/services/neon/thematiques'
 import { revalidatePath } from 'next/cache'
 
 async function assertAdmin() {
@@ -20,6 +20,13 @@ async function assertAdmin() {
 export async function addThematiqueAction(label: string): Promise<Thematique[]> {
   await assertAdmin()
   await createThematique(label)
+  revalidatePath('/gestion', 'layout')
+  return getThematiques()
+}
+
+export async function updateThematiqueLabelAction(id: number, label: string): Promise<Thematique[]> {
+  await assertAdmin()
+  await updateThematiqueLabel(id, label)
   revalidatePath('/gestion', 'layout')
   return getThematiques()
 }
