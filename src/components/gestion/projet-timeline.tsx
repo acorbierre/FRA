@@ -143,7 +143,7 @@ export default function ProjetTimeline({
           const left = pct(dateStr, start, total)
           return (
             <div
-              key={`bar-${v.id}`}
+              key={`bar-${v.datePrevue ?? i}`}
               className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2"
               style={{ left: `${left}%` }}
             />
@@ -154,14 +154,14 @@ export default function ProjetTimeline({
       {/* Marqueurs versements */}
       {versements.length > 0 && ready && (
         <div className="relative h-5">
-          {versements.map((v) => {
+          {versements.map((v, i) => {
             const dateStr = v.datePrevue
             if (!dateStr) return null
             const left = pct(dateStr, start, total)
             const done = v.statut === 'Réalisé'
             return (
               <div
-                key={v.id}
+                key={v.datePrevue ?? i}
                 className="absolute -translate-x-1/2 group/vmark"
                 style={{ left: `${left}%` }}
               >
