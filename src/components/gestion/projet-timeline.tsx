@@ -137,7 +137,7 @@ export default function ProjetTimeline({
           />
         )}
         {/* Marqueurs versements sur la barre */}
-        {versements.map((v) => {
+        {versements.map((v, i) => {
           const dateStr = v.dateRealisee ?? v.datePrevue
           if (!dateStr || !ready) return null
           const left = pct(dateStr, start, total)
