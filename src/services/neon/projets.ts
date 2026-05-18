@@ -18,6 +18,9 @@ const ProjetSchema = z.object({
   candidature_id:           z.string().nullish(),
   photo:                    z.array(z.object({ url: z.string() })).nullish(),
   titre_court:              z.string().nullish(),
+  description:              z.string().nullish(),
+  ville:                    z.string().nullish(),
+  annee_selection:          z.coerce.number().nullish(),
 })
 
 const SELECT_WITH_THEMATIQUE = sql`
@@ -43,6 +46,9 @@ function mapRow(r: Record<string, unknown>): Projet {
     candidatureId:           row.candidature_id ?? undefined,
     photo:                   row.photo ?? undefined,
     titreCourt:              row.titre_court ?? undefined,
+    description:             row.description ?? undefined,
+    ville:                   row.ville ?? undefined,
+    anneeSelection:          row.annee_selection ?? undefined,
   }
 }
 

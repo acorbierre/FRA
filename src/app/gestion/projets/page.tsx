@@ -1,9 +1,12 @@
 import { getProjets } from '@/services/neon'
 import { getAppSettings } from '@/services/neon/settings'
+import { getThematiques } from '@/services/neon/thematiques'
 import ProjetsListe from './projets-list'
 
 export default async function ProjetsPage() {
-  const [projets, settings] = await Promise.all([getProjets(), getAppSettings()])
+  const [projets, settings, thematiques] = await Promise.all([
+    getProjets(), getAppSettings(), getThematiques(),
+  ])
 
   return (
     <div className="max-w-5xl space-y-6">
@@ -16,6 +19,7 @@ export default async function ProjetsPage() {
         projets={projets}
         projetColors={settings.projet_colors}
         projetLabels={settings.projet_labels}
+        thematiques={thematiques}
       />
     </div>
   )

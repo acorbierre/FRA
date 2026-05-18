@@ -88,6 +88,9 @@ export interface Projet {
   candidatureId?: string
   photo?: { url: string }[]
   titreCourt?: string
+  description?: string
+  ville?: string
+  anneeSelection?: number
 }
 
 export interface Convention {
