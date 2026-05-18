@@ -125,10 +125,7 @@ export default function AppearancePanel({ settings, section }: Props) {
       {/* Candidatures */}
       {(!section || section === 'candidatures') && <section className="space-y-3">
         <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-sm font-semibold">Statuts — Candidatures</h2>
-            <p className="text-xs text-muted-foreground mt-0.5">Libellés affichés selon le contexte et couleur du badge</p>
-          </div>
+          <p className="text-xs text-muted-foreground">Libellés affichés selon le contexte et couleur du badge</p>
           <button
             onClick={saveCandidatures}
             disabled={isPending}
@@ -188,10 +185,7 @@ export default function AppearancePanel({ settings, section }: Props) {
       {/* Projets */}
       {(!section || section === 'projets') && <section className="space-y-3">
         <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-sm font-semibold">Statuts — Projets</h2>
-            <p className="text-xs text-muted-foreground mt-0.5">Libellé et couleur du badge dans l'espace gestion</p>
-          </div>
+          <p className="text-xs text-muted-foreground">Libellé et couleur du badge dans l'espace gestion</p>
           <button
             onClick={saveProjets}
             disabled={isPending}

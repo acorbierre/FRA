@@ -6,7 +6,7 @@ import type { Thematique } from '@/services/neon/thematiques'
 import ThematiquesPanel from './thematiques-panel'
 import AppearancePanel from './appearance-panel'
 
-const SUBTABS = ['Thématiques', 'Statuts candidatures', 'Statuts projets'] as const
+const SUBTABS = ['Thématiques de recherche', 'Statuts candidatures', 'Statuts projets'] as const
 type SubTab = typeof SUBTABS[number]
 
 interface Props {
@@ -15,19 +15,17 @@ interface Props {
 }
 
 export default function AppelsPanel({ settings, thematiques }: Props) {
-  const [subtab, setSubtab] = useState<SubTab>('Thématiques')
+  const [subtab, setSubtab] = useState<SubTab>('Thématiques de recherche')
 
   return (
     <div className="space-y-6">
-      <div className="flex gap-4 border-b border-border">
+      <div className="flex gap-1 p-1 bg-muted rounded-lg w-fit">
         {SUBTABS.map(t => (
           <button
             key={t}
             onClick={() => setSubtab(t)}
-            className={`pb-2 text-xs font-medium transition-colors cursor-pointer border-b-2 -mb-px ${
-              subtab === t
-                ? 'border-primary text-foreground'
-                : 'border-transparent text-muted-foreground hover:text-foreground'
+            className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors cursor-pointer ${
+              subtab === t ? 'bg-white text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
             }`}
           >
             {t}
@@ -35,7 +33,7 @@ export default function AppelsPanel({ settings, thematiques }: Props) {
         ))}
       </div>
 
-      {subtab === 'Thématiques' && <ThematiquesPanel thematiques={thematiques} />}
+      {subtab === 'Thématiques de recherche' && <ThematiquesPanel thematiques={thematiques} />}
       {subtab === 'Statuts candidatures' && <AppearancePanel settings={settings} section="candidatures" />}
       {subtab === 'Statuts projets' && <AppearancePanel settings={settings} section="projets" />}
     </div>
