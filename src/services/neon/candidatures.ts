@@ -6,7 +6,8 @@ import type { Candidature } from '@/types'
 const CandidatureSchema = z.object({
   id:               z.string(),
   titre:            z.string().nullish(),
-  thematique:       z.string().nullish(),
+  thematique_id:    z.coerce.number().nullish(),
+  thematique_label: z.string().nullish(),
   resume:           z.string().nullish(),
   description:      z.string().nullish(),
   budget_demande:   z.coerce.number().nullish(),
@@ -19,12 +20,19 @@ const CandidatureSchema = z.object({
   appel_a_projet_id: z.string().nullish(),
 })
 
+const SELECT_WITH_THEMATIQUE = sql`
+  SELECT c.*, t.label AS thematique_label
+  FROM candidatures c
+  LEFT JOIN thematiques t ON c.thematique_id = t.id
+`
+
 function mapRow(r: Record<string, unknown>): Candidature {
   const row = CandidatureSchema.parse(r)
   return {
     id:             row.id,
     titre:          row.titre ?? '',
-    thematique:     row.thematique ?? '',
+    thematique:     row.thematique_label ?? '',
+    thematiqueId:   row.thematique_id ?? undefined,
     resume:         row.resume ?? '',
     description:    row.description ?? '',
     budgetDemande:  row.budget_demande ?? 0,
@@ -39,12 +47,12 @@ function mapRow(r: Record<string, unknown>): Candidature {
 }
 
 export async function getCandidaturesByChercheur(chercheurId: string): Promise<Candidature[]> {
-  const rows = await sql`SELECT * FROM candidatures WHERE chercheur_id = ${chercheurId}`
+  const rows = await sql`${SELECT_WITH_THEMATIQUE} WHERE c.chercheur_id = ${chercheurId}`
   return rows.map(mapRow)
 }
 
 export async function getCandidatureById(id: string): Promise<Candidature> {
-  const rows = await sql`SELECT * FROM candidatures WHERE id = ${id}`
+  const rows = await sql`${SELECT_WITH_THEMATIQUE} WHERE c.id = ${id}`
   if (!rows[0]) throw new Error(`Candidature ${id} not found`)
   return mapRow(rows[0])
 }
@@ -55,23 +63,20 @@ export async function countCandidaturesRecues(): Promise<number> {
 }
 
 export async function getAllCandidatures(): Promise<Candidature[]> {
-  const rows = await sql`SELECT * FROM candidatures ORDER BY created_at DESC`
+  const rows = await sql`${SELECT_WITH_THEMATIQUE} ORDER BY c.created_at DESC`
   return rows.map(mapRow)
 }
 
 export async function createBrouillonCandidature(chercheurId: string): Promise<Candidature> {
   const id = crypto.randomUUID()
-  const rows = await sql`
-    INSERT INTO candidatures (id, statut, chercheur_id)
-    VALUES (${id}, 'Brouillon', ${chercheurId})
-    RETURNING *
-  `
+  await sql`INSERT INTO candidatures (id, statut, chercheur_id) VALUES (${id}, 'Brouillon', ${chercheurId})`
+  const rows = await sql`${SELECT_WITH_THEMATIQUE} WHERE c.id = ${id}`
   return mapRow(rows[0])
 }
 
 export async function createCandidature(data: {
   titre: string
-  thematique: string
+  thematiqueId: number
   resume: string
   description: string
   budgetDemande: number
@@ -81,16 +86,15 @@ export async function createCandidature(data: {
   appelAProjetId?: string
 }): Promise<Candidature> {
   const id = crypto.randomUUID()
-  const rows = await sql`
-    INSERT INTO candidatures (id, titre, thematique, resume, description, budget_demande, duree_mois, partenaires, statut, chercheur_id, appel_a_projet_id)
+  await sql`
+    INSERT INTO candidatures (id, titre, thematique_id, resume, description, budget_demande, duree_mois, partenaires, statut, chercheur_id, appel_a_projet_id)
     VALUES (
-      ${id}, ${data.titre}, ${data.thematique}, ${data.resume}, ${data.description},
+      ${id}, ${data.titre}, ${data.thematiqueId}, ${data.resume}, ${data.description},
       ${data.budgetDemande}, ${data.dureeMois}, ${data.partenaires ?? null},
-      'Soumise', ${data.chercheurId},
-      ${data.appelAProjetId ?? null}
+      'Soumise', ${data.chercheurId}, ${data.appelAProjetId ?? null}
     )
-    RETURNING *
   `
+  const rows = await sql`${SELECT_WITH_THEMATIQUE} WHERE c.id = ${id}`
   return mapRow(rows[0])
 }
 
@@ -102,14 +106,14 @@ export async function updateCandidature(
   id: string,
   data: Partial<Omit<Candidature, 'id'>>
 ): Promise<Candidature> {
-  const rows = await sql`SELECT * FROM candidatures WHERE id = ${id}`
+  const rows = await sql`${SELECT_WITH_THEMATIQUE} WHERE c.id = ${id}`
   if (!rows[0]) throw new Error(`Candidature ${id} not found`)
   const c = mapRow(rows[0])
 
-  const updated = await sql`
+  await sql`
     UPDATE candidatures SET
       titre          = ${data.titre          ?? c.titre},
-      thematique     = ${data.thematique     ?? c.thematique},
+      thematique_id  = ${data.thematiqueId   ?? c.thematiqueId ?? null},
       resume         = ${data.resume         ?? c.resume},
       description    = ${data.description    ?? c.description},
       budget_demande = ${data.budgetDemande  ?? c.budgetDemande},
@@ -118,7 +122,7 @@ export async function updateCandidature(
       statut         = ${data.statut         ?? c.statut},
       date_soumission= ${data.dateSoumission ?? c.dateSoumission ?? null}
     WHERE id = ${id}
-    RETURNING *
   `
+  const updated = await sql`${SELECT_WITH_THEMATIQUE} WHERE c.id = ${id}`
   return mapRow(updated[0])
 }

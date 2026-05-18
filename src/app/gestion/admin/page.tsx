@@ -1,6 +1,7 @@
 import { auth, clerkClient } from '@clerk/nextjs/server'
 import { getAllChercheurs } from '@/services/neon/chercheurs'
 import { getAppSettings } from '@/services/neon/settings'
+import { getThematiques } from '@/services/neon/thematiques'
 import UsersPanel from './users-panel'
 import AdminTabs from './admin-tabs'
 
@@ -10,9 +11,10 @@ export default async function AdminPage() {
   const clerkUser = userId ? await client.users.getUser(userId) : null
   const currentUserEmail = clerkUser?.emailAddresses[0]?.emailAddress ?? ''
 
-  const [users, settings] = await Promise.all([
+  const [users, settings, thematiques] = await Promise.all([
     getAllChercheurs(),
     getAppSettings(),
+    getThematiques(),
   ])
 
   // Check which users already have a Clerk account
@@ -33,6 +35,7 @@ export default async function AdminPage() {
       <AdminTabs
         usersPanel={<UsersPanel users={users} currentUserEmail={currentUserEmail} registeredEmails={registeredEmails} />}
         settings={settings}
+        thematiques={thematiques}
       />
     </div>
   )

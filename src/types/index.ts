@@ -60,6 +60,7 @@ export interface Candidature {
   id: string
   titre: string
   thematique: string
+  thematiqueId?: number
   resume: string
   description: string
   budgetDemande: number
@@ -75,6 +76,8 @@ export interface Candidature {
 export interface Projet {
   id: string
   titre: string
+  thematique?: string
+  thematiqueId?: number
   dateDebut?: string
   dateFinPrevue?: string
   dateFinReelle?: string

@@ -75,9 +75,12 @@ function ColorPicker({
   )
 }
 
-interface Props { settings: AppSettings }
+interface Props {
+  settings: AppSettings
+  section?: 'candidatures' | 'projets'
+}
 
-export default function AppearancePanel({ settings }: Props) {
+export default function AppearancePanel({ settings, section }: Props) {
   const [colors, setColors] = useState({ ...settings.statut_colors })
   const [labels, setLabels] = useState({ ...settings.statut_labels })
   const [labelsGestion, setLabelsGestion] = useState({ ...settings.statut_labels_gestion })
@@ -120,7 +123,7 @@ export default function AppearancePanel({ settings }: Props) {
     <div className="space-y-8">
 
       {/* Candidatures */}
-      <section className="space-y-3">
+      {(!section || section === 'candidatures') && <section className="space-y-3">
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-sm font-semibold">Statuts — Candidatures</h2>
@@ -180,10 +183,10 @@ export default function AppearancePanel({ settings }: Props) {
             </table>
           </CardContent>
         </Card>
-      </section>
+      </section>}
 
       {/* Projets */}
-      <section className="space-y-3">
+      {(!section || section === 'projets') && <section className="space-y-3">
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-sm font-semibold">Statuts — Projets</h2>
@@ -231,7 +234,7 @@ export default function AppearancePanel({ settings }: Props) {
             </table>
           </CardContent>
         </Card>
-      </section>
+      </section>}
 
       {toast && (
         <div className={`fixed bottom-6 right-6 flex items-center gap-2 px-4 py-3 rounded-lg shadow-lg text-sm font-medium z-50 ${

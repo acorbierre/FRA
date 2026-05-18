@@ -15,15 +15,15 @@ export async function POST(req: Request) {
     const chercheurId = chercheur.id
 
     const body = await req.json()
-    const { titre, thematique, resume, description, budgetDemande, dureeMois, partenaires } = body
+    const { titre, thematiqueId, resume, description, budgetDemande, dureeMois, partenaires } = body
 
-    if (!titre || !thematique || !resume || !description || !budgetDemande || !dureeMois) {
+    if (!titre || !thematiqueId || !resume || !description || !budgetDemande || !dureeMois) {
       return NextResponse.json({ error: 'Champs obligatoires manquants' }, { status: 400 })
     }
 
     const candidature = await createCandidature({
       titre,
-      thematique,
+      thematiqueId: Number(thematiqueId),
       resume,
       description,
       budgetDemande: Number(budgetDemande),

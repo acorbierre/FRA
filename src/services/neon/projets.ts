@@ -6,6 +6,8 @@ import type { Projet } from '@/types'
 const ProjetSchema = z.object({
   id:                       z.string(),
   titre:                    z.string(),
+  thematique_id:            z.coerce.number().nullish(),
+  thematique_label:         z.string().nullish(),
   date_debut:               dbDateOpt,
   date_fin_prevue:          dbDateOpt,
   date_fin_reelle:          dbDateOpt,
@@ -18,11 +20,19 @@ const ProjetSchema = z.object({
   titre_court:              z.string().nullish(),
 })
 
+const SELECT_WITH_THEMATIQUE = sql`
+  SELECT p.*, t.label AS thematique_label
+  FROM projets p
+  LEFT JOIN thematiques t ON p.thematique_id = t.id
+`
+
 function mapRow(r: Record<string, unknown>): Projet {
   const row = ProjetSchema.parse(r)
   return {
     id:                      row.id,
     titre:                   row.titre,
+    thematique:              row.thematique_label ?? undefined,
+    thematiqueId:            row.thematique_id ?? undefined,
     dateDebut:               row.date_debut ?? undefined,
     dateFinPrevue:           row.date_fin_prevue ?? undefined,
     dateFinReelle:           row.date_fin_reelle ?? undefined,
@@ -37,12 +47,12 @@ function mapRow(r: Record<string, unknown>): Projet {
 }
 
 export async function getProjets(): Promise<Projet[]> {
-  const rows = await sql`SELECT * FROM projets`
+  const rows = await sql`${SELECT_WITH_THEMATIQUE}`
   return rows.map(mapRow)
 }
 
 export async function getProjetById(id: string): Promise<Projet> {
-  const rows = await sql`SELECT * FROM projets WHERE id = ${id}`
+  const rows = await sql`${SELECT_WITH_THEMATIQUE} WHERE p.id = ${id}`
   if (!rows[0]) throw new Error(`Projet ${id} not found`)
   return mapRow(rows[0])
 }
@@ -52,8 +62,13 @@ export async function updateProjetPhoto(id: string, photoUrl: string): Promise<v
 }
 
 export async function updateProjetStatut(id: string, statut: Projet['statut']): Promise<Projet> {
-  const rows = await sql`UPDATE projets SET statut = ${statut} WHERE id = ${id} RETURNING *`
+  await sql`UPDATE projets SET statut = ${statut} WHERE id = ${id}`
+  const rows = await sql`${SELECT_WITH_THEMATIQUE} WHERE p.id = ${id}`
   return mapRow(rows[0])
+}
+
+export async function updateProjetThematique(id: string, thematiqueId: number | null): Promise<void> {
+  await sql`UPDATE projets SET thematique_id = ${thematiqueId} WHERE id = ${id}`
 }
 
 export async function updateProjetTitreCourt(id: string, titreCourt: string): Promise<void> {

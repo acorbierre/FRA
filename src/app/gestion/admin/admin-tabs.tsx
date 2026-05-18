@@ -2,18 +2,20 @@
 
 import { useState } from 'react'
 import type { AppSettings } from '@/services/neon/settings'
-import AppearancePanel from './appearance-panel'
+import type { Thematique } from '@/services/neon/thematiques'
+import AppelsPanel from './appels-panel'
 import ResourcesPanel from './resources-panel'
 
-const TABS = ['Utilisateurs', 'Apparence', 'Ressources'] as const
+const TABS = ['Utilisateurs', 'Appels à projets', 'Ressources'] as const
 type Tab = typeof TABS[number]
 
 interface Props {
   usersPanel: React.ReactNode
   settings: AppSettings
+  thematiques: Thematique[]
 }
 
-export default function AdminTabs({ usersPanel, settings }: Props) {
+export default function AdminTabs({ usersPanel, settings, thematiques }: Props) {
   const [tab, setTab] = useState<Tab>('Utilisateurs')
 
   return (
@@ -35,7 +37,7 @@ export default function AdminTabs({ usersPanel, settings }: Props) {
       </div>
 
       {tab === 'Utilisateurs' && usersPanel}
-      {tab === 'Apparence' && <AppearancePanel settings={settings} />}
+      {tab === 'Appels à projets' && <AppelsPanel settings={settings} thematiques={thematiques} />}
       {tab === 'Ressources' && <ResourcesPanel />}
     </div>
   )

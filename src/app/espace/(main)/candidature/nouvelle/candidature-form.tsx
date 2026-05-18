@@ -11,21 +11,11 @@ import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { FIELD_LABELS } from '@/lib/config'
 import type { Candidature } from '@/types'
-
-const THEMATIQUES = [
-  'Sciences du vivant',
-  'Santé et médecine',
-  'Sciences humaines et sociales',
-  'Numérique et intelligence artificielle',
-  'Environnement et développement durable',
-  'Énergie et matériaux',
-  'Sciences fondamentales',
-  'Ingénierie et systèmes',
-]
+import type { Thematique } from '@/services/neon/thematiques'
 
 const schema = z.object({
   titre:         z.string().min(3, 'Titre requis (3 caractères minimum)'),
-  thematique:    z.string().min(1, 'Thématique requise'),
+  thematiqueId:  z.coerce.number().min(1, 'Thématique requise'),
   resume:        z.string().min(50, 'Résumé requis (50 caractères minimum)').max(500, '500 caractères maximum'),
   description:   z.string().min(100, 'Description requise (100 caractères minimum)'),
   budgetDemande: z.coerce.number().positive('Budget requis'),
@@ -40,9 +30,10 @@ const STEPS = ['Présentation', 'Détails', 'Récapitulatif']
 interface Props {
   candidatureId: string
   defaultValues?: Partial<Candidature>
+  thematiques: Thematique[]
 }
 
-export default function CandidatureForm({ candidatureId, defaultValues }: Props) {
+export default function CandidatureForm({ candidatureId, defaultValues, thematiques }: Props) {
   const [step, setStep] = useState(0)
   const [serverError, setServerError] = useState('')
   const [saved, setSaved] = useState(false)
@@ -62,7 +53,7 @@ export default function CandidatureForm({ candidatureId, defaultValues }: Props)
     mode: 'onTouched',
     defaultValues: {
       titre:         defaultValues?.titre         ?? '',
-      thematique:    defaultValues?.thematique    ?? '',
+      thematiqueId:  defaultValues?.thematiqueId  ?? 0,
       resume:        defaultValues?.resume        ?? '',
       description:   defaultValues?.description   ?? '',
       budgetDemande: defaultValues?.budgetDemande ?? undefined,
@@ -93,7 +84,7 @@ export default function CandidatureForm({ candidatureId, defaultValues }: Props)
 
   async function goNext() {
     const fields: (keyof FormValues)[] = step === 0
-      ? ['titre', 'thematique', 'resume']
+      ? ['titre', 'thematiqueId', 'resume']
       : ['description', 'budgetDemande', 'dureeMois']
     const valid = await trigger(fields)
     if (valid) {
@@ -181,18 +172,18 @@ export default function CandidatureForm({ candidatureId, defaultValues }: Props)
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label htmlFor="thematique">Domaine de recherche *</Label>
+                  <Label htmlFor="thematiqueId">Domaine de recherche *</Label>
                   <select
-                    id="thematique"
-                    {...register('thematique')}
+                    id="thematiqueId"
+                    {...register('thematiqueId')}
                     className="w-full h-11 rounded-lg border border-input bg-background px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
                   >
-                    <option value="">Sélectionner une thématique…</option>
-                    {THEMATIQUES.map(t => (
-                      <option key={t} value={t}>{t}</option>
+                    <option value={0}>Sélectionner une thématique…</option>
+                    {thematiques.map(t => (
+                      <option key={t.id} value={t.id}>{t.label}</option>
                     ))}
                   </select>
-                  {errors.thematique && <p className="text-xs text-destructive">{errors.thematique.message}</p>}
+                  {errors.thematiqueId && <p className="text-xs text-destructive">{errors.thematiqueId.message}</p>}
                 </div>
 
                 <div className="space-y-1.5">
@@ -281,7 +272,7 @@ export default function CandidatureForm({ candidatureId, defaultValues }: Props)
               <>
                 <div className="space-y-4 text-sm">
                   <Recap label={FIELD_LABELS.titre} value={values.titre} />
-                  <Recap label={FIELD_LABELS.thematique} value={values.thematique} />
+                  <Recap label={FIELD_LABELS.thematique} value={thematiques.find(t => t.id === Number(values.thematiqueId))?.label ?? '—'} />
                   <Recap label={FIELD_LABELS.resume} value={values.resume} multiline />
                   <Recap label={FIELD_LABELS.description} value={values.description} multiline />
                   <div className="grid grid-cols-2 gap-4">
