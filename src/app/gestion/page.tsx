@@ -90,7 +90,7 @@ export default async function GestionPage() {
   const todayStr = new Date().toISOString().slice(0, 10)
 
   const kpis = [
-    { label: 'Candidatures soumises', value: soumises,      sub: `${totalRecues} reçues · ${enEvaluation} en évaluation`, icon: FileText,      color: 'text-blue-600 bg-blue-50', hasNotif: soumises > 0, href: '/gestion/candidatures' },
+    { label: 'Nouvelles candidatures', value: soumises,      sub: `${totalRecues} reçues · ${enEvaluation} en évaluation`, icon: FileText,      color: 'text-blue-600 bg-blue-50', hasNotif: soumises > 0, href: '/gestion/candidatures' },
     { label: 'Rapports non reçus',    value: rapportsAttendus.length, sub: 'Statut "Attendu"',   icon: AlertTriangle,  color: 'text-amber-600 bg-amber-50' },
     { label: 'Projets en gestion',    value: projetsEnCours, sub: `${projets.length} au total`,  icon: Folder,         color: 'text-green-600 bg-green-50' },
     { label: 'Budget engagé',         value: budgetEngage.toLocaleString('fr-FR') + ' €', sub: 'Conventions actives', icon: Euro, color: 'text-primary bg-primary/10' },
@@ -111,7 +111,7 @@ export default async function GestionPage() {
             <Card key={label} className={href ? 'hover:shadow-[0_0_24px_rgba(0,0,0,0.13)] transition-shadow' : ''}>
               <CardContent className="pt-2 space-y-3">
                 <div className={`size-9 rounded-lg flex items-center justify-center ${color}`}>
-                  <Icon className={`size-4 ${hasNotif ? 'animate-bounce' : ''}`} />
+                  <Icon className={`size-4 ${hasNotif ? 'animate-bounce [animation-duration:0.6s]' : ''}`} />
                 </div>
                 <div>
                   <p className="text-2xl font-semibold tracking-tight">{value}</p>
