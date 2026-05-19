@@ -73,7 +73,8 @@ export default function ProjetTimeline({
     const today = Date.now()
     setStart(s)
     setTotal(t)
-    setProgress(Math.min(100, Math.max(0, ((today - s) / t) * 100)))
+    const target = Math.min(100, Math.max(0, ((today - s) / t) * 100))
+    requestAnimationFrame(() => requestAnimationFrame(() => setProgress(target)))
     if (statut === 'Terminé') {
       const finDate = dateFinReelle ?? dateFinPrevue
       setLabel(`Terminé le ${fmtLong(finDate)}`)
@@ -130,12 +131,6 @@ export default function ProjetTimeline({
           className="absolute inset-y-0 left-0 rounded-full bg-primary/50 transition-all"
           style={{ width: `${progress}%` }}
         />
-        {statut !== 'Terminé' && (
-          <div
-            className="absolute top-1/2 -translate-y-1/2 size-2.5 rounded-full bg-background border-2 border-primary/60 shadow-sm"
-            style={{ left: `calc(${progress}% - 5px)` }}
-          />
-        )}
         {/* Marqueurs versements sur la barre */}
         {versements.map((v, i) => {
           const dateStr = v.dateRealisee ?? v.datePrevue
