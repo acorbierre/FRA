@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Users, X, Check, Loader2 } from 'lucide-react'
+import { X, Check, Loader2 } from 'lucide-react'
 import AssignReviewers from '@/components/gestion/assign-reviewers'
 import type { Chercheur } from '@/types'
 import type { Evaluation } from '@/services/neon/evaluations'
@@ -44,58 +44,20 @@ export default function EvaluationTab({ candidatureId, reviewers, evaluations, n
   }
 
   return (
-    <div className="px-8 py-6 grid grid-cols-2 gap-4 items-start">
+    <div className="px-8 py-6 grid grid-cols-2 divide-x divide-border items-start">
 
       {/* Bloc 1 : Évaluations indépendantes */}
-      <div className="rounded-xl bg-background border border-border p-5 space-y-4">
+      <div className="pr-8 space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="font-heading text-sm font-semibold">Évaluations indépendantes</h2>
           <span className="text-xs text-muted-foreground tabular-nums">{nbSoumises}/2 reçues</span>
         </div>
 
-        <div className="space-y-2">
-          {[eval1, eval2].map((e, i) => {
-            if (!e) return (
-              <div key={`slot-${i + 1}`} className="rounded-lg border border-dashed border-border p-3 text-xs text-muted-foreground">
-                Examinateur {i + 1} non assigné
-              </div>
-            )
-            const soumise = e.statut === 'Soumise'
-            const prenom = e.reviewerNom?.split(' ')[0] ?? `Examinateur ${i + 1}`
-            const initiale = e.reviewerNom?.[0] ?? '?'
-            return (
-              <div key={e.id} className="rounded-lg border border-border bg-card p-3 flex items-center justify-between gap-3">
-                <div className="flex items-center gap-2.5">
-                  <span className="size-7 rounded-full bg-primary/10 text-primary text-xs font-semibold flex items-center justify-center shrink-0">
-                    {initiale}
-                  </span>
-                  <span className="text-sm">{prenom}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  {soumise
-                    ? <span className="text-xs rounded-full bg-green-100 text-green-700 px-2 py-0.5">Note reçue</span>
-                    : <span className="text-xs rounded-full bg-muted text-muted-foreground px-2 py-0.5">En attente</span>
-                  }
-                  {e.noteFinale !== null && (
-                    <span className="text-sm font-semibold tabular-nums text-foreground">{e.noteFinale}/20</span>
-                  )}
-                </div>
-              </div>
-            )
-          })}
-        </div>
-
-        <div className="pt-1 border-t border-border space-y-3">
-          <div className="flex items-center gap-2">
-            <Users className="size-4 text-muted-foreground" />
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Assignation</p>
-          </div>
-          <AssignReviewers candidatureId={candidatureId} reviewers={reviewers} evaluations={evaluations} />
-        </div>
+        <AssignReviewers candidatureId={candidatureId} reviewers={reviewers} evaluations={evaluations} />
       </div>
 
       {/* Bloc 2 : Note finale */}
-      <div className="rounded-xl bg-background border border-border p-5 space-y-4 flex flex-col">
+      <div className="pl-8 space-y-4 flex flex-col">
         <h2 className="font-heading text-sm font-semibold">Note finale</h2>
 
         <div className="space-y-2 text-sm flex-1">

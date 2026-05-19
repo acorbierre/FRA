@@ -5,6 +5,7 @@ import { getProjets } from '@/services/neon/projets'
 import { getRapportsAttendus, getRapports } from '@/services/neon/rapports'
 import { getConventions } from '@/services/neon/conventions'
 
+import Link from 'next/link'
 import { Card, CardContent } from '@/components/ui/card'
 import { APPEL_ANNEE } from '@/lib/config'
 import { FileText, AlertTriangle, Folder, Euro } from 'lucide-react'
@@ -44,6 +45,7 @@ export default async function GestionPage() {
     getRapports(),
   ])
 
+  const totalRecues    = candidatures.filter(c => c.statut !== 'Brouillon').length
   const soumises       = candidatures.filter(c => c.statut === 'Soumise').length
   const enEvaluation   = candidatures.filter(c => c.statut === 'En évaluation').length
   const projetsEnCours = projets.filter(p => p.statut === 'En cours').length
@@ -88,7 +90,7 @@ export default async function GestionPage() {
   const todayStr = new Date().toISOString().slice(0, 10)
 
   const kpis = [
-    { label: 'Candidatures soumises', value: soumises,      sub: `${enEvaluation} en évaluation`, icon: FileText,      color: 'text-blue-600 bg-blue-50' },
+    { label: 'Candidatures soumises', value: soumises,      sub: `${totalRecues} reçues · ${enEvaluation} en évaluation`, icon: FileText,      color: 'text-blue-600 bg-blue-50', hasNotif: soumises > 0, href: '/gestion/candidatures' },
     { label: 'Rapports non reçus',    value: rapportsAttendus.length, sub: 'Statut "Attendu"',   icon: AlertTriangle,  color: 'text-amber-600 bg-amber-50' },
     { label: 'Projets en gestion',    value: projetsEnCours, sub: `${projets.length} au total`,  icon: Folder,         color: 'text-green-600 bg-green-50' },
     { label: 'Budget engagé',         value: budgetEngage.toLocaleString('fr-FR') + ' €', sub: 'Conventions actives', icon: Euro, color: 'text-primary bg-primary/10' },
@@ -104,20 +106,25 @@ export default async function GestionPage() {
 
       {/* KPIs */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        {kpis.map(({ label, value, sub, icon: Icon, color }) => (
-          <Card key={label}>
-            <CardContent className="pt-2 space-y-3">
-              <div className={`size-9 rounded-lg flex items-center justify-center ${color}`}>
-                <Icon className="size-4" />
-              </div>
-              <div>
-                <p className="text-2xl font-semibold tracking-tight">{value}</p>
-                <p className="text-sm font-medium text-foreground mt-0.5">{label}</p>
-                <p className="text-xs text-muted-foreground">{sub}</p>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+        {kpis.map(({ label, value, sub, icon: Icon, color, hasNotif, href }) => {
+          const card = (
+            <Card key={label} className={href ? 'hover:shadow-[0_0_24px_rgba(0,0,0,0.13)] transition-shadow' : ''}>
+              <CardContent className="pt-2 space-y-3">
+                <div className={`size-9 rounded-lg flex items-center justify-center ${color}`}>
+                  <Icon className={`size-4 ${hasNotif ? 'animate-bounce' : ''}`} />
+                </div>
+                <div>
+                  <p className="text-2xl font-semibold tracking-tight">{value}</p>
+                  <p className="text-sm font-medium text-foreground mt-0.5">{label}</p>
+                  <p className="text-xs text-muted-foreground">{sub}</p>
+                </div>
+              </CardContent>
+            </Card>
+          )
+          return href
+            ? <Link key={label} href={href}>{card}</Link>
+            : card
+        })}
       </div>
 
       {/* Calendrier cette semaine */}
