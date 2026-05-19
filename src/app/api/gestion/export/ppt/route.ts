@@ -20,6 +20,18 @@ function getLogo(): string {
   }
 }
 
+async function fetchImageAsBase64(url: string): Promise<string> {
+  try {
+    const res = await fetch(url, { signal: AbortSignal.timeout(8000) })
+    if (!res.ok) return ''
+    const contentType = res.headers.get('content-type') ?? 'image/jpeg'
+    const buf = await res.arrayBuffer()
+    return `data:${contentType};base64,${Buffer.from(buf).toString('base64')}`
+  } catch {
+    return ''
+  }
+}
+
 export async function POST(req: NextRequest) {
   const { userId } = await auth()
   if (!userId) return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
@@ -29,6 +41,11 @@ export async function POST(req: NextRequest) {
 
   const projets = await Promise.all(ids.map(id => getProjetById(id).catch(() => null)))
   const valid = projets.filter(Boolean)
+
+  // Fetch photos in parallel
+  const photoData = await Promise.all(
+    valid.map(p => p?.photo?.[0]?.url ? fetchImageAsBase64(p.photo[0].url) : Promise.resolve(''))
+  )
 
   const logoData = getLogo()
 
@@ -75,21 +92,29 @@ export async function POST(req: NextRequest) {
   })
 
   // --- 1 slide par projet ---
-  for (const projet of valid) {
+  for (let idx = 0; idx < valid.length; idx++) {
+    const projet = valid[idx]
     if (!projet) continue
     const slide = pptx.addSlide({ masterName: 'FRA_MASTER' })
+    const photo = photoData[idx]
+
+    // Colonnes : texte gauche (0.4→9.2) | photo droite (9.5→12.65)
+    const TEXT_W = 8.8
+    const PHOTO_X = 9.5
+    const PHOTO_W = 3.15
+    const PHOTO_H = 2.1
 
     // Thématique
     if (projet.thematique) {
       slide.addText(projet.thematique.toUpperCase(), {
-        x: 0.4, y: 0.35, w: 12, h: 0.3,
+        x: 0.4, y: 0.35, w: TEXT_W, h: 0.3,
         fontSize: 9, bold: true, color: PRIMARY, fontFace: FONT, charSpacing: 1.5,
       })
     }
 
     // Titre
     slide.addText(projet.titre, {
-      x: 0.4, y: 0.65, w: 9, h: 1,
+      x: 0.4, y: 0.65, w: TEXT_W, h: 1,
       fontSize: 22, bold: true, color: DARK_TEXT, fontFace: FONT,
     })
 
@@ -102,33 +127,39 @@ export async function POST(req: NextRequest) {
 
     if (chips.length) {
       slide.addText(chips.join('   ·   '), {
-        x: 0.4, y: 1.65, w: 12, h: 0.35,
+        x: 0.4, y: 1.65, w: TEXT_W, h: 0.35,
         fontSize: 11, color: MUTED, fontFace: FONT,
       })
     }
 
     // Séparateur
     slide.addShape(pptx.ShapeType.line, {
-      x: 0.4, y: 2.1, w: 12, h: 0,
+      x: 0.4, y: 2.1, w: TEXT_W, h: 0,
       line: { color: 'E4E4E7', width: 0.75 },
     })
 
     // Description
     if (projet.description) {
       slide.addText(projet.description, {
-        x: 0.4, y: 2.25, w: 9, h: 2.8,
+        x: 0.4, y: 2.25, w: TEXT_W, h: 2.8,
         fontSize: 12, color: DARK_TEXT, fontFace: FONT,
         valign: 'top', wrap: true,
       })
     }
 
-    // Encart statut
+    // Photo (colonne droite, haut)
+    if (photo) {
+      slide.addImage({ data: photo, x: PHOTO_X, y: 0.3, w: PHOTO_W, h: PHOTO_H, rounding: true })
+    }
+
+    // Encart statut (sous la photo si présente, sinon même position)
+    const statusY = photo ? 0.3 + PHOTO_H + 0.2 : 2.25
     slide.addShape(pptx.ShapeType.rect, {
-      x: 10, y: 2.25, w: 2.5, h: 0.7,
+      x: PHOTO_X, y: statusY, w: PHOTO_W, h: 0.65,
       fill: { color: LIGHT_BG }, line: { color: LIGHT_BG },
     })
     slide.addText(projet.statut, {
-      x: 10, y: 2.25, w: 2.5, h: 0.7,
+      x: PHOTO_X, y: statusY, w: PHOTO_W, h: 0.65,
       fontSize: 11, bold: true, color: PRIMARY, fontFace: FONT,
       align: 'center', valign: 'middle',
     })
@@ -147,7 +178,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Numéro de slide
-    slide.addText(String(valid.indexOf(projet) + 1), {
+    slide.addText(String(idx + 1), {
       x: 12.2, y: 5.1, w: 0.3, h: 0.35,
       fontSize: 9, color: MUTED, fontFace: FONT, align: 'right',
     })
