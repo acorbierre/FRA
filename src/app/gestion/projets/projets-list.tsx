@@ -166,7 +166,7 @@ export default function ProjetsListe({ projets, projetColors, projetLabels, them
 
               {/* Vignette */}
               <Link href={`/gestion/projets/${p.id}/presentation`} className="shrink-0">
-                <div className="relative w-[160px] h-[96px] rounded-lg bg-muted overflow-hidden">
+                <div className="relative w-[200px] h-[120px] rounded-lg bg-muted overflow-hidden">
                   {p.photo?.[0]?.url ? (
                     <Image src={p.photo[0].url} alt={p.titre} fill className="object-cover hover:scale-105 transition-transform duration-300" />
                   ) : (
