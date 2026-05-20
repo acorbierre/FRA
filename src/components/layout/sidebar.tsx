@@ -14,9 +14,9 @@ const NAV_BASE = [
 
 const NAV_CANDIDATURE = { href: '/espace/candidature', label: 'Ma candidature', icon: FileText }
 
-interface Props { hasCandidature: boolean }
+interface Props { hasCandidature: boolean; photoUrl?: string }
 
-export default function Sidebar({ hasCandidature }: Props) {
+export default function Sidebar({ hasCandidature, photoUrl }: Props) {
   const pathname = usePathname()
 
   const nav = hasCandidature
@@ -43,7 +43,7 @@ export default function Sidebar({ hasCandidature }: Props) {
           </Link>
         ))}
       </nav>
-      <AppSidebarSignout />
+      <AppSidebarSignout photoUrl={photoUrl} />
     </aside>
   )
 }

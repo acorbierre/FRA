@@ -33,7 +33,7 @@ const appearance = {
 export default function SignInPage() {
   return (
     <main className="min-h-screen flex items-center justify-center bg-muted/40 p-4">
-      <SignIn appearance={appearance} fallbackRedirectUrl="/" />
+      <SignIn appearance={appearance} forceRedirectUrl="/auth-redirect" />
     </main>
   )
 }

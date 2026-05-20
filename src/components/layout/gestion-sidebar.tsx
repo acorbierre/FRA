@@ -32,9 +32,9 @@ const NAV_BOTTOM = [
   { href: '/gestion/admin', label: 'Admin',   icon: Settings },
 ]
 
-interface Props { nbCandidaturesRecues: number }
+interface Props { nbCandidaturesRecues: number; photoUrl?: string }
 
-export default function GestionSidebar({ nbCandidaturesRecues }: Props) {
+export default function GestionSidebar({ nbCandidaturesRecues, photoUrl }: Props) {
   const pathname = usePathname()
 
   return (
@@ -104,7 +104,7 @@ export default function GestionSidebar({ nbCandidaturesRecues }: Props) {
         ))}
       </div>
 
-      <AppSidebarSignout />
+      <AppSidebarSignout photoUrl={photoUrl} />
     </aside>
   )
 }

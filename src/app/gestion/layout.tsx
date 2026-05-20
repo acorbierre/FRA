@@ -25,7 +25,7 @@ export default async function GestionLayout({ children }: { children: React.Reac
 
   return (
     <ChatProvider>
-      <GestionSidebar nbCandidaturesRecues={nbRecues} />
+      <GestionSidebar nbCandidaturesRecues={nbRecues} photoUrl={chercheur?.photo?.[0]?.url} />
       <AppTopbar title="Espace de gestion" showBell />
       <main className="ml-60 mt-16 bg-[#fbfbfb] min-h-screen px-8 pt-5 pb-8">
         {children}

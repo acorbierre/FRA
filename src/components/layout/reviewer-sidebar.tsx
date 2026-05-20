@@ -9,9 +9,10 @@ import AppSidebarSignout from './app-sidebar-signout'
 
 interface Props {
   candidatures: { id: string; titre: string }[]
+  photoUrl?: string
 }
 
-export default function ReviewerSidebar({ candidatures }: Props) {
+export default function ReviewerSidebar({ candidatures, photoUrl }: Props) {
   const pathname = usePathname()
 
   return (
@@ -60,7 +61,7 @@ export default function ReviewerSidebar({ candidatures }: Props) {
           Mon profil
         </Link>
       </nav>
-      <AppSidebarSignout />
+      <AppSidebarSignout photoUrl={photoUrl} />
     </aside>
   )
 }

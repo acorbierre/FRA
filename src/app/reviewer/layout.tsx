@@ -25,7 +25,7 @@ export default async function ReviewerLayout({ children }: { children: React.Rea
 
   return (
     <>
-      <ReviewerSidebar candidatures={candidatures} />
+      <ReviewerSidebar candidatures={candidatures} photoUrl={chercheur?.photo?.[0]?.url} />
       <AppTopbar title="Espace Comité Scientifique" />
       <main className="ml-60 mt-16 bg-muted/40 min-h-screen p-8">
         {children}
