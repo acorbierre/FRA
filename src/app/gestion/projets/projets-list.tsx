@@ -25,12 +25,16 @@ export default function ProjetsListe({ projets, projetColors, projetLabels, them
   const [villeOpen, setVilleOpen]       = useState(false)
   const [statut, setStatut]             = useState('')
   const [internat, setInternat]         = useState(false)
-  const [selected, setSelected]         = useState<Set<string>>(new Set())
-  const [exporting, setExporting]       = useState(false)
+  const [selectionMode, setSelectionMode] = useState(false)
+  const [selected, setSelected]           = useState<Set<string>>(new Set())
+  const [exporting, setExporting]         = useState(false)
 
-  function toggleSelect(id: string, e: React.MouseEvent) {
-    e.preventDefault()
-    e.stopPropagation()
+  function exitSelectionMode() {
+    setSelectionMode(false)
+    setSelected(new Set())
+  }
+
+  function toggleSelect(id: string) {
     setSelected(prev => {
       const next = new Set(prev)
       next.has(id) ? next.delete(id) : next.add(id)
@@ -77,15 +81,28 @@ export default function ProjetsListe({ projets, projetColors, projetLabels, them
 
   return (
     <div className="space-y-4">
-      {/* Recherche */}
-      <div className="relative max-w-sm">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
-        <Input
-          placeholder="Rechercher un projet…"
-          value={query}
-          onChange={e => setQuery(e.target.value)}
-          className="pl-9"
-        />
+      {/* Recherche + Export */}
+      <div className="flex items-center gap-3">
+        <div className="relative max-w-sm flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
+          <Input
+            placeholder="Rechercher un projet…"
+            value={query}
+            onChange={e => setQuery(e.target.value)}
+            className="pl-9"
+          />
+        </div>
+        <button
+          onClick={() => selectionMode ? exitSelectionMode() : setSelectionMode(true)}
+          className={`ml-auto flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer whitespace-nowrap ${
+            selectionMode
+              ? 'bg-primary/10 text-primary border border-primary/30'
+              : 'bg-primary text-primary-foreground hover:bg-primary/90'
+          }`}
+        >
+          <Presentation className="size-4" />
+          Créer une présentation PPT
+        </button>
       </div>
 
       {/* Filtres */}
@@ -162,79 +179,94 @@ export default function ProjetsListe({ projets, projetColors, projetLabels, them
         <p className="text-xs text-muted-foreground">{filtered.length} projet{filtered.length > 1 ? 's' : ''}</p>
       )}
 
+      {selectionMode && (
+        <p className="text-xs text-muted-foreground">Cliquez sur les projets à inclure dans l'export.</p>
+      )}
+
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {filtered.map(p => {
           const isSelected = selected.has(p.id)
-          return (
-            <div key={p.id} className={`relative rounded-xl transition-all ${isSelected ? 'ring-2 ring-primary/25 shadow-[0_0_14px_rgba(0,0,0,0.07)]' : 'shadow-[0_0_14px_rgba(0,0,0,0.07)]'}`}>
-
-              {/* Checkbox */}
-              <button
-                onClick={e => toggleSelect(p.id, e)}
-                className={`absolute top-2.5 left-2.5 z-10 size-6 rounded border-2 flex items-center justify-center transition-all cursor-pointer ${
-                  isSelected
-                    ? 'bg-primary border-primary text-white'
-                    : 'bg-white/90 border-zinc-300 hover:border-primary/60'
-                }`}
-              >
-                {isSelected && <Check className="size-3.5" strokeWidth={3} />}
-              </button>
-
-              <Link href={`/gestion/projets/${p.id}/presentation`} className="group flex flex-col rounded-xl bg-background overflow-hidden">
-                {/* Photo */}
-                <div className="relative h-40 bg-muted shrink-0 overflow-hidden rounded-t-xl">
-                  {p.photo?.[0]?.url ? (
-                    <Image src={p.photo[0].url} alt={p.titre} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
-                  ) : (
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <Microscope className="size-10 text-muted-foreground/30" />
-                    </div>
-                  )}
-                  <span className={`absolute top-2.5 right-2.5 rounded-full px-2.5 py-0.5 text-xs font-medium ${projetColors[p.statut] ?? 'bg-zinc-100 text-zinc-700'}`}>
-                    {projetLabels[p.statut] ?? p.statut}
+          const cardInner = (
+            <>
+              {/* Photo */}
+              <div className="relative h-40 bg-muted shrink-0 overflow-hidden rounded-t-xl">
+                {p.photo?.[0]?.url ? (
+                  <Image src={p.photo[0].url} alt={p.titre} fill className={`object-cover transition-all duration-200 ${selectionMode && !isSelected ? 'opacity-50' : 'group-hover:scale-105'}`} />
+                ) : (
+                  <div className={`absolute inset-0 flex items-center justify-center transition-opacity duration-200 ${selectionMode && !isSelected ? 'opacity-40' : ''}`}>
+                    <Microscope className="size-10 text-muted-foreground/30" />
+                  </div>
+                )}
+                {selectionMode && (
+                  <div className={`absolute top-2.5 left-2.5 size-7 rounded-md border-2 flex items-center justify-center transition-all shadow-md ${
+                    isSelected ? 'bg-primary border-primary text-white scale-110' : 'bg-white border-primary/70'
+                  }`}>
+                    {isSelected && <Check className="size-4" strokeWidth={3} />}
+                  </div>
+                )}
+                <span className={`absolute top-2.5 right-2.5 rounded-full px-2.5 py-0.5 text-xs font-medium ${projetColors[p.statut] ?? 'bg-zinc-100 text-zinc-700'}`}>
+                  {projetLabels[p.statut] ?? p.statut}
+                </span>
+                {p.dimensionInternationale && (
+                  <span className="absolute bottom-2.5 left-2.5 rounded-full bg-black/40 backdrop-blur-sm px-2 py-0.5 text-xs text-white flex items-center gap-1">
+                    <Globe className="size-3" /> International
                   </span>
-                  {p.dimensionInternationale && (
-                    <span className="absolute bottom-2.5 left-2.5 rounded-full bg-black/40 backdrop-blur-sm px-2 py-0.5 text-xs text-white flex items-center gap-1">
-                      <Globe className="size-3" /> International
-                    </span>
-                  )}
-                </div>
+                )}
+              </div>
 
-                {/* Contenu */}
-                <div className="flex flex-col flex-1 p-4 space-y-1">
-                  {p.thematique && (
-                    <p className="text-[0.7rem] font-medium uppercase tracking-wide text-primary/70">{p.thematique}</p>
-                  )}
-                  <p className="font-heading text-base font-medium leading-snug line-clamp-2">{p.titre}</p>
-                  <p className="text-xs text-muted-foreground tabular-nums">
-                    {(p.montantAccorde ?? 0).toLocaleString('fr-FR')} €
-                    {p.ville && <span className="ml-2">· {p.ville}</span>}
-                    {p.anneeSelection && <span className="ml-2">· {p.anneeSelection}</span>}
-                  </p>
-                </div>
-              </Link>
+              {/* Contenu */}
+              <div className={`flex flex-col flex-1 p-4 space-y-1 transition-opacity duration-200 ${selectionMode && !isSelected ? 'opacity-50' : ''}`}>
+                {p.thematique && (
+                  <p className="text-[0.7rem] font-medium uppercase tracking-wide text-primary/70">{p.thematique}</p>
+                )}
+                <p className="font-heading text-base font-medium leading-snug line-clamp-2">{p.titre}</p>
+                <p className="text-xs text-muted-foreground tabular-nums">
+                  {(p.montantAccorde ?? 0).toLocaleString('fr-FR')} €
+                  {p.ville && <span className="ml-2">· {p.ville}</span>}
+                  {p.anneeSelection && <span className="ml-2">· {p.anneeSelection}</span>}
+                </p>
+              </div>
+            </>
+          )
+
+          return (
+            <div key={p.id} className={`relative rounded-xl transition-all ${isSelected ? 'ring-2 ring-primary/40 shadow-[0_0_14px_rgba(0,0,0,0.07)]' : 'shadow-[0_0_14px_rgba(0,0,0,0.07)]'}`}>
+              {selectionMode ? (
+                <button
+                  onClick={() => toggleSelect(p.id)}
+                  className="group flex flex-col w-full rounded-xl bg-background overflow-hidden text-left cursor-pointer"
+                >
+                  {cardInner}
+                </button>
+              ) : (
+                <Link href={`/gestion/projets/${p.id}/presentation`} className="group flex flex-col rounded-xl bg-background overflow-hidden">
+                  {cardInner}
+                </Link>
+              )}
             </div>
           )
         })}
       </div>
 
-      {/* Barre sticky */}
-      {selected.size > 0 && (
+      {/* Barre sticky mode sélection */}
+      {selectionMode && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-5 py-3 rounded-xl bg-background shadow-[0_8px_32px_rgba(0,0,0,0.16)]">
           <span className="text-sm font-medium text-foreground">
-            {selected.size} projet{selected.size > 1 ? 's' : ''} sélectionné{selected.size > 1 ? 's' : ''}
+            {selected.size > 0
+              ? `${selected.size} projet${selected.size > 1 ? 's' : ''} sélectionné${selected.size > 1 ? 's' : ''}`
+              : 'Sélectionnez un ou plusieurs projets'}
           </span>
           <button
-            onClick={() => setSelected(new Set())}
+            onClick={exitSelectionMode}
             className="text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
-            title="Désélectionner tout"
+            title="Annuler"
           >
             <X className="size-4" />
           </button>
           <div className="w-px h-4 bg-border" />
           <button
             onClick={handleExport}
-            disabled={exporting}
+            disabled={exporting || selected.size === 0}
             className="flex items-center gap-2 px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 cursor-pointer"
           >
             {exporting ? <Loader2 className="size-4 animate-spin" /> : <Presentation className="size-4" />}
