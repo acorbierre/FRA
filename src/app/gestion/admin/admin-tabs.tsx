@@ -1,13 +1,18 @@
 'use client'
 
 import { useState } from 'react'
+import { Users, Microscope, Settings } from 'lucide-react'
 import type { AppSettings } from '@/services/neon/settings'
 import type { Thematique } from '@/services/neon/thematiques'
 import AppelsPanel from './appels-panel'
 import ResourcesPanel from './resources-panel'
 
-const TABS = ['Utilisateurs', 'Appels à projets', 'Ressources'] as const
-type Tab = typeof TABS[number]
+const TABS = [
+  { id: 'Utilisateurs',    label: 'Utilisateurs',    icon: Users },
+  { id: 'Appels à projets', label: 'Appels à projets', icon: Microscope },
+  { id: 'Ressources',      label: 'Ressources',       icon: Settings },
+] as const
+type Tab = typeof TABS[number]['id']
 
 interface Props {
   usersPanel: React.ReactNode
@@ -21,17 +26,18 @@ export default function AdminTabs({ usersPanel, settings, thematiques }: Props) 
   return (
     <div className="space-y-6">
       <div className="flex gap-6 border-b border-border">
-        {TABS.map(t => (
+        {TABS.map(({ id, label, icon: Icon }) => (
           <button
-            key={t}
-            onClick={() => setTab(t)}
-            className={`pb-2.5 text-sm font-medium transition-colors cursor-pointer border-b-2 -mb-px ${
-              tab === t
+            key={id}
+            onClick={() => setTab(id)}
+            className={`flex items-center gap-2 pb-2.5 text-sm font-medium transition-colors cursor-pointer border-b-2 -mb-px ${
+              tab === id
                 ? 'border-primary text-foreground'
                 : 'border-transparent text-muted-foreground hover:text-foreground'
             }`}
           >
-            {t}
+            <Icon className="size-4" />
+            {label}
           </button>
         ))}
       </div>

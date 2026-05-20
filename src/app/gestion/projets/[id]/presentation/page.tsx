@@ -1,7 +1,7 @@
 import { getProjetById, getCandidatureById } from '@/services/neon'
 import { getAppSettings } from '@/services/neon/settings'
 import Link from 'next/link'
-import { ArrowLeft, CalendarDays, Euro, Globe, Users } from 'lucide-react'
+import { ArrowLeft, CalendarDays, Euro, Globe, Users, MapPin } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import ProjetPhotoUpload from '@/components/gestion/projet-photo-upload'
 
@@ -52,8 +52,8 @@ export default async function ProjetPresentationPage({ params }: { params: Promi
             {statutLabel}
           </span>
           <h1 className="text-2xl font-bold text-white leading-snug">{projet.titre}</h1>
-          {candidature?.thematique && (
-            <p className="text-sm text-white/70 mt-1">{candidature.thematique}</p>
+          {(projet.thematique ?? candidature?.thematique) && (
+            <p className="text-sm text-white/70 mt-1.5">{projet.thematique ?? candidature?.thematique}</p>
           )}
         </div>
       </div>
@@ -76,6 +76,15 @@ export default async function ProjetPresentationPage({ params }: { params: Promi
               <Euro className="size-4 text-muted-foreground" />
               <p className="text-lg font-semibold tabular-nums">{projet.montantAccorde.toLocaleString('fr-FR')} €</p>
               <p className="text-xs text-muted-foreground">Budget alloué</p>
+            </CardContent>
+          </Card>
+        )}
+        {projet.ville && (
+          <Card>
+            <CardContent className="pt-4 space-y-1">
+              <MapPin className="size-4 text-muted-foreground" />
+              <p className="text-lg font-semibold">{projet.ville}</p>
+              <p className="text-xs text-muted-foreground">Ville</p>
             </CardContent>
           </Card>
         )}

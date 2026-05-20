@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Search, Microscope, Globe, Check, Presentation, X, Loader2 } from 'lucide-react'
+import { Search, Microscope, Globe, Check, Presentation, X, Loader2, MapPin } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import type { Projet } from '@/types'
 import type { Thematique } from '@/services/neon/thematiques'
@@ -22,6 +22,7 @@ export default function ProjetsListe({ projets, projetColors, projetLabels, them
   const [annee, setAnnee]               = useState('')
   const [thematique, setThematique]     = useState('')
   const [villeQuery, setVilleQuery]     = useState('')
+  const [villeOpen, setVilleOpen]       = useState(false)
   const [statut, setStatut]             = useState('')
   const [internat, setInternat]         = useState(false)
   const [selected, setSelected]         = useState<Set<string>>(new Set())
@@ -89,29 +90,43 @@ export default function ProjetsListe({ projets, projetColors, projetLabels, them
 
       {/* Filtres */}
       <div className="flex flex-wrap items-center gap-2">
-        <select value={annee} onChange={e => setAnnee(e.target.value)} className={SELECT_CLASS}>
-          <option value="">Toutes les années</option>
-          {annees.map(a => <option key={a} value={a}>{a}</option>)}
-        </select>
+        <div className="relative">
+          <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground pointer-events-none" />
+          <input
+            value={villeQuery}
+            onChange={e => { setVilleQuery(e.target.value); setVilleOpen(true) }}
+            onFocus={() => setVilleOpen(true)}
+            onBlur={() => setTimeout(() => setVilleOpen(false), 150)}
+            placeholder="Ville…"
+            className={`${SELECT_CLASS} pl-8 w-48`}
+          />
+          {villeOpen && villes.filter(v => v.toLowerCase().includes(villeQuery.toLowerCase())).length > 0 && (
+            <div className="absolute z-10 top-full mt-1 w-full bg-background border border-border rounded-lg shadow-lg max-h-48 overflow-y-auto">
+              {villes
+                .filter(v => v.toLowerCase().includes(villeQuery.toLowerCase()))
+                .map(v => (
+                  <button
+                    key={v}
+                    type="button"
+                    onMouseDown={() => { setVilleQuery(v); setVilleOpen(false) }}
+                    className="w-full text-left px-3 py-2 text-sm hover:bg-muted/50 transition-colors cursor-pointer"
+                  >
+                    {v}
+                  </button>
+                ))}
+            </div>
+          )}
+        </div>
 
         <select value={thematique} onChange={e => setThematique(e.target.value)} className={SELECT_CLASS}>
           <option value="">Toutes les thématiques</option>
           {thematiques.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}
         </select>
 
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground pointer-events-none" />
-          <input
-            list="villes-list"
-            value={villeQuery}
-            onChange={e => setVilleQuery(e.target.value)}
-            placeholder="Ville…"
-            className={`${SELECT_CLASS} pl-8 w-36`}
-          />
-          <datalist id="villes-list">
-            {villes.map(v => <option key={v} value={v} />)}
-          </datalist>
-        </div>
+        <select value={annee} onChange={e => setAnnee(e.target.value)} className={SELECT_CLASS}>
+          <option value="">Toutes les années</option>
+          {annees.map(a => <option key={a} value={a}>{a}</option>)}
+        </select>
 
         <select value={statut} onChange={e => setStatut(e.target.value)} className={SELECT_CLASS}>
           <option value="">Tous les statuts</option>
@@ -187,6 +202,9 @@ export default function ProjetsListe({ projets, projetColors, projetLabels, them
 
                 {/* Contenu */}
                 <div className="flex flex-col flex-1 p-4 space-y-1">
+                  {p.thematique && (
+                    <p className="text-[0.7rem] font-medium uppercase tracking-wide text-primary/70">{p.thematique}</p>
+                  )}
                   <p className="font-heading text-base font-medium leading-snug line-clamp-2">{p.titre}</p>
                   <p className="text-xs text-muted-foreground tabular-nums">
                     {(p.montantAccorde ?? 0).toLocaleString('fr-FR')} €

@@ -61,6 +61,9 @@ export default async function ProjetFichePage({ params }: { params: Promise<{ id
         <Link href="/gestion/suivi?tab=projets" className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-4 transition-colors">
           <ArrowLeft className="size-4" /> Suivi des projets
         </Link>
+        {projet.thematique && (
+          <p className="text-xs font-medium uppercase tracking-wide text-primary/70 mb-1">{projet.thematique}</p>
+        )}
         <div className="flex items-start justify-between gap-3">
           <h1 className="page-title">{projet.titre}</h1>
           <span className={`shrink-0 rounded-full px-3 py-1 text-sm font-medium ${settings.projet_colors[projet.statut] ?? 'bg-zinc-100 text-zinc-700'}`}>

@@ -35,12 +35,25 @@ export default async function ActivitePage() {
     c.contrat?.toLowerCase().includes('doctorant')
   ).length
 
-  // Donut thématiques
+  // Donut thématiques — répartition des montants de financement
   const thematiquesMap: Record<string, number> = {}
-  for (const c of candidatures) {
-    if (c.thematique) thematiquesMap[c.thematique] = (thematiquesMap[c.thematique] ?? 0) + 1
+  for (const p of projets) {
+    if (p.thematique && p.montantAccorde) {
+      thematiquesMap[p.thematique] = (thematiquesMap[p.thematique] ?? 0) + p.montantAccorde
+    }
   }
   const thematiquesData = Object.entries(thematiquesMap)
+    .sort((a, b) => b[1] - a[1])
+    .map(([label, value]) => ({ label, value }))
+
+  // Donut villes
+  const villesMap: Record<string, number> = {}
+  for (const p of projets) {
+    if (p.ville && p.montantAccorde) {
+      villesMap[p.ville] = (villesMap[p.ville] ?? 0) + p.montantAccorde
+    }
+  }
+  const villesData = Object.entries(villesMap)
     .sort((a, b) => b[1] - a[1])
     .map(([label, value]) => ({ label, value }))
 
@@ -98,18 +111,32 @@ export default async function ActivitePage() {
         ))}
       </div>
 
-      {/* Donut thématiques */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Répartition des domaines de recherche financés</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {thematiquesData.length > 0
-            ? <DonutChart data={thematiquesData} />
-            : <p className="text-sm text-muted-foreground">Aucune candidature enregistrée.</p>
-          }
-        </CardContent>
-      </Card>
+      {/* Donuts */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Répartition des financements par thématique</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {thematiquesData.length > 0
+              ? <DonutChart data={thematiquesData} currency />
+              : <p className="text-sm text-muted-foreground">Aucune donnée.</p>
+            }
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Répartition des financements par ville</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {villesData.length > 0
+              ? <DonutChart data={villesData} currency warm />
+              : <p className="text-sm text-muted-foreground">Aucune donnée.</p>
+            }
+          </CardContent>
+        </Card>
+      </div>
     </div>
   )
 }

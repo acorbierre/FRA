@@ -13,9 +13,20 @@ const COLORS = [
   'oklch(0.83 0.07 330)',
 ]
 
+const COLORS_WARM = [
+  'oklch(0.85 0.08 20)',   // saumon
+  'oklch(0.90 0.09 85)',   // jaune pâle
+  'oklch(0.85 0.07 155)',  // vert amande
+  'oklch(0.88 0.07 50)',   // abricot
+  'oklch(0.87 0.06 120)',  // vert sauge
+  'oklch(0.86 0.08 35)',   // terracotta clair
+  'oklch(0.89 0.06 170)',  // menthe
+  'oklch(0.88 0.07 65)',   // miel
+]
+
 interface Segment { label: string; value: number }
 
-interface Props { data: Segment[] }
+interface Props { data: Segment[]; currency?: boolean; warm?: boolean }
 
 function polarToCart(cx: number, cy: number, r: number, angleDeg: number) {
   const rad = (angleDeg - 90) * (Math.PI / 180)
@@ -39,7 +50,15 @@ function segmentPath(cx: number, cy: number, outerR: number, innerR: number, sta
   ].join(' ')
 }
 
-export default function DonutChart({ data }: Props) {
+function fmtCurrency(v: number): string {
+  if (v >= 1_000_000) return `${(v / 1_000_000).toLocaleString('fr-FR', { maximumFractionDigits: 1 })} M€`
+  if (v >= 1_000) return `${Math.round(v / 1_000)} k€`
+  return `${v.toLocaleString('fr-FR')} €`
+}
+
+export default function DonutChart({ data, currency = false, warm = false }: Props) {
+  const palette = warm ? COLORS_WARM : COLORS
+  const fmt = currency ? fmtCurrency : (v: number) => v.toLocaleString('fr-FR')
   const [hovered, setHovered] = useState<number | null>(null)
   const total = data.reduce((s, d) => s + d.value, 0)
   if (total === 0) return <p className="text-sm text-muted-foreground">Aucune donnée</p>
@@ -51,7 +70,7 @@ export default function DonutChart({ data }: Props) {
     const sweep = pct * 360
     const path = segmentPath(cx, cy, outerR, innerR, angle, angle + sweep)
     angle += sweep
-    return { ...d, pct, path, color: COLORS[i % COLORS.length] }
+    return { ...d, pct, path, color: palette[i % palette.length] }
   })
 
   const hov = hovered !== null ? segments[hovered] : null
@@ -75,12 +94,12 @@ export default function DonutChart({ data }: Props) {
         <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
           {hov ? (
             <>
-              <span className="text-lg font-semibold leading-none">{hov.value}</span>
+              <span className="text-lg font-semibold leading-none">{fmt(hov.value)}</span>
               <span className="text-xs text-muted-foreground mt-0.5">{Math.round(hov.pct * 100)}%</span>
             </>
           ) : (
             <>
-              <span className="text-lg font-semibold leading-none">{total}</span>
+              <span className="text-lg font-semibold leading-none">{fmt(total)}</span>
               <span className="text-xs text-muted-foreground mt-0.5">total</span>
             </>
           )}
@@ -99,7 +118,7 @@ export default function DonutChart({ data }: Props) {
             <span className={hovered === i ? 'font-medium text-foreground' : 'text-muted-foreground'}>
               {seg.label}
             </span>
-            <span className="ml-auto font-medium tabular-nums">{seg.value}</span>
+            <span className="ml-auto font-medium tabular-nums">{fmt(seg.value)}</span>
           </li>
         ))}
       </ul>
