@@ -5,7 +5,6 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { Search, Microscope, Globe, Check, Presentation, X, Loader2 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
-import ProjetTimeline from '@/components/gestion/projet-timeline'
 import type { Projet } from '@/types'
 import type { Thematique } from '@/services/neon/thematiques'
 
@@ -148,59 +147,54 @@ export default function ProjetsListe({ projets, projetColors, projetLabels, them
         <p className="text-xs text-muted-foreground">{filtered.length} projet{filtered.length > 1 ? 's' : ''}</p>
       )}
 
-      <div className="divide-y divide-border">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {filtered.map(p => {
           const isSelected = selected.has(p.id)
           return (
-            <div key={p.id} className={`flex items-center gap-4 py-2.5 transition-colors ${isSelected ? 'bg-primary/[0.03]' : 'hover:bg-muted/40'}`}>
+            <div key={p.id} className={`relative rounded-xl transition-all ${isSelected ? 'ring-2 ring-primary/25 shadow-[0_0_14px_rgba(0,0,0,0.07)]' : 'shadow-[0_0_14px_rgba(0,0,0,0.07)]'}`}>
 
               {/* Checkbox */}
               <button
                 onClick={e => toggleSelect(p.id, e)}
-                className={`shrink-0 size-5 rounded border-2 flex items-center justify-center transition-all cursor-pointer ${
-                  isSelected ? 'bg-primary border-primary text-white' : 'border-zinc-300 hover:border-primary/60'
+                className={`absolute top-2.5 left-2.5 z-10 size-6 rounded border-2 flex items-center justify-center transition-all cursor-pointer ${
+                  isSelected
+                    ? 'bg-primary border-primary text-white'
+                    : 'bg-white/90 border-zinc-300 hover:border-primary/60'
                 }`}
               >
-                {isSelected && <Check className="size-3" strokeWidth={3} />}
+                {isSelected && <Check className="size-3.5" strokeWidth={3} />}
               </button>
 
-              {/* Vignette */}
-              <Link href={`/gestion/projets/${p.id}/presentation`} className="shrink-0">
-                <div className="relative w-[200px] h-[120px] rounded-lg bg-muted overflow-hidden">
+              <Link href={`/gestion/projets/${p.id}/presentation`} className="group flex flex-col rounded-xl bg-background overflow-hidden">
+                {/* Photo */}
+                <div className="relative h-40 bg-muted shrink-0 overflow-hidden rounded-t-xl">
                   {p.photo?.[0]?.url ? (
-                    <Image src={p.photo[0].url} alt={p.titre} fill className="object-cover hover:scale-105 transition-transform duration-300" />
+                    <Image src={p.photo[0].url} alt={p.titre} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
                   ) : (
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <Microscope className="size-7 text-muted-foreground/30" />
+                      <Microscope className="size-10 text-muted-foreground/30" />
                     </div>
                   )}
-                </div>
-              </Link>
-
-              {/* Infos */}
-              <Link href={`/gestion/projets/${p.id}/presentation`} className="flex-1 min-w-0 space-y-1">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <p className="font-heading font-medium text-[0.9375rem] leading-snug line-clamp-1">{p.titre}</p>
-                  <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium whitespace-nowrap ${projetColors[p.statut] ?? 'bg-zinc-100 text-zinc-700'}`}>
+                  <span className={`absolute top-2.5 right-2.5 rounded-full px-2.5 py-0.5 text-xs font-medium ${projetColors[p.statut] ?? 'bg-zinc-100 text-zinc-700'}`}>
                     {projetLabels[p.statut] ?? p.statut}
                   </span>
                   {p.dimensionInternationale && (
-                    <Globe className="size-3.5 text-muted-foreground/50 shrink-0" />
+                    <span className="absolute bottom-2.5 left-2.5 rounded-full bg-black/40 backdrop-blur-sm px-2 py-0.5 text-xs text-white flex items-center gap-1">
+                      <Globe className="size-3" /> International
+                    </span>
                   )}
                 </div>
-                <p className="text-sm text-muted-foreground tabular-nums">
-                  {(p.montantAccorde ?? 0).toLocaleString('fr-FR')} €
-                  {p.ville && <span className="ml-2">· {p.ville}</span>}
-                  {p.anneeSelection && <span className="ml-2">· {p.anneeSelection}</span>}
-                </p>
-                <ProjetTimeline
-                  dateDebut={p.dateDebut}
-                  dateFinPrevue={p.dateFinPrevue}
-                  dateFinReelle={p.dateFinReelle}
-                  statut={p.statut}
-                />
-              </Link>
 
+                {/* Contenu */}
+                <div className="flex flex-col flex-1 p-4 space-y-1">
+                  <p className="font-heading text-base font-medium leading-snug line-clamp-2">{p.titre}</p>
+                  <p className="text-xs text-muted-foreground tabular-nums">
+                    {(p.montantAccorde ?? 0).toLocaleString('fr-FR')} €
+                    {p.ville && <span className="ml-2">· {p.ville}</span>}
+                    {p.anneeSelection && <span className="ml-2">· {p.anneeSelection}</span>}
+                  </p>
+                </div>
+              </Link>
             </div>
           )
         })}

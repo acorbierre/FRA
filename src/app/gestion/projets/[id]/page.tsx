@@ -67,19 +67,6 @@ export default async function ProjetFichePage({ params }: { params: Promise<{ id
             {settings.projet_labels[projet.statut] ?? projet.statut}
           </span>
         </div>
-        <ProjetTimeline
-          dateDebut={projet.dateDebut}
-          dateFinPrevue={projet.dateFinPrevue}
-          dateFinReelle={projet.dateFinReelle}
-          statut={projet.statut}
-          rapports={rapports
-            .filter(r => r.dateAttendue)
-            .map(r => ({ date: r.dateAttendue!, statut: r.statut, reference: r.reference, type: r.type }))}
-          versements={Object.values(versementsParConvention)
-            .flat()
-            .sort((a, b) => a.numero - b.numero)
-            .map(v => ({ datePrevue: v.datePrevue, dateRealisee: v.dateRealisee, statut: v.statut, numero: v.numero, montant: v.montant }))}
-        />
       </div>
 
       {/* Mini-cartes budget + durée */}
@@ -101,6 +88,21 @@ export default async function ProjetFichePage({ params }: { params: Promise<{ id
           </Card>
         )}
       </div>
+
+      {/* Timeline */}
+      <ProjetTimeline
+        dateDebut={projet.dateDebut}
+        dateFinPrevue={projet.dateFinPrevue}
+        dateFinReelle={projet.dateFinReelle}
+        statut={projet.statut}
+        rapports={rapports
+          .filter(r => r.dateAttendue)
+          .map(r => ({ date: r.dateAttendue!, statut: r.statut, reference: r.reference, type: r.type }))}
+        versements={Object.values(versementsParConvention)
+          .flat()
+          .sort((a, b) => a.numero - b.numero)
+          .map(v => ({ datePrevue: v.datePrevue, dateRealisee: v.dateRealisee, statut: v.statut, numero: v.numero, montant: v.montant }))}
+      />
 
       {/* Infos générales */}
       <Card>
