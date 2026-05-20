@@ -54,6 +54,16 @@ function mapRow(r: Record<string, unknown>): Evaluation {
   }
 }
 
+export async function getAllEvaluations(): Promise<Evaluation[]> {
+  const rows = await sql`
+    SELECT e.*, c.nom_complet AS reviewer_nom, c.email AS reviewer_email
+    FROM evaluations e
+    LEFT JOIN utilisateurs c ON c.id = e.reviewer_id
+    ORDER BY e.created_at
+  `
+  return rows.map(mapRow)
+}
+
 export async function getEvaluationsByCandidature(candidatureId: string): Promise<Evaluation[]> {
   const rows = await sql`
     SELECT e.*, c.nom_complet AS reviewer_nom, c.email AS reviewer_email

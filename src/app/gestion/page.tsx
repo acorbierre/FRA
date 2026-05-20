@@ -10,6 +10,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { APPEL_ANNEE } from '@/lib/config'
 import { FileText, AlertTriangle, Folder, Euro } from 'lucide-react'
 import WeekCalendar, { type CalendarEvent } from '@/components/gestion/week-calendar'
+import HomeChatInput from './home-chat-input'
 
 function getWeekRange() {
   const now = new Date()
@@ -99,9 +100,14 @@ export default async function GestionPage() {
   return (
     <div className="max-w-5xl space-y-8">
 
-      <div>
-        <h1 className="font-heading text-2xl font-semibold tracking-tight">Bonjour, {prenom}</h1>
-        <p className="text-muted-foreground mt-1">Portail de gestion — Appel à projets {APPEL_ANNEE}</p>
+      <div className="flex items-center justify-between gap-6">
+        <div>
+          <h1 className="font-heading text-2xl font-semibold tracking-tight">Bonjour, {prenom}</h1>
+          <p className="text-muted-foreground mt-1">Portail de gestion — Appel à projets {APPEL_ANNEE}</p>
+        </div>
+        <div className="w-[480px] shrink-0">
+          <HomeChatInput />
+        </div>
       </div>
 
       {/* KPIs */}

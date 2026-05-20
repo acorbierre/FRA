@@ -2,17 +2,18 @@ import { NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
 import { assertAdmin } from '@/lib/assert-admin'
 import { getAllCandidatures, getAllChercheurs } from '@/services/neon'
-import { getEvaluationsByCandidature } from '@/services/neon/evaluations'
+import { getAllEvaluations } from '@/services/neon/evaluations'
 import { getProjets } from '@/services/neon/projets'
 import { getLaboratoires } from '@/services/neon/laboratoires'
 import { getConventions } from '@/services/neon/conventions'
 import { getVersements } from '@/services/neon/versements'
 import { getRapports } from '@/services/neon/rapports'
+import { getAllJalons } from '@/services/neon/jalons'
 
 const client = new Anthropic()
 
 async function buildContext(): Promise<string> {
-  const [candidatures, chercheurs, projets, laboratoires, conventions, versements, rapports] = await Promise.all([
+  const [candidatures, chercheurs, projets, laboratoires, conventions, versements, rapports, jalons, toutesEvaluations] = await Promise.all([
     getAllCandidatures(),
     getAllChercheurs(),
     getProjets(),
@@ -20,17 +21,20 @@ async function buildContext(): Promise<string> {
     getConventions(),
     getVersements(),
     getRapports(),
+    getAllJalons(),
+    getAllEvaluations(),
   ])
 
-  const evaluationsParCandidature = await Promise.all(
-    candidatures.map(c => getEvaluationsByCandidature(c.id))
-  )
+  const evalMap = toutesEvaluations.reduce<Record<string, typeof toutesEvaluations>>((acc, e) => {
+    ;(acc[e.candidatureId] ??= []).push(e)
+    return acc
+  }, {})
 
   const chercheurMap = Object.fromEntries(chercheurs.map(c => [c.id, c]))
 
   // Candidatures + évaluations
-  const candidaturesStr = candidatures.map((c, i) => {
-    const evals = evaluationsParCandidature[i]
+  const candidaturesStr = candidatures.map((c) => {
+    const evals = evalMap[c.id] ?? []
     const candidat = c.chercheurId ? chercheurMap[c.chercheurId] : null
     const evalsStr = evals.length > 0
       ? evals.map(e => {
@@ -65,6 +69,10 @@ ${evalsStr}`
   const projetsStr = projets.map(p =>
     `### Projet ID:${p.id}
 Titre: ${p.titre}${p.titreCourt ? ` (${p.titreCourt})` : ''}
+Thématique: ${p.thematique ?? '—'}
+Ville: ${p.ville ?? '—'}
+Année sélection: ${p.anneeSelection ?? '—'}
+International: ${p.dimensionInternationale ? 'Oui' : 'Non'}
 Statut: ${p.statut}
 Montant accordé: ${p.montantAccorde ? `${p.montantAccorde.toLocaleString('fr-FR')} €` : '—'}
 Début: ${p.dateDebut ?? '—'} | Fin prévue: ${p.dateFinPrevue ?? '—'}${p.dateFinReelle ? ` | Fin réelle: ${p.dateFinReelle}` : ''}`
@@ -77,17 +85,22 @@ Début: ${p.dateDebut ?? '—'} | Fin prévue: ${p.dateFinPrevue ?? '—'}${p.da
 
   // Conventions
   const conventionsStr = conventions.map(c =>
-    `- Convention ID:${c.id} | Statut: ${c.statut}${c.montantTotal ? ` | Montant: ${c.montantTotal.toLocaleString('fr-FR')} €` : ''}`
+    `- Convention ${c.numeroConvention} (ID:${c.id}) | Projet ID: ${c.projetId ?? '—'} | Statut: ${c.statut} | Montant: ${c.montantTotal ? `${c.montantTotal.toLocaleString('fr-FR')} €` : '—'} | Signature: ${c.dateSignature ?? '—'}`
   ).join('\n')
 
   // Versements
   const versementsStr = versements.map(v =>
-    `- Versement ID:${v.id} | Montant: ${v.montant ? `${v.montant.toLocaleString('fr-FR')} €` : '—'} | Statut: ${v.statut ?? '—'}`
+    `- ${v.reference} n°${v.numero} (ID:${v.id}) | Convention ID: ${v.conventionId ?? '—'} | Montant: ${v.montant ? `${v.montant.toLocaleString('fr-FR')} €` : '—'} | Statut: ${v.statut ?? '—'} | Prévu: ${v.datePrevue ?? '—'} | Réalisé: ${v.dateRealisee ?? '—'}`
   ).join('\n')
 
   // Rapports
   const rapportsStr = rapports.map(r =>
-    `- Rapport ID:${r.id} | Statut: ${r.statut}${r.dateAttendue ? ` | Échéance: ${r.dateAttendue}` : ''}`
+    `- ${r.reference} (ID:${r.id}) | Projet ID: ${r.projetId ?? '—'} | Type: ${r.type} | Statut: ${r.statut} | Échéance: ${r.dateAttendue ?? '—'} | Soumis: ${r.dateSoumission ?? '—'} | Reçu: ${r.dateReception ?? '—'}${r.enRetard ? ' | EN RETARD' : ''}${r.notes ? ` | Notes: ${r.notes}` : ''}`
+  ).join('\n')
+
+  // Jalons
+  const jalonsStr = jalons.map(j =>
+    `- Jalon ID:${j.id} | Projet: ${j.projetTitre ?? j.projetId} | Type: ${j.type} | ${j.label} | Prévu: ${j.datePrevue}${j.dateReelle ? ` | Réalisé: ${j.dateReelle}` : ''} | Statut: ${j.statut}${j.montant ? ` | Montant: ${j.montant.toLocaleString('fr-FR')} €` : ''}`
   ).join('\n')
 
   return `## Candidatures (Appel à projets FRA)
@@ -116,7 +129,11 @@ ${versementsStr}
 
 ## Rapports d'activité
 
-${rapportsStr}`
+${rapportsStr}
+
+## Jalons
+
+${jalonsStr}`
 }
 
 export async function POST(req: Request) {

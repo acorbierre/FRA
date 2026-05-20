@@ -45,7 +45,7 @@ function AssistantMessage({ content }: { content: string }) {
 }
 
 export default function ChatInterface() {
-  const { messages, setMessages } = useChatMessages()
+  const { messages, setMessages, pendingMessage, setPendingMessage } = useChatMessages()
   const [input, setInput] = useState('')
   const [streaming, setStreaming] = useState(false)
   const [streamingContent, setStreamingContent] = useState('')
@@ -55,6 +55,36 @@ export default function ChatInterface() {
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, streamingContent])
+
+  useEffect(() => {
+    if (!pendingMessage) return
+    setPendingMessage(null)
+    const userMessage: Message = { role: 'user', content: pendingMessage }
+    const newMessages = [...messages, userMessage]
+    setMessages(newMessages)
+    setStreaming(true)
+    setStreamingContent('')
+
+    fetch('/api/gestion/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages: newMessages }),
+    }).then(async res => {
+      const reader = res.body!.getReader()
+      const decoder = new TextDecoder()
+      let full = ''
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+        full += decoder.decode(value)
+        setStreamingContent(full)
+      }
+      setMessages(prev => [...prev, { role: 'assistant', content: full }])
+      setStreamingContent('')
+      setStreaming(false)
+    })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   async function handleSubmit() {
     const trimmed = input.trim()
