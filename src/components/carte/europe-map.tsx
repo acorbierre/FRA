@@ -24,6 +24,12 @@ const HALO_COLOR  = 'rgba(130,49,168,0.15)'
 function rOuter(count: number) { return 6 + Math.pow(count, 0.6) * 2.8 }
 function rInner(count: number) { return rOuter(count) * 0.38 }
 
+function dominantCity(labs: Lab[]) {
+  const counts: Record<string, number> = {}
+  for (const l of labs) counts[l.city] = (counts[l.city] ?? 0) + 1
+  return Object.entries(counts).sort((a, b) => b[1] - a[1])[0][0]
+}
+
 function titleCase(str: string) {
   return str.toLowerCase().replace(/(?:^|\s|-)\S/g, c => c.toUpperCase())
 }
@@ -142,7 +148,7 @@ export default function EuropeMap({ labs }: Props) {
         .on('mouseenter', (e: MouseEvent) => {
           const rect = svgRef.current!.parentElement!.getBoundingClientRect()
           const fraCount = cluster.labs.filter(l => l.type === 'fra').length
-          setTooltip({ city: cluster.labs[0].city, count, fraCount, x: e.clientX - rect.left, y: e.clientY - rect.top })
+          setTooltip({ city: dominantCity(cluster.labs), count, fraCount, x: e.clientX - rect.left, y: e.clientY - rect.top })
         })
         .on('mousemove', (e: MouseEvent) => {
           const rect = svgRef.current!.parentElement!.getBoundingClientRect()
@@ -263,12 +269,12 @@ export default function EuropeMap({ labs }: Props) {
         <div className="absolute top-0 right-0 h-full w-[540px] bg-white border-l border-slate-200 flex flex-col overflow-hidden z-20 shadow-xl" style={{ animation: 'panelfade 0.5s ease forwards' }}>
           <div className="flex items-start justify-between px-6 py-5 border-b border-slate-100 flex-shrink-0">
             <div>
-              <p className="text-2xl font-bold font-heading text-slate-900 leading-tight">{titleCase(panel[0].city)}</p>
+              <p className="text-2xl font-bold font-heading text-slate-900 leading-tight">{titleCase(dominantCity(panel))}</p>
               <p className="text-slate-400 text-sm mt-1">{panel.length} laboratoire{panel.length > 1 ? 's' : ''}</p>
             </div>
             <button
               onClick={() => setPanel(null)}
-              className="text-slate-400 hover:text-slate-600 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-100 mt-1 flex-shrink-0"
+              className="text-slate-400 hover:text-slate-600 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-100 mt-1 flex-shrink-0 cursor-pointer"
             >✕</button>
           </div>
           <div className="flex-1 overflow-y-auto divide-y divide-slate-50">
@@ -284,7 +290,7 @@ export default function EuropeMap({ labs }: Props) {
                   <div className="w-2 h-2 rounded-full flex-shrink-0 mt-1.5" style={{ background: lab.type === 'fra' ? DOT_COLOR : LIGHT_COLOR }} />
                   <div className="min-w-0">
                     <p className="font-heading font-medium leading-snug text-slate-700" style={{ fontSize: '1rem' }}>{titleCase(lab.name)}</p>
-                    <p className="text-xs mt-0.5" style={{ color: lab.type === 'fra' ? DOT_COLOR : '#94a3b8' }}>{cfg.label}</p>
+                    <p className="mt-0.5 tracking-wide" style={{ fontSize: '0.8rem', color: lab.type === 'fra' ? DOT_COLOR : '#64748b' }}>{lab.city.toUpperCase()}</p>
                     {lab.neonId && (
                       <p className="text-purple-600 text-xs mt-1.5">→ Voir la fiche labo</p>
                     )}
