@@ -8,6 +8,7 @@ import { LAB_CONFIG, type Lab } from '@/data/alzheimer-labs'
 interface Props { labs: Lab[] }
 interface Cluster { labs: Lab[]; cx: number; cy: number }
 
+
 const DOT_COLOR   = '#8231A8'
 const LIGHT_COLOR = '#C084D8'
 
@@ -124,12 +125,12 @@ export default function EuropeMap({ labs }: Props) {
       // Zone de hover (basée sur le halo)
       labG.append('circle').attr('r', ro + 4).attr('fill', 'transparent')
         .on('mouseenter', (e: MouseEvent) => {
-          const rect = svgRef.current!.getBoundingClientRect()
+          const rect = svgRef.current!.parentElement!.getBoundingClientRect()
           const fraCount = cluster.labs.filter(l => l.type === 'fra').length
           setTooltip({ city: cluster.labs[0].city, count, fraCount, x: e.clientX - rect.left, y: e.clientY - rect.top })
         })
         .on('mousemove', (e: MouseEvent) => {
-          const rect = svgRef.current!.getBoundingClientRect()
+          const rect = svgRef.current!.parentElement!.getBoundingClientRect()
           setTooltip(t => t ? { ...t, x: e.clientX - rect.left, y: e.clientY - rect.top } : null)
         })
         .on('mouseleave', () => setTooltip(null))
@@ -211,7 +212,7 @@ export default function EuropeMap({ labs }: Props) {
 
   return (
     <div className="relative w-full" style={{ height: '100vh' }}>
-      <svg ref={svgRef} className="w-full h-full" />
+      <svg ref={svgRef} className="w-full h-full" style={{ transform: panel ? 'translateX(-270px)' : 'translateX(0)', transition: 'transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94)' }} />
 
       {/* Bloc gauche : folded map + stream text */}
       <div className="absolute left-[5%] top-1/2 -translate-y-1/2 pointer-events-none z-10 select-none" style={{ transition: 'transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)' }}>
@@ -264,7 +265,7 @@ export default function EuropeMap({ labs }: Props) {
                 >
                   <div className="w-2 h-2 rounded-full flex-shrink-0 mt-1.5" style={{ background: lab.type === 'fra' ? DOT_COLOR : LIGHT_COLOR }} />
                   <div className="min-w-0">
-                    <p className="font-heading font-medium leading-snug text-slate-700" style={{ fontSize: '1rem' }}>{lab.name}</p>
+                    <p className="font-heading font-medium leading-snug text-slate-700" style={{ fontSize: '1rem' }}>{titleCase(lab.name)}</p>
                     <p className="text-xs mt-0.5" style={{ color: lab.type === 'fra' ? DOT_COLOR : '#94a3b8' }}>{cfg.label}</p>
                     {lab.neonId && (
                       <p className="text-purple-600 text-xs mt-1.5">→ Voir la fiche labo</p>
