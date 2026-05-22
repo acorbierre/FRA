@@ -28,6 +28,21 @@ function titleCase(str: string) {
   return str.toLowerCase().replace(/(?:^|\s|-)\S/g, c => c.toUpperCase())
 }
 
+const HIGHLIGHT_WORDS = ['équipes', 'recherche']
+
+function buildHighlightMap(lines: string[]): boolean[][] {
+  return lines.map(line => {
+    const map = new Array(line.length).fill(false)
+    for (const word of HIGHLIGHT_WORDS) {
+      const idx = line.toLowerCase().indexOf(word.toLowerCase())
+      if (idx !== -1) for (let i = idx; i < idx + word.length; i++) map[i] = true
+    }
+    return map
+  })
+}
+
+const HIGHLIGHT_MAP = buildHighlightMap(STREAM_LINES)
+
 function computeClusters(labs: Lab[], projection: d3.GeoProjection, threshold = 15): Cluster[] {
   const points = labs
     .map(lab => {
@@ -223,9 +238,12 @@ export default function EuropeMap({ labs }: Props) {
             {streamLines[i].split('').map((char, ci) => (
               <span
                 key={ci}
-                style={ci === streamLines[i].length - 1
-                  ? { display: 'inline', animation: 'charfade 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards' }
-                  : undefined}
+                style={{
+                  color: HIGHLIGHT_MAP[i][ci] ? DOT_COLOR : undefined,
+                  ...(ci === streamLines[i].length - 1
+                    ? { display: 'inline', animation: 'charfade 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards' }
+                    : {}),
+                }}
               >{char === ' ' ? '\u00A0' : char}</span>
             ))}
           </p>
