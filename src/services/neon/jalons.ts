@@ -15,6 +15,7 @@ export interface Jalon {
   datePrevue: string
   dateReelle?: string | null
   statut: JalonStatut
+  calendarEventId?: string | null
 }
 
 function computeStatut(datePrevue: string, dateReelle: string | null): JalonStatut {
@@ -24,14 +25,15 @@ function computeStatut(datePrevue: string, dateReelle: string | null): JalonStat
 }
 
 const JalonSchema = z.object({
-  id:           z.string(),
-  projet_id:    z.string(),
-  projet_titre: z.string().nullish(),
-  type:         z.enum(['versement', 'rapport', 'comite', 'autre']),
-  label:        z.string(),
-  montant:      z.coerce.number().nullable(),
-  date_prevue:  dbDate,
-  date_reelle:  dbDateNull,
+  id:                z.string(),
+  projet_id:         z.string(),
+  projet_titre:      z.string().nullish(),
+  type:              z.enum(['versement', 'rapport', 'comite', 'autre']),
+  label:             z.string(),
+  montant:           z.coerce.number().nullable(),
+  date_prevue:       dbDate,
+  date_reelle:       dbDateNull,
+  calendar_event_id: z.string().nullable().optional(),
 })
 
 function mapRow(r: Record<string, unknown>): Jalon {
@@ -45,7 +47,8 @@ function mapRow(r: Record<string, unknown>): Jalon {
     montant:     row.montant,
     datePrevue:  row.date_prevue,
     dateReelle:  row.date_reelle,
-    statut:      computeStatut(row.date_prevue, row.date_reelle),
+    statut:          computeStatut(row.date_prevue, row.date_reelle),
+    calendarEventId: row.calendar_event_id ?? null,
   }
 }
 

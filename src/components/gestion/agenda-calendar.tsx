@@ -1,19 +1,15 @@
 'use client'
 
 import { useState } from 'react'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Bell } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import type { Jalon, JalonType } from '@/services/neon/jalons'
+import type { Jalon } from '@/services/neon/jalons'
+import { TYPE_CONFIG } from '@/lib/jalon-config'
+
+export { TYPE_CONFIG }
 
 const JOURS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim']
 const MOIS = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre']
-
-export const TYPE_CONFIG: Record<JalonType, { label: string; color: string; dot: string }> = {
-  versement: { label: 'Versement',  color: 'bg-primary/15 text-primary border-primary/20',         dot: 'bg-primary' },
-  rapport:   { label: 'Rapport',    color: 'bg-amber-50 text-amber-700 border-amber-200',            dot: 'bg-amber-500' },
-  comite:    { label: 'Comité',     color: 'bg-blue-50 text-blue-700 border-blue-200',               dot: 'bg-blue-500' },
-  autre:     { label: 'Autre',      color: 'bg-muted text-muted-foreground border-border',           dot: 'bg-muted-foreground' },
-}
 
 const STATUT_CONFIG = {
   prevu:     '',
@@ -116,12 +112,13 @@ export default function AgendaCalendar({ jalons }: Props) {
                           key={j.id}
                           onClick={() => setSelected(j)}
                           className={cn(
-                            'w-full text-left text-[11px] px-1.5 py-0.5 rounded border truncate cursor-pointer transition-opacity hover:opacity-80',
+                            'w-full text-left text-[11px] px-1.5 py-0.5 rounded border truncate cursor-pointer transition-opacity hover:opacity-80 flex items-center gap-1',
                             TYPE_CONFIG[j.type].color,
                             STATUT_CONFIG[j.statut]
                           )}
                         >
-                          {j.label}
+                          {j.calendarEventId && <Bell className="size-2.5 shrink-0" />}
+                          <span className="truncate">{j.label}</span>
                         </button>
                       ))}
                       {events.length > 3 && (
@@ -160,6 +157,12 @@ export default function AgendaCalendar({ jalons }: Props) {
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Montant</span>
                   <span className="font-medium">{selected.montant.toLocaleString('fr-FR')} €</span>
+                </div>
+              )}
+              {selected.calendarEventId && (
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground">Rappel Outlook</span>
+                  <span className="flex items-center gap-1 text-xs text-primary font-medium"><Bell className="size-3" /> Programmé</span>
                 </div>
               )}
               <div className="flex justify-between">
