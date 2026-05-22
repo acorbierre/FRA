@@ -147,15 +147,20 @@ export default function EuropeMap({ labs }: Props) {
       .scale(0.18)
       .translate(-width / 2, -height / 2)
 
+    const targetTransform = d3.zoomIdentity
+      .translate(width / 2, height / 2)
+      .scale(1.15)
+      .translate(-width / 2, -height / 2)
+
     svg.call(zoom)
     svg.call(zoom.transform, initialTransform)
 
-    // Animation d'intro vers le zoom normal
+    // Animation d'intro vers le zoom cible
     setTimeout(() => {
       svg.transition()
         .duration(2000)
         .ease(d3.easeCubicOut)
-        .call(zoom.transform, d3.zoomIdentity)
+        .call(zoom.transform, targetTransform)
     }, 150)
   }, [labs])
 
@@ -198,6 +203,7 @@ export default function EuropeMap({ labs }: Props) {
     return () => clearTimeout(delay)
   }, [ready])
 
+
   const handleZoom = (factor: number) => {
     if (!svgRef.current || !zoomRef.current) return
     d3.select(svgRef.current).transition().duration(250).call(zoomRef.current.scaleBy, factor)
@@ -207,30 +213,23 @@ export default function EuropeMap({ labs }: Props) {
     <div className="relative w-full" style={{ height: '100vh' }}>
       <svg ref={svgRef} className="w-full h-full" />
 
-      {/* Stream text — côté gauche (océan) */}
-      <style>{`
-        @keyframes charfade {
-          from { opacity: 0; transform: translateY(3px); }
-          to   { opacity: 1; transform: translateY(0); }
-        }
-      `}</style>
-      {ready && (
-        <div className="absolute left-[5%] top-[38%] pointer-events-none z-10 select-none">
-          {STREAM_LINES.map((line, i) => (
-            <p key={i} className="font-heading font-bold text-slate-700/60 leading-tight"
-              style={{ fontSize: 'clamp(1.1rem, 1.7vw, 1.6rem)' }}>
-              {streamLines[i].split('').map((char, ci) => (
-                <span
-                  key={ci}
-                  style={ci === streamLines[i].length - 1
-                    ? { display: 'inline', animation: 'charfade 0.3s ease forwards' }
-                    : undefined}
-                >{char === ' ' ? '\u00A0' : char}</span>
-              ))}
-            </p>
-          ))}
-        </div>
-      )}
+      {/* Bloc gauche : folded map + stream text */}
+      <div className="absolute left-[5%] top-1/2 -translate-y-1/2 pointer-events-none z-10 select-none">
+        {/* Stream text */}
+        {STREAM_LINES.map((line, i) => (
+          <p key={i} className="font-heading font-bold text-slate-700/60 leading-tight"
+            style={{ fontSize: 'clamp(1.25rem, 1.9vw, 1.8rem)' }}>
+            {streamLines[i].split('').map((char, ci) => (
+              <span
+                key={ci}
+                style={ci === streamLines[i].length - 1
+                  ? { display: 'inline', animation: 'charfade 0.3s ease forwards' }
+                  : undefined}
+              >{char === ' ' ? '\u00A0' : char}</span>
+            ))}
+          </p>
+        ))}
+      </div>
 
       {/* Boutons zoom */}
       {ready && (
