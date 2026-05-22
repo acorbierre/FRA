@@ -18,7 +18,7 @@ const STREAM_LINES = [
   'Neurosciences',
   '& Alzheimer',
 ]
-const HALO_COLOR  = 'rgba(130,49,168,0.25)'
+const HALO_COLOR  = 'rgba(130,49,168,0.15)'
 
 function rOuter(count: number) { return 6 + Math.pow(count, 0.6) * 2.8 }
 function rInner(count: number) { return rOuter(count) * 0.38 }
@@ -214,16 +214,16 @@ export default function EuropeMap({ labs }: Props) {
       <svg ref={svgRef} className="w-full h-full" />
 
       {/* Bloc gauche : folded map + stream text */}
-      <div className="absolute left-[5%] top-1/2 -translate-y-1/2 pointer-events-none z-10 select-none">
+      <div className="absolute left-[5%] top-1/2 -translate-y-1/2 pointer-events-none z-10 select-none" style={{ transition: 'transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)' }}>
         {/* Stream text */}
         {STREAM_LINES.map((line, i) => (
           <p key={i} className="font-heading font-bold text-slate-700/60 leading-tight"
-            style={{ fontSize: 'clamp(1.25rem, 1.9vw, 1.8rem)' }}>
+            style={{ fontSize: 'clamp(1.25rem, 1.9vw, 1.8rem)', minHeight: '1.25em' }}>
             {streamLines[i].split('').map((char, ci) => (
               <span
                 key={ci}
                 style={ci === streamLines[i].length - 1
-                  ? { display: 'inline', animation: 'charfade 0.3s ease forwards' }
+                  ? { display: 'inline', animation: 'charfade 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards' }
                   : undefined}
               >{char === ' ' ? '\u00A0' : char}</span>
             ))}
@@ -241,7 +241,7 @@ export default function EuropeMap({ labs }: Props) {
 
       {/* Panel overlay */}
       {panel && (
-        <div className="absolute top-0 right-0 h-full w-[440px] bg-white border-l border-slate-200 flex flex-col overflow-hidden z-20 shadow-xl">
+        <div className="absolute top-0 right-0 h-full w-[540px] bg-white border-l border-slate-200 flex flex-col overflow-hidden z-20 shadow-xl" style={{ animation: 'panelfade 0.5s ease forwards' }}>
           <div className="flex items-start justify-between px-6 py-5 border-b border-slate-100 flex-shrink-0">
             <div>
               <p className="text-2xl font-bold font-heading text-slate-900 leading-tight">{titleCase(panel[0].city)}</p>
@@ -264,7 +264,7 @@ export default function EuropeMap({ labs }: Props) {
                 >
                   <div className="w-2 h-2 rounded-full flex-shrink-0 mt-1.5" style={{ background: lab.type === 'fra' ? DOT_COLOR : LIGHT_COLOR }} />
                   <div className="min-w-0">
-                    <p className="text-slate-700 text-sm font-medium leading-snug">{lab.name}</p>
+                    <p className="font-heading font-medium leading-snug text-slate-700" style={{ fontSize: '1rem' }}>{lab.name}</p>
                     <p className="text-xs mt-0.5" style={{ color: lab.type === 'fra' ? DOT_COLOR : '#94a3b8' }}>{cfg.label}</p>
                     {lab.neonId && (
                       <p className="text-purple-600 text-xs mt-1.5">→ Voir la fiche labo</p>

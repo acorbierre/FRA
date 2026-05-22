@@ -202,8 +202,16 @@
 .__clerk_internal_development_badge {
   display: none !important;
 }
+@keyframes panelfade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes sweepup {
+  from { transform: translateY(0); }
+  to   { transform: translateY(100%); }
+}
 @keyframes charfade {
-  from { opacity: 0; transform: translateY(3px); }
+  from { opacity: 0; transform: translateY(4px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
