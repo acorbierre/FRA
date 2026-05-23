@@ -84,6 +84,7 @@ export default function EuropeMap({ labs }: Props) {
 
   const [tooltip,     setTooltip]     = useState<{ city: string; count: number; fraCount: number; x: number; y: number } | null>(null)
   const [ready,       setReady]       = useState(false)
+  const [sweeping,    setSweeping]    = useState(false)
   const [panel,       setPanel]       = useState<Lab[] | null>(null)
   const [streamLines, setStreamLines] = useState<string[]>(STREAM_LINES.map(() => ''))
   const [streamDone,  setStreamDone]  = useState(false)
@@ -200,6 +201,7 @@ export default function EuropeMap({ labs }: Props) {
         worldRef.current = world
         draw(world)
         setReady(true)
+        setTimeout(() => setSweeping(true), 100)
       })
 
     const onResize = () => { if (worldRef.current) draw(worldRef.current) }
@@ -326,6 +328,21 @@ export default function EuropeMap({ labs }: Props) {
             <span className="text-slate-500 text-xs">Présence FRA</span>
           </div>
         </div>
+      )}
+
+      {/* Overlay chargement + sweep reveal */}
+      {!sweeping && (
+        <div className="fixed inset-0 bg-white z-[100] pointer-events-none flex items-center justify-center">
+          {!ready && (
+            <div className="relative w-4 h-4">
+              <div className="absolute -inset-3 rounded-full bg-slate-300 animate-ping opacity-50" />
+              <div className="relative w-4 h-4 rounded-full bg-slate-300" />
+            </div>
+          )}
+        </div>
+      )}
+      {sweeping && (
+        <div className="fixed inset-0 bg-white z-[100] pointer-events-none" style={{ animation: 'sweepup 1s cubic-bezier(0.76, 0, 0.24, 1) 0.2s forwards' }} />
       )}
 
       {/* Tooltip */}
