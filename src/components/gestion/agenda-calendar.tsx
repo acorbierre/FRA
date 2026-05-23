@@ -5,6 +5,7 @@ import { ChevronLeft, ChevronRight, Bell } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { Jalon } from '@/services/neon/jalons'
 import { TYPE_CONFIG } from '@/lib/jalon-config'
+import type { JalonType } from '@/lib/config'
 
 export { TYPE_CONFIG }
 
