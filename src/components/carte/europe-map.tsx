@@ -136,7 +136,10 @@ export default function EuropeMap({ labs }: Props) {
         .style('cursor', 'pointer')
 
       // Halo proportionnel au cluster
-      labG.append('circle').attr('r', ro).attr('fill', HALO_COLOR)
+      const halo = labG.append('circle')
+        .attr('r', ro)
+        .attr('fill', 'rgb(130,49,168)')
+        .attr('fill-opacity', 0.15)
 
       // Petit dot fixe si présence FRA
       if (hasFra) {
@@ -146,6 +149,7 @@ export default function EuropeMap({ labs }: Props) {
       // Zone de hover (basée sur le halo)
       labG.append('circle').attr('r', ro + 4).attr('fill', 'transparent')
         .on('mouseenter', (e: MouseEvent) => {
+          halo.transition().duration(150).attr('r', ro * 1.35).attr('fill-opacity', 0.28)
           const rect = svgRef.current!.parentElement!.getBoundingClientRect()
           const fraCount = cluster.labs.filter(l => l.type === 'fra').length
           setTooltip({ city: dominantCity(cluster.labs), count, fraCount, x: e.clientX - rect.left, y: e.clientY - rect.top })
@@ -154,7 +158,10 @@ export default function EuropeMap({ labs }: Props) {
           const rect = svgRef.current!.parentElement!.getBoundingClientRect()
           setTooltip(t => t ? { ...t, x: e.clientX - rect.left, y: e.clientY - rect.top } : null)
         })
-        .on('mouseleave', () => setTooltip(null))
+        .on('mouseleave', () => {
+          halo.transition().duration(200).attr('r', ro).attr('fill-opacity', 0.15)
+          setTooltip(null)
+        })
         .on('click', () => { setTooltip(null); setPanel(cluster.labs) })
     })
 
@@ -171,7 +178,7 @@ export default function EuropeMap({ labs }: Props) {
 
     const targetTransform = d3.zoomIdentity
       .translate(width / 2, height / 2)
-      .scale(1.15)
+      .scale(1.35)
       .translate(-width / 2, -height / 2)
 
     svg.call(zoom)
@@ -240,7 +247,7 @@ export default function EuropeMap({ labs }: Props) {
         {/* Stream text */}
         {STREAM_LINES.map((line, i) => (
           <p key={i} className="font-heading font-bold text-slate-700/60 leading-tight"
-            style={{ fontSize: 'clamp(1.25rem, 1.9vw, 1.8rem)', minHeight: '1.25em' }}>
+            style={{ fontSize: 'clamp(1.4rem, 2.2vw, 2.1rem)', minHeight: '1.25em' }}>
             {streamLines[i].split('').map((char, ci) => (
               <span
                 key={ci}
@@ -290,7 +297,12 @@ export default function EuropeMap({ labs }: Props) {
                   <div className="w-2 h-2 rounded-full flex-shrink-0 mt-1.5" style={{ background: lab.type === 'fra' ? DOT_COLOR : LIGHT_COLOR }} />
                   <div className="min-w-0">
                     <p className="font-heading font-medium leading-snug text-slate-700" style={{ fontSize: '1rem' }}>{titleCase(lab.name)}</p>
-                    <p className="mt-0.5 tracking-wide" style={{ fontSize: '0.8rem', color: lab.type === 'fra' ? DOT_COLOR : '#64748b' }}>{lab.city.toUpperCase()}</p>
+                    <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                      <p className="tracking-wide" style={{ fontSize: '0.8rem', color: lab.type === 'fra' ? DOT_COLOR : '#64748b' }}>{lab.city.toUpperCase()}</p>
+                      {lab.type === 'fra' && (
+                        <span className="text-xs font-medium px-1.5 py-0.5 rounded-full" style={{ background: 'rgba(130,49,168,0.1)', color: DOT_COLOR }}>Soutenu par la FRA</span>
+                      )}
+                    </div>
                     {lab.neonId && (
                       <p className="text-purple-600 text-xs mt-1.5">→ Voir la fiche labo</p>
                     )}
