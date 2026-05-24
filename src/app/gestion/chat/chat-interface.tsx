@@ -34,14 +34,80 @@ function parseContent(text: string): React.ReactNode[] {
 }
 
 function AssistantMessage({ content }: { content: string }) {
-  const paragraphs = content.split('\n').filter(p => p.trim() !== '')
-  return (
-    <div className="space-y-3 text-sm leading-relaxed text-foreground">
-      {paragraphs.map((p, i) => (
-        <p key={`para-${i}`}>{parseContent(p)}</p>
-      ))}
-    </div>
-  )
+  const lines = content.split('\n')
+  const blocks: React.ReactNode[] = []
+  let listItems: string[] = []
+  let k = 0
+
+  function flushList() {
+    if (!listItems.length) return
+    blocks.push(
+      <ul key={k++} className="space-y-1.5 my-1">
+        {listItems.map((item, i) => (
+          <li key={i} className="flex gap-2.5 text-sm leading-relaxed text-foreground">
+            <span className="mt-2 w-1.5 h-1.5 rounded-full bg-primary/50 flex-shrink-0" />
+            <span>{parseContent(item)}</span>
+          </li>
+        ))}
+      </ul>
+    )
+    listItems = []
+  }
+
+  let tableRows: string[][] = []
+
+  function flushTable() {
+    if (!tableRows.length) return
+    const [head, , ...body] = tableRows
+    blocks.push(
+      <div key={k++} className="overflow-x-auto my-2">
+        <table className="w-full text-sm border-collapse">
+          <thead>
+            <tr>
+              {head.map((cell, i) => (
+                <th key={i} className="text-left px-3 py-2 font-semibold text-foreground border-b border-border bg-muted/40 first:rounded-tl-lg last:rounded-tr-lg">{cell.trim()}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {body.map((row, i) => (
+              <tr key={i} className="border-b border-border/50 hover:bg-muted/30 transition-colors">
+                {row.map((cell, j) => (
+                  <td key={j} className="px-3 py-2 text-foreground/80">{parseContent(cell.trim())}</td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    )
+    tableRows = []
+  }
+
+  for (const line of lines) {
+    if (line.trim().startsWith('|') && line.trim().endsWith('|')) {
+      flushList()
+      const cells = line.split('|').slice(1, -1)
+      if (!cells.every(c => /^[-: ]+$/.test(c))) tableRows.push(cells)
+    } else if (line.startsWith('## ')) {
+      flushList(); flushTable()
+      blocks.push(<p key={k++} className="font-heading font-semibold text-base text-foreground mt-4 mb-2">{parseContent(line.slice(3))}</p>)
+    } else if (line.startsWith('### ')) {
+      flushList(); flushTable()
+      blocks.push(<p key={k++} className="font-semibold text-sm text-foreground mt-3 mb-1.5">{parseContent(line.slice(4))}</p>)
+    } else if (line.match(/^[-*] /)) {
+      flushTable()
+      listItems.push(line.slice(2))
+    } else if (line.trim() === '') {
+      flushList(); flushTable()
+    } else {
+      flushList(); flushTable()
+      blocks.push(<p key={k++} className="text-sm leading-relaxed text-foreground">{parseContent(line)}</p>)
+    }
+  }
+  flushList(); flushTable()
+
+  return <div className="space-y-2">{blocks}</div>
 }
 
 export default function ChatInterface() {

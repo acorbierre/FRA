@@ -9,11 +9,12 @@ import { getConventions } from '@/services/neon/conventions'
 import { getVersements } from '@/services/neon/versements'
 import { getRapports } from '@/services/neon/rapports'
 import { getAllJalons } from '@/services/neon/jalons'
+import { sql } from '@/lib/db'
 
 const client = new Anthropic()
 
 async function buildContext(): Promise<string> {
-  const [candidatures, chercheurs, projets, laboratoires, conventions, versements, rapports, jalons, toutesEvaluations] = await Promise.all([
+  const [candidatures, chercheurs, projets, laboratoires, conventions, versements, rapports, jalons, toutesEvaluations, carteLabs] = await Promise.all([
     getAllCandidatures(),
     getAllChercheurs(),
     getProjets(),
@@ -23,6 +24,7 @@ async function buildContext(): Promise<string> {
     getRapports(),
     getAllJalons(),
     getAllEvaluations(),
+    sql`SELECT nom, ville, pays, type, fra_funded FROM carte_laboratoires ORDER BY fra_funded DESC, nom ASC`,
   ])
 
   const evalMap = toutesEvaluations.reduce<Record<string, typeof toutesEvaluations>>((acc, e) => {
@@ -103,7 +105,16 @@ Début: ${p.dateDebut ?? '—'} | Fin prévue: ${p.dateFinPrevue ?? '—'}${p.da
     `- Jalon ID:${j.id} | Projet: ${j.projetTitre ?? j.projetId} | Type: ${j.type} | ${j.label} | Prévu: ${j.datePrevue}${j.dateReelle ? ` | Réalisé: ${j.dateReelle}` : ''} | Statut: ${j.statut}${j.montant ? ` | Montant: ${j.montant.toLocaleString('fr-FR')} €` : ''}`
   ).join('\n')
 
-  return `## Candidatures (Appel à projets FRA)
+  // Cartographie des labos de recherche
+  const carteLabsStr = (carteLabs as any[]).map(l =>
+    `- ${l.nom} | ${l.ville}${l.pays && l.pays !== 'France' ? `, ${l.pays}` : ''} | ${l.fra_funded ? 'Soutenu par la FRA' : 'Labo partenaire'}`
+  ).join('\n')
+
+  return `## Cartographie des laboratoires de recherche (${(carteLabs as any[]).length} labos)
+
+${carteLabsStr}
+
+## Candidatures (Appel à projets FRA)
 
 ${candidaturesStr}
 

@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Search, Microscope, Globe, Check, Presentation, X, Loader2, MapPin } from 'lucide-react'
+import { Search, Microscope, Globe, Check, Presentation, X, Loader2, MapPin, Tag, Calendar, CircleDot } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import type { Projet } from '@/types'
 import type { Thematique } from '@/services/neon/thematiques'
@@ -135,22 +135,31 @@ export default function ProjetsListe({ projets, projetColors, projetLabels, them
           )}
         </div>
 
-        <select value={thematique} onChange={e => setThematique(e.target.value)} className={SELECT_CLASS}>
-          <option value="">Toutes les thématiques</option>
-          {thematiques.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}
-        </select>
+        <div className="relative">
+          <Tag className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground pointer-events-none" />
+          <select value={thematique} onChange={e => setThematique(e.target.value)} className={`${SELECT_CLASS} pl-8`}>
+            <option value="">Toutes les thématiques</option>
+            {thematiques.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}
+          </select>
+        </div>
 
-        <select value={annee} onChange={e => setAnnee(e.target.value)} className={SELECT_CLASS}>
-          <option value="">Toutes les années</option>
-          {annees.map(a => <option key={a} value={a}>{a}</option>)}
-        </select>
+        <div className="relative">
+          <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground pointer-events-none" />
+          <select value={annee} onChange={e => setAnnee(e.target.value)} className={`${SELECT_CLASS} pl-8`}>
+            <option value="">Toutes les années</option>
+            {annees.map(a => <option key={a} value={a}>{a}</option>)}
+          </select>
+        </div>
 
-        <select value={statut} onChange={e => setStatut(e.target.value)} className={SELECT_CLASS}>
-          <option value="">Tous les statuts</option>
-          {statuts.map(s => (
-            <option key={s} value={s}>{projetLabels[s] ?? s}</option>
-          ))}
-        </select>
+        <div className="relative">
+          <CircleDot className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground pointer-events-none" />
+          <select value={statut} onChange={e => setStatut(e.target.value)} className={`${SELECT_CLASS} pl-8`}>
+            <option value="">Tous les statuts</option>
+            {statuts.map(s => (
+              <option key={s} value={s}>{projetLabels[s] ?? s}</option>
+            ))}
+          </select>
+        </div>
 
         <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
           <div
@@ -159,7 +168,6 @@ export default function ProjetsListe({ projets, projetColors, projetLabels, them
           >
             <span className={`absolute top-0.5 left-0.5 size-4 rounded-full bg-white shadow transition-transform ${internat ? 'translate-x-4' : ''}`} />
           </div>
-          <Globe className="size-3.5 text-muted-foreground" />
           <span className="text-muted-foreground">International</span>
         </label>
 

@@ -11,6 +11,38 @@ const DARK_TEXT = '0a0a0a'
 const MUTED     = '71717a'
 const FONT      = 'Plus Jakarta Sans'
 
+function getImageDimensions(dataUrl: string): { w: number; h: number } | null {
+  try {
+    const base64 = dataUrl.split(',')[1]
+    const buf = Buffer.from(base64, 'base64')
+    if (buf[0] === 0xFF && buf[1] === 0xD8) {
+      // JPEG — cherche le marqueur SOF
+      let i = 2
+      while (i < buf.length - 8) {
+        if (buf[i] === 0xFF && (buf[i+1] & 0xF0) === 0xC0 && buf[i+1] !== 0xFF) {
+          const h = (buf[i+5] << 8) | buf[i+6]
+          const w = (buf[i+7] << 8) | buf[i+8]
+          return { w, h }
+        }
+        i += 2 + ((buf[i+2] << 8) | buf[i+3])
+      }
+    } else if (buf[0] === 0x89 && buf[1] === 0x50) {
+      // PNG — IHDR à l'offset 16
+      const w = (buf[16] << 24) | (buf[17] << 16) | (buf[18] << 8) | buf[19]
+      const h = (buf[20] << 24) | (buf[21] << 16) | (buf[22] << 8) | buf[23]
+      return { w, h }
+    }
+  } catch {}
+  return null
+}
+
+function fitInBox(imgW: number, imgH: number, boxW: number, boxH: number) {
+  const scale = Math.min(boxW / imgW, boxH / imgH)
+  const w = imgW * scale
+  const h = imgH * scale
+  return { w, h, x: (boxW - w) / 2, y: (boxH - h) / 2 }
+}
+
 function getLogo(): string {
   try {
     const buf = readFileSync(join(process.cwd(), 'assets', 'logo-FRA.webp'))
@@ -87,9 +119,12 @@ export async function POST(req: NextRequest) {
       })
     }
 
+    const hasPhoto = !!projet.photo?.[0]?.url
+    const textW = hasPhoto ? 6.8 : 12
+
     // Titre
     slide.addText(projet.titre, {
-      x: 0.4, y: 0.65, w: 9, h: 1,
+      x: 0.4, y: 0.65, w: textW, h: 1,
       fontSize: 22, bold: true, color: DARK_TEXT, fontFace: FONT,
     })
 
@@ -102,21 +137,21 @@ export async function POST(req: NextRequest) {
 
     if (chips.length) {
       slide.addText(chips.join('   ·   '), {
-        x: 0.4, y: 1.65, w: 12, h: 0.35,
+        x: 0.4, y: 1.65, w: textW, h: 0.35,
         fontSize: 11, color: MUTED, fontFace: FONT,
       })
     }
 
     // Séparateur
     slide.addShape(pptx.ShapeType.line, {
-      x: 0.4, y: 2.1, w: 12, h: 0,
+      x: 0.4, y: 2.1, w: textW, h: 0,
       line: { color: 'E4E4E7', width: 0.75 },
     })
 
     // Description
     if (projet.description) {
       slide.addText(projet.description, {
-        x: 0.4, y: 2.25, w: 9, h: 2.8,
+        x: 0.4, y: 2.25, w: textW, h: 2.8,
         fontSize: 12, color: DARK_TEXT, fontFace: FONT,
         valign: 'top', wrap: true,
       })
@@ -124,14 +159,31 @@ export async function POST(req: NextRequest) {
 
     // Encart statut
     slide.addShape(pptx.ShapeType.rect, {
-      x: 10, y: 2.25, w: 2.5, h: 0.7,
+      x: 0.4, y: 5.2, w: 2.5, h: 0.6,
       fill: { color: LIGHT_BG }, line: { color: LIGHT_BG },
     })
     slide.addText(projet.statut, {
-      x: 10, y: 2.25, w: 2.5, h: 0.7,
+      x: 0.4, y: 5.2, w: 2.5, h: 0.6,
       fontSize: 11, bold: true, color: PRIMARY, fontFace: FONT,
       align: 'center', valign: 'middle',
     })
+
+    // Photo (si disponible)
+    if (hasPhoto) {
+      const BOX_X = 7.5, BOX_Y = 0.35, BOX_W = 5.6, BOX_H = 5.8
+      const url = projet.photo![0].url
+      const dims = getImageDimensions(url)
+      slide.addShape(pptx.ShapeType.rect, {
+        x: BOX_X, y: BOX_Y, w: BOX_W, h: BOX_H,
+        fill: { color: 'FFFFFF' }, line: { color: 'FFFFFF' },
+      })
+      if (dims) {
+        const fit = fitInBox(dims.w, dims.h, BOX_W, BOX_H)
+        slide.addImage({ data: url, x: BOX_X + fit.x, y: BOX_Y + fit.y, w: fit.w, h: fit.h })
+      } else {
+        slide.addImage({ data: url, x: BOX_X, y: BOX_Y, w: BOX_W, h: BOX_H })
+      }
+    }
 
     // Dates
     if (projet.dateDebut || projet.dateFinPrevue) {
