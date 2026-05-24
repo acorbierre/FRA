@@ -177,7 +177,7 @@ export default function CarteKeywordModal({ customKeywords: initialKeywords }: P
               value={inputVal}
                 onChange={e => setInputVal(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter') handleAdd() }}
-              placeholder="mot1, mot2, mot3…"
+              placeholder="Saisissez mot-clé1, mot-clé2, etc."
               className="h-8 text-sm"
               disabled={adding}
             />

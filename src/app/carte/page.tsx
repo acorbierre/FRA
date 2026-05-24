@@ -45,7 +45,7 @@ export default async function CartePage() {
     <div className="flex-1 relative">
       <EuropeMap labs={labs} />
 
-      <header className="absolute top-0 left-0 right-0 h-[60px] flex items-center justify-between px-8 pointer-events-none z-10">
+      <header className="absolute top-0 left-0 right-0 h-[60px] flex items-center justify-between px-4 sm:px-8 pointer-events-none z-10">
         <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center flex-shrink-0 pointer-events-auto">
           <span className="text-white text-xs font-bold">FRA</span>
         </div>

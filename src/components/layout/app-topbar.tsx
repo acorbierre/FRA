@@ -1,6 +1,6 @@
 'use client'
 
-import { Bell, MapPin } from 'lucide-react'
+import { Bell, Globe } from 'lucide-react'
 
 interface Props {
   title: string
@@ -18,7 +18,7 @@ export default function AppTopbar({ title, showBell }: Props) {
           </button>
         )}
         <a href="/carte" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors" title="Cartographie">
-          <MapPin className="size-4" />
+          <Globe className="size-4" />
         </a>
       </div>
     </header>

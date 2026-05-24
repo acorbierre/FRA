@@ -88,6 +88,7 @@ export default function EuropeMap({ labs }: Props) {
   const [panel,       setPanel]       = useState<Lab[] | null>(null)
   const [streamLines, setStreamLines] = useState<string[]>(STREAM_LINES.map(() => ''))
   const [streamDone,  setStreamDone]  = useState(false)
+  const [isMobile,    setIsMobile]    = useState(false)
 
   const draw = useCallback((world: any) => {
     if (!svgRef.current) return
@@ -112,7 +113,7 @@ export default function EuropeMap({ labs }: Props) {
 
     const g = svg.append('g')
 
-    // Tous les pays — même couleur, pas de distinction
+    // Tous les pays — hover subtil
     const countries = topojson.feature(world, world.objects.countries)
     g.append('g').selectAll('path')
       .data((countries as any).features)
@@ -121,11 +122,17 @@ export default function EuropeMap({ labs }: Props) {
       .attr('fill', '#E0E2E7')
       .attr('stroke', '#9BA3B5')
       .attr('stroke-width', 0.5)
+      .on('mouseover', function() {
+        d3.select(this).transition().duration(150).attr('fill', '#D0D4DE')
+      })
+      .on('mouseout', function() {
+        d3.select(this).transition().duration(300).attr('fill', '#E0E2E7')
+      })
 
     // Clusters fixes — double cercle
     const clusters = computeClusters(labs, projection)
 
-    clusters.forEach(cluster => {
+    clusters.forEach((cluster, idx) => {
       const { cx, cy } = cluster
       const count  = cluster.labs.length
       const hasFra = cluster.labs.some(l => l.type === 'fra')
@@ -133,8 +140,14 @@ export default function EuropeMap({ labs }: Props) {
       const ri     = rInner(count)
 
       const labG = g.append('g')
-        .attr('transform', `translate(${cx},${cy})`)
+        .attr('transform', `translate(${cx},${cy}) scale(0)`)
         .style('cursor', 'pointer')
+
+      labG.transition()
+        .duration(550)
+        .delay(800 + idx * 45)
+        .ease(d3.easeBackOut.overshoot(1.4))
+        .attr('transform', `translate(${cx},${cy}) scale(1)`)
 
       // Halo proportionnel au cluster
       const halo = labG.append('circle')
@@ -142,8 +155,14 @@ export default function EuropeMap({ labs }: Props) {
         .attr('fill', 'rgb(130,49,168)')
         .attr('fill-opacity', 0.15)
 
-      // Petit dot fixe si présence FRA
+      // Dot FRA + anneau pulsant
       if (hasFra) {
+        labG.append('circle')
+          .attr('r', 6)
+          .attr('fill', 'none')
+          .attr('stroke', LIGHT_COLOR)
+          .attr('stroke-width', 0.8)
+          .attr('class', 'fra-pulse')
         labG.append('circle').attr('r', 6).attr('fill', DOT_COLOR)
       }
 
@@ -204,7 +223,9 @@ export default function EuropeMap({ labs }: Props) {
         setTimeout(() => setSweeping(true), 100)
       })
 
-    const onResize = () => { if (worldRef.current) draw(worldRef.current) }
+    const checkMobile = () => setIsMobile(window.innerWidth < 640)
+    checkMobile()
+    const onResize = () => { checkMobile(); if (worldRef.current) draw(worldRef.current) }
     window.addEventListener('resize', onResize)
     return () => window.removeEventListener('resize', onResize)
   }, [draw])
@@ -242,14 +263,29 @@ export default function EuropeMap({ labs }: Props) {
 
   return (
     <div className="relative w-full" style={{ height: '100vh' }}>
-      <svg ref={svgRef} className="w-full h-full" style={{ transform: panel ? 'translateX(-270px)' : 'translateX(0)', transition: 'transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94)' }} />
+      <style>{`
+        .fra-pulse {
+          transform-box: fill-box;
+          transform-origin: center;
+          animation: fra-pulse 2.2s ease-out infinite;
+        }
+        @keyframes fra-pulse {
+          0%   { transform: scale(1); opacity: 0.75; }
+          100% { transform: scale(3.2); opacity: 0; }
+        }
+        @keyframes panelitem {
+          from { opacity: 0; transform: translateX(24px); }
+          to   { opacity: 1; transform: translateX(0); }
+        }
+      `}</style>
+      <svg ref={svgRef} className="w-full h-full" style={{ transform: panel && !isMobile ? 'translateX(-270px)' : 'translateX(0)', transition: 'transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94)' }} />
 
-      {/* Bloc gauche : folded map + stream text */}
-      <div className="absolute left-[5%] top-1/2 -translate-y-1/2 pointer-events-none z-10 select-none" style={{ transition: 'transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)' }}>
+      {/* Bloc stream text — à gauche au centre sur desktop, en haut à gauche sur mobile */}
+      <div className="absolute top-[70px] left-4 right-4 sm:right-auto sm:left-[5%] sm:top-1/2 sm:-translate-y-1/2 pointer-events-none z-10 select-none" style={{ transition: 'transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)' }}>
         {/* Stream text */}
         {STREAM_LINES.map((line, i) => (
           <p key={i} className="font-heading font-bold text-slate-700/60 leading-tight"
-            style={{ fontSize: 'clamp(1.4rem, 2.2vw, 2.1rem)', minHeight: '1.25em' }}>
+            style={{ fontSize: isMobile ? 'clamp(0.85rem, 3.5vw, 1rem)' : 'clamp(1.4rem, 2.2vw, 2.1rem)', minHeight: '1.25em' }}>
             {streamLines[i].split('').map((char, ci) => (
               <span
                 key={ci}
@@ -275,7 +311,7 @@ export default function EuropeMap({ labs }: Props) {
 
       {/* Panel overlay */}
       {panel && (
-        <div className="absolute top-0 right-0 h-full w-[540px] bg-white border-l border-slate-200 flex flex-col overflow-hidden z-20 shadow-xl" style={{ animation: 'panelfade 0.5s ease forwards' }}>
+        <div className="absolute inset-0 sm:inset-auto sm:top-0 sm:right-0 sm:h-full sm:w-[540px] bg-white border-l border-slate-200 flex flex-col overflow-hidden z-20 shadow-xl" style={{ animation: 'panelfade 0.5s ease forwards' }}>
           <div className="flex items-start justify-between px-6 py-5 border-b border-slate-100 flex-shrink-0">
             <div>
               <p className="text-2xl font-bold font-heading text-slate-900 leading-tight">{titleCase(dominantCity(panel))}</p>
@@ -287,13 +323,18 @@ export default function EuropeMap({ labs }: Props) {
             >✕</button>
           </div>
           <div className="flex-1 overflow-y-auto divide-y divide-slate-50">
-            {panel.map(lab => {
+            {panel.map((lab, idx) => {
               const cfg = LAB_CONFIG[lab.type]
               return (
                 <div
                   key={lab.id}
                   className={`px-6 py-4 flex items-start gap-3 ${lab.neonId ? 'cursor-pointer' : ''} ${lab.type === 'fra' ? 'hover:bg-purple-50' : 'hover:bg-slate-50'}`}
-                  style={lab.type === 'fra' ? { background: 'rgba(130,49,168,0.07)' } : {}}
+                  style={{
+                    ...(lab.type === 'fra' ? { background: 'rgba(130,49,168,0.07)' } : {}),
+                    animation: 'panelitem 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards',
+                    animationDelay: `${idx * 60}ms`,
+                    opacity: 0,
+                  }}
                   onClick={() => { if (lab.neonId) window.location.href = `/gestion/laboratoires/${lab.neonId}` }}
                 >
                   <div className="w-2 h-2 rounded-full flex-shrink-0 mt-1.5" style={{ background: lab.type === 'fra' ? DOT_COLOR : LIGHT_COLOR }} />
@@ -321,11 +362,11 @@ export default function EuropeMap({ labs }: Props) {
         <div className="fixed bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-4 bg-white/80 backdrop-blur-sm rounded-xl px-4 py-2 border border-slate-200 shadow-sm z-10">
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ background: LIGHT_COLOR }} />
-            <span className="text-slate-500 text-xs">Cluster laboratoires</span>
+            <span className="text-slate-500 text-xs whitespace-nowrap">Cluster laboratoires</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ background: DOT_COLOR }} />
-            <span className="text-slate-500 text-xs">Présence FRA</span>
+            <span className="text-slate-500 text-xs whitespace-nowrap">Présence FRA</span>
           </div>
         </div>
       )}
