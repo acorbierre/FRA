@@ -19,36 +19,42 @@ interface Props { labs: Lab[] }
 type TopSort = 'publications' | 'impact' | 'specialisation' | 'composite'
 type SortBy  = 'publications' | 'impact' | 'specialisation' | 'composite' | 'alpha' | 'fra'
 
-const MOMENTUM_EASING      = 'width 0.65s 120ms cubic-bezier(0.76, 0, 0.24, 1)'
-const TOPLABS_EASING       = 'width 0.72s cubic-bezier(0.87, 0, 0.13, 1)'
-const NORMAL_EASING        = 'width 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
-const SLIDE_OUT_EASING     = 'panelslide-out 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards'
+// ── State machine ──────────────────────────────────────────────────────────────
+// Un seul discriminant décrit l'état du panel. Impossible d'avoir selectedLab
+// ET topLabsMode vrais simultanément — chaque tag est un état légal et unique.
+type PanelState =
+  | { tag: 'closed' }
+  | { tag: 'city';            labs: Lab[]; slide?: boolean }
+  | { tag: 'toplabs' }
+  | { tag: 'fiche';           lab: Lab; origin: 'city' | 'toplabs'; cityLabs?: Lab[] }
+  | { tag: 'closing-city';    labs: Lab[] }
+  | { tag: 'closing-toplabs' }
+  | { tag: 'closing-fiche';   lab: Lab; returnTo: 'city' | 'toplabs'; cityLabs?: Lab[] }
+// ──────────────────────────────────────────────────────────────────────────────
+
+const MOMENTUM_EASING  = 'width 0.65s 120ms cubic-bezier(0.76, 0, 0.24, 1)'
+const TOPLABS_EASING   = 'width 0.72s cubic-bezier(0.87, 0, 0.13, 1)'
+const NORMAL_EASING    = 'width 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
+const SLIDE_OUT_EASING = 'panelslide-out 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards'
 
 export default function EuropeMap({ labs }: Props) {
   const svgRef   = useRef<SVGSVGElement>(null)
   const worldRef = useRef<any>(null)
   const zoomRef  = useRef<d3.ZoomBehavior<SVGSVGElement, unknown> | null>(null)
 
-  const [tooltip,      setTooltip]      = useState<{ city: string; count: number; alzTotal: number; x: number; y: number } | null>(null)
-  const [ready,        setReady]        = useState(false)
-  const [sweeping,     setSweeping]     = useState(false)
-  const [panel,        setPanel]        = useState<Lab[] | null>(null)
-  const [panelOpen,    setPanelOpen]    = useState(false)
-  const [selectedLab,  setSelectedLab]  = useState<Lab | null>(null)
-  const [streamLines,  setStreamLines]  = useState<string[]>(STREAM_LINES.map(() => ''))
-  const [isMobile,     setIsMobile]     = useState(false)
+  const [tooltip,     setTooltip]     = useState<{ city: string; count: number; alzTotal: number; x: number; y: number } | null>(null)
+  const [ready,       setReady]       = useState(false)
+  const [sweeping,    setSweeping]    = useState(false)
+  const [streamLines, setStreamLines] = useState<string[]>(STREAM_LINES.map(() => ''))
+  const [isMobile,    setIsMobile]    = useState(false)
   const [publications, setPublications] = useState<{ id: string; title: string; year: number; citations: number; doi: string | null }[]>([])
 
-  const [momentum,        setMomentum]        = useState(false)
-  const [closingPanel,    setClosingPanel]    = useState(false)
-  const [closingFiche,    setClosingFiche]    = useState(false)
-  const [sortBy,          setSortBy]          = useState<SortBy>('composite')
-  const [topLabsMode,     setTopLabsMode]     = useState(false)
+  // Panel state machine + animation helpers
+  const [panelState,      setPanelState]      = useState<PanelState>({ tag: 'closed' })
   const [topLabsExpanded, setTopLabsExpanded] = useState(false)
-  const [closingTopLabs,  setClosingTopLabs]  = useState(false)
+  const [momentum,        setMomentum]        = useState(false)
+  const [sortBy,          setSortBy]          = useState<SortBy>('composite')
   const [topSort,         setTopSort]         = useState<TopSort>('impact')
-
-  const fromTopLabsRef = useRef(false)
 
   // Score composite — partagé entre CityPanel et TopLabsPanel
   const maxImpact = Math.max(...labs.map(l => (l.citedByCount ?? 0) / (l.worksCount || 1)))
@@ -142,7 +148,10 @@ export default function EuropeMap({ labs }: Props) {
           halo.transition().duration(200).attr('r', ro).attr('fill-opacity', 0.15)
           setTooltip(null)
         })
-        .on('click', () => { setTooltip(null); setPanel(cluster.labs); setPanelOpen(true); setSelectedLab(null) })
+        .on('click', () => {
+          setTooltip(null)
+          setPanelState({ tag: 'city', labs: cluster.labs, slide: true })
+        })
     })
 
     const zoom = d3.zoom<SVGSVGElement, unknown>()
@@ -205,22 +214,23 @@ export default function EuropeMap({ labs }: Props) {
     d3.select(svgRef.current).transition().duration(250).call(zoomRef.current.scaleBy, factor)
   }
 
+  // ── Transitions ───────────────────────────────────────────────────────────────
+
   const openTopLabs = () => {
-    setTopLabsMode(true)
+    setPanelState({ tag: 'toplabs' })
     setTopLabsExpanded(false)
-    setPanel(labs)
-    setPanelOpen(true)
     setMomentum(true)
     requestAnimationFrame(() => requestAnimationFrame(() => setTopLabsExpanded(true)))
     setTimeout(() => setMomentum(false), 900)
   }
 
   const openFiche = (lab: Lab) => {
-    fromTopLabsRef.current = topLabsMode
-    setTopLabsMode(false)
+    const origin: 'city' | 'toplabs' = panelState.tag === 'toplabs' ? 'toplabs' : 'city'
+    const cityLabs = panelState.tag === 'city' ? panelState.labs : undefined
+    setPanelState({ tag: 'fiche', lab, origin, cityLabs })
     setPublications([])
     setMomentum(true)
-    setSelectedLab(lab)
+    setTimeout(() => setMomentum(false), 900)
     fetch(
       `https://api.openalex.org/works?filter=institutions.id:${lab.id},title.search:alzheimer` +
       `&sort=publication_year:desc&per-page=5&select=id,title,publication_year,cited_by_count,doi`,
@@ -239,35 +249,62 @@ export default function EuropeMap({ labs }: Props) {
       .catch(() => {})
   }
 
-  const closeFiche = (backToTopLabs = false) => {
-    setClosingFiche(true)
+  const closeFiche = () => {
+    if (panelState.tag !== 'fiche') return
+    const { lab, origin, cityLabs } = panelState
+    setPanelState({ tag: 'closing-fiche', lab, returnTo: origin, cityLabs })
     setTimeout(() => {
-      setClosingFiche(false)
       setMomentum(true)
-      setSelectedLab(null)
-      if (backToTopLabs) { setTopLabsMode(true); setTopLabsExpanded(true) }
       setTimeout(() => setMomentum(false), 900)
+      if (origin === 'toplabs') {
+        setTopLabsExpanded(true)
+        setPanelState({ tag: 'toplabs' })
+      } else {
+        setPanelState({ tag: 'city', labs: cityLabs ?? [] })
+      }
     }, 350)
   }
 
   const closePanel = () => {
-    if (topLabsMode) {
-      setClosingTopLabs(true)
+    const ps = panelState
+    if (ps.tag === 'toplabs' || ps.tag === 'closing-toplabs') {
       setTopLabsExpanded(false)
-      setTimeout(() => {
-        setPanel(null); setSelectedLab(null)
-        setTopLabsMode(false); setClosingTopLabs(false); setPanelOpen(false)
-      }, 620)
-    } else {
-      setPanelOpen(false)
-      setClosingPanel(true)
-      setTopLabsExpanded(false)
-      setTimeout(() => { setPanel(null); setSelectedLab(null); setClosingPanel(false) }, 550)
+      setPanelState({ tag: 'closing-toplabs' })
+      setTimeout(() => setPanelState({ tag: 'closed' }), 620)
+    } else if (ps.tag === 'city' || ps.tag === 'closing-city') {
+      setPanelState({ tag: 'closing-city', labs: ps.labs })
+      setTimeout(() => setPanelState({ tag: 'closed' }), 550)
+    } else if (ps.tag === 'fiche' || ps.tag === 'closing-fiche') {
+      const cityLabs = ps.cityLabs ?? []
+      setPanelState({ tag: 'closing-city', labs: cityLabs })
+      setTimeout(() => setPanelState({ tag: 'closed' }), 550)
     }
   }
 
-  const panelWidth = selectedLab ? '100%' : topLabsMode ? (topLabsExpanded ? '100%' : '0px') : (isMobile ? '100%' : '540px')
-  const svgShift   = panelOpen && !isMobile && !topLabsMode ? 'translateX(-180px)' : 'translateX(0)'
+  // ── Dérivés d'affichage ───────────────────────────────────────────────────────
+
+  const panelWidth = (() => {
+    if (panelState.tag === 'fiche' || panelState.tag === 'closing-fiche') return '100%'
+    if (panelState.tag === 'toplabs' || panelState.tag === 'closing-toplabs') return topLabsExpanded ? '100%' : '0px'
+    if (panelState.tag === 'city' || panelState.tag === 'closing-city') return isMobile ? '100%' : '540px'
+    return '0px'
+  })()
+
+  const panelTransition = (() => {
+    if (panelState.tag === 'toplabs' || panelState.tag === 'closing-toplabs') return TOPLABS_EASING
+    if (momentum) return MOMENTUM_EASING
+    return NORMAL_EASING
+  })()
+
+  const panelAnimation = (() => {
+    if (panelState.tag === 'closing-city') return SLIDE_OUT_EASING
+    if (panelState.tag === 'toplabs' || panelState.tag === 'closing-toplabs') return 'none'
+    if (panelState.tag === 'city' && panelState.slide) return 'panelslide 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards'
+    return 'none'
+  })()
+
+  const svgShift = (['city', 'fiche', 'closing-fiche'] as PanelState['tag'][]).includes(panelState.tag) && !isMobile
+    ? 'translateX(-180px)' : 'translateX(0)'
 
   return (
     <div className="relative w-full" style={{ height: '100vh' }}>
@@ -350,20 +387,16 @@ export default function EuropeMap({ labs }: Props) {
       )}
 
       {/* Panel */}
-      {(panel || closingPanel) && (
+      {panelState.tag !== 'closed' && (
         <div
           className="absolute inset-0 sm:inset-auto sm:top-0 sm:right-0 sm:h-full bg-white border-l border-slate-200 flex flex-col overflow-hidden z-20 shadow-xl"
           style={{
             width: panelWidth,
-            transition: topLabsMode ? TOPLABS_EASING : momentum ? MOMENTUM_EASING : NORMAL_EASING,
-            animation: closingPanel
-              ? SLIDE_OUT_EASING
-              : topLabsMode
-                ? 'none'
-                : 'panelslide 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards',
+            transition: panelTransition,
+            animation: panelAnimation,
           }}
         >
-          {!selectedLab && topLabsMode && (
+          {(panelState.tag === 'toplabs' || panelState.tag === 'closing-toplabs') && (
             <TopLabsPanel
               labs={labs}
               topSort={topSort}
@@ -375,9 +408,9 @@ export default function EuropeMap({ labs }: Props) {
             />
           )}
 
-          {!selectedLab && !topLabsMode && (
+          {(panelState.tag === 'city' || panelState.tag === 'closing-city') && (
             <CityPanel
-              labs={panel ?? []}
+              labs={panelState.labs}
               sortBy={sortBy}
               onSortChange={setSortBy}
               compositeScore={compositeScore}
@@ -386,12 +419,12 @@ export default function EuropeMap({ labs }: Props) {
             />
           )}
 
-          {selectedLab && (
+          {(panelState.tag === 'fiche' || panelState.tag === 'closing-fiche') && (
             <FichePanel
-              lab={selectedLab}
+              lab={panelState.lab}
               publications={publications}
-              closingFiche={closingFiche}
-              onBack={() => closeFiche(fromTopLabsRef.current)}
+              closingFiche={panelState.tag === 'closing-fiche'}
+              onBack={closeFiche}
               onClose={closePanel}
             />
           )}

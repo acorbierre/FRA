@@ -1,6 +1,7 @@
 'use client'
 
-import { ArrowDown, TrendingUp, Target, Sparkles, BookOpen } from 'lucide-react'
+import { useState, useEffect, useRef } from 'react'
+import { ChevronDown, TrendingUp, Target, Sparkles, BookOpen } from 'lucide-react'
 import { type Lab } from '@/data/alzheimer-labs'
 import { PanelTopbar } from './panel-topbar'
 import { DOT_COLOR } from './map-utils'
@@ -17,12 +18,6 @@ interface Props {
   onClose: () => void
 }
 
-const SORT_TABS: { key: TopSort; label: string }[] = [
-  { key: 'impact',         label: "Score d'impact" },
-  { key: 'publications',   label: 'Publications Alzheimer' },
-  { key: 'specialisation', label: 'Spécialisation Alzheimer' },
-  { key: 'composite',      label: 'Pertinence FRA' },
-]
 
 function metricLabel(lab: Lab, topSort: TopSort, compositeScore: (l: Lab) => number): string {
   if (topSort === 'impact')         return `${Math.round((lab.citedByCount ?? 0) / (lab.worksCount ?? 1)).toLocaleString('fr-FR')} cit./pub.`
@@ -38,27 +33,69 @@ function SortIcon({ sort, size = 20 }: { sort: TopSort; size?: number }) {
   return <BookOpen size={size} strokeWidth={2.5} />
 }
 
-function IntroBlock({ topSort }: { topSort: TopSort }) {
-  const titles: Record<TopSort, string> = {
-    impact:         "Score d'impact",
-    publications:   'Nombre de publications Alzheimer',
-    specialisation: 'Taux de spécialisation Alzheimer',
-    composite:      'Pertinence pour la FRA',
-  }
-  const bodies: Record<TopSort, React.ReactNode> = {
-    impact: <>Le score d'impact mesure le nombre moyen de citations reçues par publication, toutes thématiques confondues. Un score élevé signale un laboratoire dont les travaux font référence dans la communauté scientifique — un indicateur de crédibilité et d'influence particulièrement pertinent pour identifier des partenaires FRA de haut niveau.</>,
-    publications: <>Le nombre de publications Alzheimer est extrait d'OpenAlex, base de données bibliographique ouverte qui indexe plus de 250 millions de travaux scientifiques. Il reflète le volume de contributions d'un laboratoire sur la thématique Alzheimer et maladies apparentées.</>,
-    specialisation: <>Le taux de spécialisation correspond à la part des publications Alzheimer dans la production scientifique totale du laboratoire. Un taux élevé indique un laboratoire fortement centré sur la thématique — un critère de pertinence complémentaire au volume brut de publications.</>,
-    composite: <>La pertinence FRA croise trois indicateurs pour identifier les laboratoires à la fois influents, actifs sur Alzheimer et centrés sur le sujet&nbsp;: score d'impact (40&nbsp;%), volume de publications Alzheimer (35&nbsp;%) et taux de spécialisation (25&nbsp;%). Chaque métrique est normalisée de 0 à 100 par rapport au maximum du dataset, puis pondérée pour donner un score global sur 100.</>,
-  }
+const TITLES: Record<TopSort, string> = {
+  impact:         "Score d'impact",
+  publications:   'Publications Alzheimer',
+  specialisation: 'Spécialisation Alzheimer',
+  composite:      'Pertinence pour la FRA',
+}
+
+
+const BODIES: Record<TopSort, React.ReactNode> = {
+  impact:         <>Le score d'impact mesure le nombre moyen de citations reçues par publication, toutes thématiques confondues. Un score élevé signale un laboratoire dont les travaux font référence dans la communauté scientifique — un indicateur de crédibilité et d'influence particulièrement pertinent pour identifier des partenaires FRA de haut niveau.</>,
+  publications:   <>Le nombre de publications Alzheimer est extrait d'OpenAlex, base de données bibliographique ouverte qui indexe plus de 250 millions de travaux scientifiques. Il reflète le volume de contributions d'un laboratoire sur la thématique Alzheimer et maladies apparentées.</>,
+  specialisation: <>Le taux de spécialisation correspond à la part des publications Alzheimer dans la production scientifique totale du laboratoire. Un taux élevé indique un laboratoire fortement centré sur la thématique — un critère de pertinence complémentaire au volume brut de publications.</>,
+  composite:      <>La pertinence FRA croise trois indicateurs pour identifier les laboratoires à la fois influents, actifs sur Alzheimer et centrés sur le sujet&nbsp;: score d'impact (40&nbsp;%), volume de publications Alzheimer (35&nbsp;%) et taux de spécialisation (25&nbsp;%). Chaque métrique est normalisée de 0 à 100 par rapport au maximum du dataset, puis pondérée pour donner un score global sur 100.</>,
+}
+
+const SORT_KEYS: TopSort[] = ['impact', 'publications', 'specialisation', 'composite']
+
+function IntroBlock({ topSort, onSortChange }: { topSort: TopSort; onSortChange: (s: TopSort) => void }) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLParagraphElement>(null)
+
+  useEffect(() => {
+    if (!open) return
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [open])
 
   return (
     <div className="mt-8 mb-8">
       <div className="font-bold font-heading leading-tight mb-2" style={{ fontSize: 'clamp(1.4rem, 2.2vw, 2.1rem)' }}>
         <p style={{ color: '#7F8997' }}>Classement des laboratoires</p>
-        <p><span style={{ color: '#7F8997' }}>par </span><span style={{ color: DOT_COLOR }}>{titles[topSort]}</span></p>
+        <p ref={ref} className="relative inline-flex items-baseline gap-1">
+          <span style={{ color: '#7F8997' }}>par </span>
+          <button
+            onClick={() => setOpen(o => !o)}
+            className="inline-flex items-center gap-1 cursor-pointer hover:opacity-70 transition-opacity"
+          >
+            <span style={{ color: DOT_COLOR }}>{TITLES[topSort]}</span>
+            <ChevronDown
+              size={26} strokeWidth={2.5}
+              style={{ color: DOT_COLOR, transition: 'transform 0.2s', transform: open ? 'rotate(180deg)' : 'rotate(0deg)' }}
+            />
+          </button>
+          {open && (
+            <div className="absolute top-full left-0 mt-2 bg-white border border-slate-200 rounded-xl shadow-lg z-20 overflow-hidden min-w-[260px]">
+              {SORT_KEYS.map(key => (
+                <button
+                  key={key}
+                  onClick={() => { onSortChange(key); setOpen(false) }}
+                  className="w-full text-left px-4 py-3 text-sm font-heading transition-colors hover:bg-purple-50 cursor-pointer"
+                  style={{ fontWeight: key === topSort ? 700 : 400, color: key === topSort ? DOT_COLOR : '#0f172a' }}
+                >
+                  {TITLES[key]}
+                </button>
+              ))}
+            </div>
+          )}
+        </p>
       </div>
-      <p className="text-[#62748e] text-sm leading-relaxed">{bodies[topSort]}</p>
+      <p className="text-[#62748e] text-sm leading-relaxed">{BODIES[topSort]}</p>
     </div>
   )
 }
@@ -78,30 +115,11 @@ export function TopLabsPanel({ labs, topSort, onSortChange, compositeScore, onLa
 
   return (
     <>
-      <PanelTopbar centerText="" onBack={onBack} onClose={onClose}>
-        <div className="flex-1 flex items-center justify-center gap-6">
-          <span className="font-heading text-[#62748e] text-sm">Trier par :</span>
-          {SORT_TABS.map(tab => (
-            <button
-              key={tab.key}
-              onClick={() => onSortChange(tab.key)}
-              className="font-heading cursor-pointer flex items-center gap-1 transition-colors"
-              style={{
-                fontSize: '0.88rem',
-                fontWeight: topSort === tab.key ? 700 : 500,
-                color: topSort === tab.key ? '#0f172a' : '#64748b',
-              }}
-            >
-              {tab.label}
-              <ArrowDown size={12} style={{ opacity: topSort === tab.key ? 1 : 0.5 }} />
-            </button>
-          ))}
-        </div>
-      </PanelTopbar>
+      <PanelTopbar centerText="Classement des laboratoires" onBack={onBack} onClose={onClose} />
 
       <div className="flex-1 overflow-y-auto">
         <div className="px-8 py-8 max-w-2xl mx-auto">
-          <IntroBlock topSort={topSort} />
+          <IntroBlock topSort={topSort} onSortChange={onSortChange} />
 
           {sorted.map((lab, idx) => (
             <button
