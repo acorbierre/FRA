@@ -7,7 +7,7 @@ export const metadata = { title: 'Cartographie des équipes de recherche — FRA
 export default async function CartePage() {
   const rows = await sql`
     SELECT id, nom, ville, pays, lat, lon, type, fra_funded, labo_neon_id, url,
-           alz_pub_count, cited_by_count, topics
+           alz_pub_count, cited_by_count, works_count, topics
     FROM carte_laboratoires
     WHERE lat IS NOT NULL AND lon IS NOT NULL
     AND pays = 'FR'
@@ -27,6 +27,7 @@ export default async function CartePage() {
     url: r.url ?? null,
     alzPubCount: r.alz_pub_count ?? 0,
     citedByCount: r.cited_by_count ?? 0,
+    worksCount: r.works_count ?? 0,
     topics: r.topics ?? [],
   }))
 

@@ -48,7 +48,7 @@ export async function POST() {
         `https://api.openalex.org/institutions` +
         `?filter=openalex_id:${filterIds}` +
         `&per-page=${BATCH}` +
-        `&select=id,display_name,country_code,type,geo,cited_by_count,topics,homepage_url`
+        `&select=id,display_name,country_code,type,geo,cited_by_count,works_count,topics,homepage_url`
       )
       await sleep(DELAY)
 
@@ -64,6 +64,7 @@ export async function POST() {
         const lon         = inst.geo?.longitude ?? null
         const url_hp      = inst.homepage_url ?? null
         const cited       = inst.cited_by_count ?? 0
+        const worksCount  = inst.works_count ?? 0
         const alzCount    = instCounts.get(id) ?? 0
         const topicsJson  = JSON.stringify(
           (inst.topics ?? []).slice(0, 5).map((t: any) => ({
@@ -78,11 +79,11 @@ export async function POST() {
         await sql`
           INSERT INTO carte_laboratoires
             (id, nom, ville, pays, lat, lon, type, fra_funded, source, url,
-             openalex_id, alz_pub_count, cited_by_count, topics)
+             openalex_id, alz_pub_count, cited_by_count, works_count, topics)
           VALUES (
             ${shortId}, ${nom}, ${ville}, ${pays}, ${lat}, ${lon},
             'national', false, 'openalex', ${url_hp},
-            ${shortId}, ${alzCount}, ${cited}, ${topicsJson}
+            ${shortId}, ${alzCount}, ${cited}, ${worksCount}, ${topicsJson}
           )
           ON CONFLICT (id) DO UPDATE SET
             nom           = EXCLUDED.nom,
@@ -91,6 +92,7 @@ export async function POST() {
             lon           = EXCLUDED.lon,
             alz_pub_count = EXCLUDED.alz_pub_count,
             cited_by_count= EXCLUDED.cited_by_count,
+            works_count   = EXCLUDED.works_count,
             topics        = EXCLUDED.topics,
             url           = EXCLUDED.url
         `

@@ -19,6 +19,7 @@ export interface Lab {
   // Données OpenAlex
   alzPubCount?: number
   citedByCount?: number
+  worksCount?: number
   topics?: LabTopic[]
 }
 

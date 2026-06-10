@@ -58,6 +58,24 @@ function formatCount(n: number) {
   return String(n)
 }
 
+// Seuil de spécialisation : >= 15% des publications portent sur Alzheimer
+const SPECIALIST_RATIO_THRESHOLD = 0.15
+
+function specializationRatio(lab: Lab): number | null {
+  if (!lab.worksCount || !lab.alzPubCount) return null
+  return lab.alzPubCount / lab.worksCount
+}
+
+function impactScore(lab: Lab): number | null {
+  if (!lab.alzPubCount || !lab.citedByCount) return null
+  return lab.citedByCount / lab.alzPubCount
+}
+
+function isSpecialist(lab: Lab): boolean {
+  const r = specializationRatio(lab)
+  return r !== null && r >= SPECIALIST_RATIO_THRESHOLD
+}
+
 function computeClusters(labs: Lab[], projection: d3.GeoProjection, threshold = 15): Cluster[] {
   const points = labs
     .map(lab => {
@@ -247,10 +265,11 @@ export default function EuropeMap({ labs }: Props) {
   }
 
   // momentum : reste true pendant toute la durée de la transition (ouverture ET fermeture fiche)
-  const [momentum,      setMomentum]      = useState(false)
-  const [closingPanel,  setClosingPanel]  = useState(false)
-  const [closingFiche,  setClosingFiche]  = useState(false)
-  const [sortBy,        setSortBy]        = useState<'publications' | 'alpha' | 'fra'>('publications')
+  const [momentum,        setMomentum]        = useState(false)
+  const [closingPanel,    setClosingPanel]    = useState(false)
+  const [closingFiche,    setClosingFiche]    = useState(false)
+  const [sortBy,          setSortBy]          = useState<'publications' | 'alpha' | 'fra'>('publications')
+  const [specialistOnly,  setSpecialistOnly]  = useState(false)
 
   const openFiche = (lab: Lab) => {
     setPublications([])
@@ -380,9 +399,22 @@ export default function EuropeMap({ labs }: Props) {
               <div className="flex items-start justify-between px-6 py-5 border-b border-slate-200 flex-shrink-0">
                 <div>
                   <p className="text-2xl font-bold font-heading text-slate-900 leading-tight">{titleCase(dominantCity(panel ?? []))}</p>
-                  <p className="text-slate-500 text-sm mt-1">{(panel ?? []).length} institution{(panel ?? []).length > 1 ? 's' : ''}</p>
+                  <p className="text-slate-500 text-sm mt-1">
+                    {(panel ?? []).filter(l => !specialistOnly || isSpecialist(l)).length} institution{(panel ?? []).filter(l => !specialistOnly || isSpecialist(l)).length > 1 ? 's' : ''}
+                    {specialistOnly && <span className="ml-1.5 text-xs font-medium px-1.5 py-0.5 rounded-full" style={{ background: 'rgba(130,49,168,0.1)', color: DOT_COLOR }}>spécialistes uniquement</span>}
+                  </p>
                 </div>
-                <div className="flex items-center gap-4 mt-1">
+                <div className="flex items-center gap-3 mt-1 flex-wrap">
+                  <button
+                    onClick={() => setSpecialistOnly(v => !v)}
+                    title="Spécialiste = ≥ 15 % des publications portent sur Alzheimer"
+                    className="text-xs font-medium px-2.5 py-1 rounded-full border transition-colors cursor-pointer whitespace-nowrap"
+                    style={specialistOnly
+                      ? { background: DOT_COLOR, color: 'white', borderColor: DOT_COLOR }
+                      : { background: 'transparent', color: '#64748b', borderColor: '#e2e8f0' }}
+                  >
+                    Spécialistes
+                  </button>
                   <label className="flex items-center gap-1.5 text-sm text-slate-500 cursor-pointer">
                     <span className="whitespace-nowrap">Trier par</span>
                     <select
@@ -399,7 +431,7 @@ export default function EuropeMap({ labs }: Props) {
                 </div>
               </div>
               <div className="flex-1 overflow-y-auto divide-y divide-slate-50">
-                {[...(panel ?? [])].sort((a, b) => {
+                {[...(panel ?? [])].filter(l => !specialistOnly || isSpecialist(l)).sort((a, b) => {
                   if (sortBy === 'alpha') return a.name.localeCompare(b.name, 'fr')
                   if (sortBy === 'fra') {
                     if (a.type === 'fra' && b.type !== 'fra') return -1
@@ -426,6 +458,9 @@ export default function EuropeMap({ labs }: Props) {
                         <p className="tracking-wide font-medium" style={{ fontSize: '0.8rem', color: DOT_COLOR }}>{lab.city.toUpperCase()}</p>
                         {lab.type === 'fra' && (
                           <span className="text-xs font-medium px-1.5 py-0.5 rounded-full" style={{ background: 'rgba(130,49,168,0.1)', color: DOT_COLOR }}>Soutenu FRA</span>
+                        )}
+                        {isSpecialist(lab) && (
+                          <span className="text-xs font-medium px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">Spécialiste</span>
                         )}
                       </div>
                       {lab.alzPubCount ? (
@@ -474,14 +509,21 @@ export default function EuropeMap({ labs }: Props) {
                   </div>
                 </div>
 
-                {selectedLab.type === 'fra' && (
-                  <span className="inline-flex items-center text-xs font-medium px-2 py-1 rounded-full mb-6 ml-5" style={{ background: 'rgba(130,49,168,0.1)', color: DOT_COLOR, animation: closingFiche ? 'fichefade-out 0.25s 180ms ease forwards' : 'fichefade 0.55s 430ms cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards', opacity: closingFiche ? 1 : 0 }}>
-                    Soutenu par la FRA
-                  </span>
-                )}
+                <div className="flex flex-wrap gap-2 ml-5 mb-6" style={{ animation: closingFiche ? 'fichefade-out 0.25s 180ms ease forwards' : 'fichefade 0.55s 430ms cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards', opacity: closingFiche ? 1 : 0 }}>
+                  {selectedLab.type === 'fra' && (
+                    <span className="inline-flex items-center text-xs font-medium px-2 py-1 rounded-full" style={{ background: 'rgba(130,49,168,0.1)', color: DOT_COLOR }}>
+                      Soutenu par la FRA
+                    </span>
+                  )}
+                  {isSpecialist(selectedLab) && (
+                    <span className="inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200" title={`${Math.round((specializationRatio(selectedLab) ?? 0) * 100)} % des publications portent sur Alzheimer`}>
+                      ★ Spécialiste Alzheimer
+                    </span>
+                  )}
+                </div>
 
                 {/* Stats */}
-                <div className="grid grid-cols-2 gap-4 mt-6 mb-12" style={{ animation: closingFiche ? 'fichefade-out 0.25s 120ms ease forwards' : 'fichefade 0.55s 520ms cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards', opacity: closingFiche ? 1 : 0 }}>
+                <div className="grid grid-cols-2 gap-4 mt-6 mb-6" style={{ animation: closingFiche ? 'fichefade-out 0.25s 120ms ease forwards' : 'fichefade 0.55s 520ms cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards', opacity: closingFiche ? 1 : 0 }}>
                   <div className="rounded-xl border border-slate-200 p-4 bg-slate-100/70">
                     <div className="flex items-center gap-2 text-slate-500 text-xs font-semibold uppercase tracking-wide mb-1">
                       <BookOpen size={12} /> Publications Alzheimer
@@ -497,6 +539,30 @@ export default function EuropeMap({ labs }: Props) {
                     <p className="text-3xl font-bold font-heading text-slate-700">
                       {selectedLab.citedByCount ? formatCount(selectedLab.citedByCount) : '—'}
                     </p>
+                  </div>
+                  <div className="rounded-xl border border-slate-200 p-4 bg-slate-100/70">
+                    <div className="flex items-center gap-2 text-slate-500 text-xs font-semibold uppercase tracking-wide mb-1">
+                      <Quote size={12} /> Score d'impact
+                    </div>
+                    <p className="text-3xl font-bold font-heading text-slate-700">
+                      {impactScore(selectedLab) !== null ? Math.round(impactScore(selectedLab)!).toLocaleString('fr-FR') : '—'}
+                    </p>
+                    <p className="text-slate-400 text-xs mt-0.5">citations / pub. Alzheimer</p>
+                  </div>
+                  <div className="rounded-xl border border-slate-200 p-4 bg-slate-100/70">
+                    <div className="flex items-center gap-2 text-slate-500 text-xs font-semibold uppercase tracking-wide mb-1">
+                      <BookOpen size={12} /> Spécialisation
+                    </div>
+                    {specializationRatio(selectedLab) !== null ? (
+                      <>
+                        <p className="text-3xl font-bold font-heading" style={{ color: isSpecialist(selectedLab) ? '#b45309' : 'rgb(100 116 139)' }}>
+                          {Math.round((specializationRatio(selectedLab) ?? 0) * 100)} %
+                        </p>
+                        <p className="text-slate-400 text-xs mt-0.5">des publications en Alzheimer</p>
+                      </>
+                    ) : (
+                      <p className="text-3xl font-bold font-heading text-slate-700">—</p>
+                    )}
                   </div>
                 </div>
 
