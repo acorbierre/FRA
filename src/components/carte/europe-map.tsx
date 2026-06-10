@@ -505,24 +505,48 @@ export default function EuropeMap({ labs }: Props) {
                 <div className="flex-1 overflow-y-auto">
                   <div className="px-8 py-8 max-w-2xl mx-auto">
                     {topSort === 'impact' && (
-                      <p className="text-[#62748e] text-sm leading-relaxed mb-8">
-                        Le score d'impact mesure le nombre moyen de citations reçues par publication, toutes thématiques confondues. Un score élevé signale un laboratoire dont les travaux font référence dans la communauté scientifique — un indicateur de crédibilité et d'influence particulièrement pertinent pour identifier des partenaires FRA de haut niveau.
-                      </p>
+                      <div className="mt-8 mb-8">
+                        <div className="font-bold font-heading leading-tight mb-2" style={{ fontSize: 'clamp(1.4rem, 2.2vw, 2.1rem)' }}>
+                          <p style={{ color: '#7F8997' }}>Classement des laboratoires</p>
+                          <p><span style={{ color: '#7F8997' }}>par </span><span style={{ color: DOT_COLOR }}>Score d'impact</span></p>
+                        </div>
+                        <p className="text-[#62748e] text-sm leading-relaxed">
+                          Le score d'impact mesure le nombre moyen de citations reçues par publication, toutes thématiques confondues. Un score élevé signale un laboratoire dont les travaux font référence dans la communauté scientifique — un indicateur de crédibilité et d'influence particulièrement pertinent pour identifier des partenaires FRA de haut niveau.
+                        </p>
+                      </div>
                     )}
                     {topSort === 'publications' && (
-                      <p className="text-[#62748e] text-sm leading-relaxed mb-8">
-                        Le nombre de publications Alzheimer est extrait d'OpenAlex, base de données bibliographique ouverte qui indexe plus de 250 millions de travaux scientifiques. Il reflète le volume de contributions d'un laboratoire sur la thématique Alzheimer et maladies apparentées.
-                      </p>
+                      <div className="mt-8 mb-8">
+                        <div className="font-bold font-heading leading-tight mb-2" style={{ fontSize: 'clamp(1.4rem, 2.2vw, 2.1rem)' }}>
+                          <p style={{ color: '#7F8997' }}>Classement des laboratoires</p>
+                          <p><span style={{ color: '#7F8997' }}>par </span><span style={{ color: DOT_COLOR }}>Nombre de publications Alzheimer</span></p>
+                        </div>
+                        <p className="text-[#62748e] text-sm leading-relaxed">
+                          Le nombre de publications Alzheimer est extrait d'OpenAlex, base de données bibliographique ouverte qui indexe plus de 250 millions de travaux scientifiques. Il reflète le volume de contributions d'un laboratoire sur la thématique Alzheimer et maladies apparentées.
+                        </p>
+                      </div>
                     )}
                     {topSort === 'specialisation' && (
-                      <p className="text-[#62748e] text-sm leading-relaxed mb-8">
-                        Le taux de spécialisation correspond à la part des publications Alzheimer dans la production scientifique totale du laboratoire. Un taux élevé indique un laboratoire fortement centré sur la thématique — un critère de pertinence complémentaire au volume brut de publications.
-                      </p>
+                      <div className="mt-8 mb-8">
+                        <div className="font-bold font-heading leading-tight mb-2" style={{ fontSize: 'clamp(1.4rem, 2.2vw, 2.1rem)' }}>
+                          <p style={{ color: '#7F8997' }}>Classement des laboratoires</p>
+                          <p><span style={{ color: '#7F8997' }}>par </span><span style={{ color: DOT_COLOR }}>Taux de spécialisation Alzheimer</span></p>
+                        </div>
+                        <p className="text-[#62748e] text-sm leading-relaxed">
+                          Le taux de spécialisation correspond à la part des publications Alzheimer dans la production scientifique totale du laboratoire. Un taux élevé indique un laboratoire fortement centré sur la thématique — un critère de pertinence complémentaire au volume brut de publications.
+                        </p>
+                      </div>
                     )}
                     {topSort === 'composite' && (
-                      <p className="text-[#62748e] text-sm leading-relaxed mb-8">
-                        La pertinence FRA croise trois indicateurs pour identifier les laboratoires à la fois influents, actifs sur Alzheimer et centrés sur le sujet : score d'impact (40&nbsp;%), volume de publications Alzheimer (35&nbsp;%) et taux de spécialisation (25&nbsp;%). Chaque métrique est normalisée de 0 à 100 par rapport au maximum du dataset, puis pondérée pour donner un score global sur 100.
-                      </p>
+                      <div className="mt-8 mb-8">
+                        <div className="font-bold font-heading leading-tight mb-2" style={{ fontSize: 'clamp(1.4rem, 2.2vw, 2.1rem)' }}>
+                          <p style={{ color: '#7F8997' }}>Classement des laboratoires</p>
+                          <p><span style={{ color: '#7F8997' }}>par </span><span style={{ color: DOT_COLOR }}>Pertinence pour la FRA</span></p>
+                        </div>
+                        <p className="text-[#62748e] text-sm leading-relaxed">
+                          La pertinence FRA croise trois indicateurs pour identifier les laboratoires à la fois influents, actifs sur Alzheimer et centrés sur le sujet : score d'impact (40&nbsp;%), volume de publications Alzheimer (35&nbsp;%) et taux de spécialisation (25&nbsp;%). Chaque métrique est normalisée de 0 à 100 par rapport au maximum du dataset, puis pondérée pour donner un score global sur 100.
+                        </p>
+                      </div>
                     )}
                     {sorted.map((lab, idx) => (
                       <button
@@ -532,7 +556,7 @@ export default function EuropeMap({ labs }: Props) {
                         style={{ animation: `fichefade 0.4s cubic-bezier(0.25,0.46,0.45,0.94) ${idx * 30}ms both` }}
                       >
                         <div className="flex items-start gap-3 mb-2">
-                          <div className="w-2.5 h-2.5 rounded-full flex-shrink-0 mt-2" style={{ background: lab.type === 'fra' ? DOT_COLOR : LIGHT_COLOR }} />
+                          <span className="font-heading font-bold flex-shrink-0 mt-1 w-6 text-right" style={{ fontSize: 'clamp(1rem, 1.4vw, 1.15rem)', color: DOT_COLOR }}>{idx + 1}</span>
                           <div>
                             <h2 className="text-2xl font-bold font-heading text-slate-900 leading-tight">{lab.name}</h2>
                             <p className="flex items-center gap-2 text-2xl font-bold font-heading leading-tight" style={{ color: '#7F8997' }}>
@@ -632,7 +656,7 @@ export default function EuropeMap({ labs }: Props) {
                         {lab.citedByCount && lab.worksCount ? (
                           <span className="flex items-center gap-1">
                             <TrendingUp size={12} className="flex-shrink-0" />
-                            {Math.round(lab.citedByCount / lab.worksCount).toLocaleString('fr-FR')} cit./pub.
+                            {Math.round(lab.citedByCount / lab.worksCount).toLocaleString('fr-FR')}
                           </span>
                         ) : null}
                         {specializationRatio(lab) !== null ? (
@@ -715,7 +739,7 @@ export default function EuropeMap({ labs }: Props) {
                   </div>
                   <div className="rounded-xl border border-slate-200 p-4 bg-slate-100/70">
                     <div className="flex items-center gap-2 text-slate-500 text-xs font-semibold uppercase tracking-wide mb-1">
-                      <Quote size={12} /> Score d'impact
+                      <TrendingUp size={12} /> Score d'impact
                     </div>
                     {selectedLab.citedByCount && selectedLab.worksCount ? (
                       <>
@@ -733,14 +757,14 @@ export default function EuropeMap({ labs }: Props) {
                   </div>
                   <div className="rounded-xl border border-slate-200 p-4 bg-slate-100/70">
                     <div className="flex items-center gap-2 text-slate-500 text-xs font-semibold uppercase tracking-wide mb-1">
-                      <BookOpen size={12} /> Spécialisation
+                      <Target size={12} /> Spécialisation Alzheimer
                     </div>
                     {specializationRatio(selectedLab) !== null ? (
                       <>
-                        <p className="text-3xl font-bold font-heading text-slate-700">
-                          {Math.round((specializationRatio(selectedLab) ?? 0) * 100)} %
+                        <p className="text-3xl font-bold font-heading" style={{ color: DOT_COLOR }}>
+                          {Math.round((specializationRatio(selectedLab) ?? 0) * 100)}&nbsp;%
                         </p>
-                        <p className="text-[#62748e] text-xs mt-0.5">des publications en Alzheimer</p>
+                        <p className="text-[#62748e] text-xs mt-0.5">des publications</p>
                       </>
                     ) : (
                       <p className="text-3xl font-bold font-heading text-slate-700">—</p>
@@ -750,9 +774,9 @@ export default function EuropeMap({ labs }: Props) {
 
                 {/* Publications récentes */}
                 {publications.length > 0 && (
-                  <div className="mb-12" style={{ animation: closingFiche ? 'fichefade-out 0.25s 60ms ease forwards' : 'fichefade 0.55s 620ms cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards', opacity: closingFiche ? 1 : 0 }}>
-                    <div className="flex items-center gap-2 text-slate-500 text-xs font-semibold uppercase tracking-wide mb-4">
-                      <BookOpen size={12} /> 5 publications récentes
+                  <div className="mt-8 mb-12" style={{ animation: closingFiche ? 'fichefade-out 0.25s 60ms ease forwards' : 'fichefade 0.55s 620ms cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards', opacity: closingFiche ? 1 : 0 }}>
+                    <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide mb-4" style={{ color: DOT_COLOR }}>
+                      <BookOpen size={12} /> Publications récentes
                     </div>
                     <div className="flex flex-col gap-4">
                       {publications.map((pub, i) => (
@@ -778,7 +802,7 @@ export default function EuropeMap({ labs }: Props) {
                 {/* Domaines de recherche */}
                 {selectedLab.topics && selectedLab.topics.length > 0 && (
                   <div className="mb-12" style={{ animation: closingFiche ? 'fichefade-out 0.25s 30ms ease forwards' : 'fichefade 0.55s 720ms cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards', opacity: closingFiche ? 1 : 0 }}>
-                    <div className="flex items-center gap-2 text-slate-500 text-xs font-semibold uppercase tracking-wide mb-4">
+                    <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide mb-4" style={{ color: DOT_COLOR }}>
                       <Tag size={12} /> Domaines de recherche
                     </div>
                     <div className="flex flex-col gap-2">
