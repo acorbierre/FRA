@@ -1,16 +1,20 @@
 'use client'
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+declare global { interface Window { SpeechRecognition: any; webkitSpeechRecognition: any } }
+
 import { useState, useRef, useEffect } from 'react'
-import { ArrowUp } from 'lucide-react'
+import { ArrowUp, Mic, MicOff } from 'lucide-react'
 import Link from 'next/link'
 import { useChatMessages, type Message } from '@/components/layout/chat-provider'
 
 function parseContent(text: string): React.ReactNode[] {
   const parts = text.split(/(\[SOURCE:[^\]]+\])/g)
   return parts.map((part, i) => {
-    const match = part.match(/^\[SOURCE:([^|]+)\|([^\]]+)\]$/)
+    const match = part.match(/^\[SOURCE:([^|\]]+)(?:\|([^\]]*))?\]$/)
     if (match) {
-      const [, href, label] = match
+      const [, href, rawLabel] = match
+      const label = rawLabel?.trim() || href.split('/').filter(Boolean).pop() || 'Voir'
       return (
         <Link
           key={href}
@@ -58,7 +62,7 @@ function AssistantMessage({ content }: { content: string }) {
 
   function flushTable() {
     if (!tableRows.length) return
-    const [head, , ...body] = tableRows
+    const [head, ...body] = tableRows
     blocks.push(
       <div key={k++} className="overflow-x-auto my-2">
         <table className="w-full text-sm border-collapse">
@@ -115,12 +119,53 @@ export default function ChatInterface() {
   const [input, setInput] = useState('')
   const [streaming, setStreaming] = useState(false)
   const [streamingContent, setStreamingContent] = useState('')
+  const [listening, setListening] = useState(false)
   const bottomRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const recognitionRef = useRef<any>(null)
+
+  function toggleVoice() {
+    const SpeechRecognition = window.SpeechRecognition || (window as typeof window & { webkitSpeechRecognition: typeof window.SpeechRecognition }).webkitSpeechRecognition
+    if (!SpeechRecognition) return
+
+    if (listening) {
+      recognitionRef.current?.stop()
+      return
+    }
+
+    const recognition = new SpeechRecognition()
+    recognition.lang = 'fr-FR'
+    recognition.interimResults = false
+    recognitionRef.current = recognition
+
+    recognition.onstart = () => setListening(true)
+    recognition.onend = () => setListening(false)
+    recognition.onerror = () => setListening(false)
+    recognition.onresult = (e: any) => {
+      const raw = e.results[0][0].transcript
+      const transcript = raw.replace(/\b(fera|f'ra|fra|frat|phra)\b/gi, 'FRA')
+      setInput(prev => prev ? `${prev} ${transcript}` : transcript)
+      textareaRef.current?.focus()
+    }
+    recognition.start()
+  }
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, streamingContent])
+
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'm') {
+        e.preventDefault()
+        toggleVoice()
+      }
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [listening])
 
   useEffect(() => {
     if (!pendingMessage) return
@@ -226,7 +271,7 @@ export default function ChatInterface() {
           ))}
 
           {streaming && streamingContent && (
-            <AssistantMessage content={streamingContent} />
+            <AssistantMessage content={streamingContent.replace(/\[SOURCE:[^\]]*$/, '')} />
           )}
 
           {streaming && !streamingContent && (
@@ -247,7 +292,7 @@ export default function ChatInterface() {
 
       {/* Input fixe en bas */}
       <div className="fixed bottom-0 left-60 right-0 z-30 border-t border-border bg-background px-8 py-4">
-        <div className="max-w-3xl mx-auto flex items-end gap-3">
+        <div className="max-w-3xl mx-auto flex items-end gap-2 rounded-xl border border-input bg-muted/40 px-3 focus-within:ring-1 focus-within:ring-ring">
           <textarea
             ref={textareaRef}
             value={input}
@@ -255,19 +300,32 @@ export default function ChatInterface() {
             onKeyDown={handleKeyDown}
             placeholder="Posez une question…"
             rows={1}
-            className="flex-1 resize-none rounded-xl border border-input bg-muted/40 px-4 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring leading-relaxed"
+            className="flex-1 resize-none bg-transparent py-3 text-sm focus:outline-none leading-relaxed"
             style={{ maxHeight: '160px' }}
           />
-          <button
-            onClick={handleSubmit}
-            disabled={!input.trim() || streaming}
-            className="size-10 rounded-xl bg-primary text-primary-foreground flex items-center justify-center hover:bg-primary/90 transition-colors disabled:opacity-40 shrink-0"
-          >
-            <ArrowUp className="size-4" />
-          </button>
+          <div className="flex items-center gap-1 py-2 shrink-0">
+            <button
+              onClick={toggleVoice}
+              title={listening ? "Arrêter l'écoute (⌘M)" : 'Dicter une question (⌘M)'}
+              className={`size-9 rounded-lg flex items-center justify-center transition-colors ${
+                listening
+                  ? 'bg-red-500 text-white animate-pulse'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+              }`}
+            >
+              {listening ? <MicOff className="size-5" /> : <Mic className="size-5" />}
+            </button>
+            <button
+              onClick={handleSubmit}
+              disabled={!input.trim() || streaming}
+              className="size-9 rounded-lg bg-primary text-primary-foreground flex items-center justify-center hover:bg-primary/90 transition-colors disabled:opacity-40"
+            >
+              <ArrowUp className="size-4" />
+            </button>
+          </div>
         </div>
-        <p className="text-[11px] text-muted-foreground mt-2 max-w-3xl mx-auto">
-          Entrée pour envoyer · Maj+Entrée pour un saut de ligne
+        <p className="text-[11px] text-muted-foreground mt-1 max-w-3xl mx-auto">
+          Entrée pour envoyer · Maj+Entrée pour saut de ligne · ⌘M pour dicter
         </p>
       </div>
     </>
