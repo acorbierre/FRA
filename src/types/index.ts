@@ -5,8 +5,8 @@ import type {
   RapportStatut,
   VersementStatut,
   ProjetStatut,
-  ChercheurRole,
-  ChercheurStatutCompte,
+  UtilisateurRole,
+  UtilisateurStatutCompte,
 } from '@/lib/config'
 
 export type {
@@ -16,8 +16,8 @@ export type {
   RapportStatut,
   VersementStatut,
   ProjetStatut,
-  ChercheurRole,
-  ChercheurStatutCompte,
+  UtilisateurRole,
+  UtilisateurStatutCompte,
 }
 
 export interface Laboratoire {
@@ -38,7 +38,7 @@ export interface AppelAProjet {
   budgetTotal: number
 }
 
-export interface Chercheur {
+export interface Utilisateur {
   id: string
   nomComplet: string
   prenom: string
@@ -50,8 +50,8 @@ export interface Chercheur {
   ville?: string
   contrat?: string
   specialite?: string
-  role: ChercheurRole[]
-  statutCompte: ChercheurStatutCompte
+  role: UtilisateurRole[]
+  statutCompte: UtilisateurStatutCompte
   laboratoireDeclaratif?: string
   laboratoireId?: string[]
 }
@@ -69,7 +69,7 @@ export interface Candidature {
   dateCreation?: string
   dateSoumission?: string
   statut: CandidatureStatut
-  chercheurId?: string
+  utilisateurId?: string
   appelAProjetId?: string
 }
 

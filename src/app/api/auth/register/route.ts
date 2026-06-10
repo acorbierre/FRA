@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyInviteToken, createSessionToken, SESSION_COOKIE } from '@/lib/auth'
-import { createChercheur, getChercheurByEmail } from '@/services/neon'
+import { createUtilisateur, getUtilisateurByEmail } from '@/services/neon'
 
 export async function POST(request: NextRequest) {
   try {
@@ -17,13 +17,13 @@ export async function POST(request: NextRequest) {
     }
 
     // Prevent duplicate registration
-    const existing = await getChercheurByEmail(email)
+    const existing = await getUtilisateurByEmail(email)
     if (existing) {
       return NextResponse.json({ error: 'Un compte existe déjà pour cet email.' }, { status: 409 })
     }
 
-    // Create chercheur in Neon
-    const chercheur = await createChercheur({
+    // Create utilisateur in Neon
+    const utilisateur = await createUtilisateur({
       prenom: prenom.trim(),
       nom: nom.trim(),
       email,
@@ -33,9 +33,9 @@ export async function POST(request: NextRequest) {
     })
 
     // Create session cookie
-    const sessionToken = await createSessionToken(chercheur.id)
+    const sessionToken = await createSessionToken(utilisateur.id)
 
-    const response = NextResponse.json({ chercheurId: chercheur.id }, { status: 201 })
+    const response = NextResponse.json({ utilisateurId: utilisateur.id }, { status: 201 })
     response.cookies.set(SESSION_COOKIE, sessionToken, {
       httpOnly: true,
       sameSite: 'lax',

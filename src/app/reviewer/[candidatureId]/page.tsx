@@ -1,6 +1,6 @@
 import { auth, clerkClient } from '@clerk/nextjs/server'
 import { redirect, notFound } from 'next/navigation'
-import { getChercheurByEmail, getCandidatureById, getEvaluationsByReviewer } from '@/services/neon'
+import { getUtilisateurByEmail, getCandidatureById, getEvaluationsByReviewer } from '@/services/neon'
 import { updateCandidature } from '@/services/neon'
 import { APPEL_ANNEE, FIELD_LABELS } from '@/lib/config'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -16,9 +16,9 @@ export default async function ReviewerCandidaturePage({ params }: { params: Prom
   const client = await clerkClient()
   const clerkUser = await client.users.getUser(userId)
   const email = clerkUser.emailAddresses[0]?.emailAddress
-  const chercheur = email ? await getChercheurByEmail(email) : null
-  if (!chercheur) redirect('/sign-in')
-  const reviewerId = chercheur.id
+  const utilisateur = email ? await getUtilisateurByEmail(email) : null
+  if (!utilisateur) redirect('/sign-in')
+  const reviewerId = utilisateur.id
 
   const [c, evaluations] = await Promise.all([
     getCandidatureById(candidatureId).catch(() => null),

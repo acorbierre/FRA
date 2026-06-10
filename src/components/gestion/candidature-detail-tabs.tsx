@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import CandidatureTimeline from '@/components/gestion/candidature-timeline'
 import EvaluationTab from '@/components/gestion/evaluation-tab'
-import type { Candidature, Chercheur } from '@/types'
+import type { Candidature, Utilisateur } from '@/types'
 import type { Evaluation } from '@/services/neon/evaluations'
 import { FIELD_LABELS } from '@/lib/config'
 import { cn } from '@/lib/utils'
@@ -11,7 +11,7 @@ import { cn } from '@/lib/utils'
 interface Props {
   candidature: Candidature
   chercheurNom?: string | null
-  reviewers: Chercheur[]
+  reviewers: Utilisateur[]
   evaluations: Evaluation[]
   statutColors: Record<string, string>
   statutLabelsGestion: Record<string, string>

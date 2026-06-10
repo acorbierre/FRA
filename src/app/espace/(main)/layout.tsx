@@ -1,6 +1,6 @@
 import { auth, clerkClient } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
-import { getChercheurByEmail, getCandidaturesByChercheur } from '@/services/neon'
+import { getUtilisateurByEmail, getCandidaturesByUtilisateur } from '@/services/neon'
 import Sidebar from '@/components/layout/sidebar'
 import AppTopbar from '@/components/layout/app-topbar'
 
@@ -11,17 +11,16 @@ export default async function EspaceLayout({ children }: { children: React.React
   const client = await clerkClient()
   const clerkUser = await client.users.getUser(userId)
   const email = clerkUser.emailAddresses[0]?.emailAddress
-  const chercheur = email ? await getChercheurByEmail(email) : null
+  const utilisateur = email ? await getUtilisateurByEmail(email) : null
 
-  if (chercheur?.role?.some(r => r === 'Admin' || r === 'Super-Admin')) redirect('/gestion')
-  if (chercheur?.role?.some(r => r === 'Examinateur')) redirect('/reviewer')
-  if (!chercheur || !chercheur.laboratoireDeclaratif) redirect('/espace/profil/completer')
+  if (utilisateur?.role?.some(r => r === 'Admin' || r === 'Super-Admin')) redirect('/gestion')
+  if (utilisateur?.role?.some(r => r === 'Examinateur')) redirect('/reviewer')
+  if (!utilisateur || !utilisateur.laboratoireDeclaratif) redirect('/espace/profil/completer')
 
-  const candidatures = await getCandidaturesByChercheur(chercheur.id)
+  const candidatures = await getCandidaturesByUtilisateur(utilisateur.id)
 
-  const prenom = chercheur.prenom
   const hasCandidature = candidatures.length > 0
-  const photoUrl = chercheur.photo?.[0]?.url
+  const photoUrl = utilisateur.photo?.[0]?.url
 
   return (
     <>

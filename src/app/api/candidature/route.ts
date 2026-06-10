@@ -1,6 +1,6 @@
 import { auth, clerkClient } from '@clerk/nextjs/server'
 import { NextResponse } from 'next/server'
-import { getChercheurByEmail, createCandidature } from '@/services/neon'
+import { getUtilisateurByEmail, createCandidature } from '@/services/neon'
 
 export async function POST(req: Request) {
   try {
@@ -10,9 +10,9 @@ export async function POST(req: Request) {
     const client = await clerkClient()
     const clerkUser = await client.users.getUser(userId)
     const email = clerkUser.emailAddresses[0]?.emailAddress
-    const chercheur = email ? await getChercheurByEmail(email) : null
-    if (!chercheur) return NextResponse.json({ error: 'Profil introuvable' }, { status: 404 })
-    const chercheurId = chercheur.id
+    const utilisateur = email ? await getUtilisateurByEmail(email) : null
+    if (!utilisateur) return NextResponse.json({ error: 'Profil introuvable' }, { status: 404 })
+    const utilisateurId = utilisateur.id
 
     const body = await req.json()
     const { titre, thematiqueId, resume, description, budgetDemande, dureeMois, partenaires } = body
@@ -29,7 +29,7 @@ export async function POST(req: Request) {
       budgetDemande: Number(budgetDemande),
       dureeMois: Number(dureeMois),
       partenaires: partenaires || undefined,
-      chercheurId,
+      utilisateurId,
     })
 
     return NextResponse.json(candidature)

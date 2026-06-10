@@ -15,7 +15,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
-import type { Chercheur } from '@/types'
+import type { Utilisateur } from '@/types'
 
 const schema = z.object({
   prenom:      z.string().min(1, 'Requis'),
@@ -49,11 +49,11 @@ function resizeToBase64(file: File): Promise<string> {
   })
 }
 
-export default function ProfileEditor({ chercheur }: { chercheur: Chercheur }) {
+export default function ProfileEditor({ utilisateur }: { utilisateur: Utilisateur }) {
   const router = useRouter()
   const [editing, setEditing] = useState(false)
   const [serverError, setServerError] = useState('')
-  const [photoUrl, setPhotoUrl] = useState<string | undefined>(chercheur.photo?.[0]?.url)
+  const [photoUrl, setPhotoUrl] = useState<string | undefined>(utilisateur.photo?.[0]?.url)
   const [uploadingPhoto, setUploadingPhoto] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -63,7 +63,7 @@ export default function ProfileEditor({ chercheur }: { chercheur: Chercheur }) {
     setUploadingPhoto(true)
     try {
       const dataUrl = await resizeToBase64(file)
-      const res = await fetch('/api/chercheur/photo', {
+      const res = await fetch('/api/utilisateur/photo', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ dataUrl }),
@@ -82,11 +82,11 @@ export default function ProfileEditor({ chercheur }: { chercheur: Chercheur }) {
     useForm<FormValues>({
       resolver: zodResolver(schema),
       defaultValues: {
-        prenom:      chercheur.prenom,
-        nom:         chercheur.nom,
-        telephone:   chercheur.telephone ?? '',
-        laboratoire: chercheur.laboratoireDeclaratif ?? '',
-        bio:         chercheur.bio ?? '',
+        prenom:      utilisateur.prenom,
+        nom:         utilisateur.nom,
+        telephone:   utilisateur.telephone ?? '',
+        laboratoire: utilisateur.laboratoireDeclaratif ?? '',
+        bio:         utilisateur.bio ?? '',
       },
     })
 
@@ -98,7 +98,7 @@ export default function ProfileEditor({ chercheur }: { chercheur: Chercheur }) {
 
   async function onSubmit(values: FormValues) {
     setServerError('')
-    const res = await fetch('/api/chercheur/profil', {
+    const res = await fetch('/api/utilisateur/profil', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(values),
@@ -142,8 +142,8 @@ export default function ProfileEditor({ chercheur }: { chercheur: Chercheur }) {
           </div>
           <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handlePhotoChange} />
           <div>
-            <p className="font-medium text-sm">{chercheur.nomComplet}</p>
-            <p className="text-xs text-muted-foreground mt-0.5">{chercheur.email}</p>
+            <p className="font-medium text-sm">{utilisateur.nomComplet}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">{utilisateur.email}</p>
           </div>
         </div>
 
@@ -163,7 +163,7 @@ export default function ProfileEditor({ chercheur }: { chercheur: Chercheur }) {
             </div>
             <div className="space-y-1.5">
               <Label>Email</Label>
-              <Input value={chercheur.email} disabled className="opacity-60" />
+              <Input value={utilisateur.email} disabled className="opacity-60" />
             </div>
             <div className="space-y-1.5">
               <Label>Téléphone</Label>
@@ -194,20 +194,20 @@ export default function ProfileEditor({ chercheur }: { chercheur: Chercheur }) {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <dt className="text-muted-foreground">Nom complet</dt>
-                <dd className="font-medium mt-0.5">{chercheur.nomComplet}</dd>
+                <dd className="font-medium mt-0.5">{utilisateur.nomComplet}</dd>
               </div>
               <div>
                 <dt className="text-muted-foreground">Email</dt>
-                <dd className="font-medium mt-0.5">{chercheur.email}</dd>
+                <dd className="font-medium mt-0.5">{utilisateur.email}</dd>
               </div>
               <div>
                 <dt className="text-muted-foreground">Téléphone</dt>
-                <dd className="font-medium mt-0.5">{chercheur.telephone || '—'}</dd>
+                <dd className="font-medium mt-0.5">{utilisateur.telephone || '—'}</dd>
               </div>
               <div>
                 <dt className="text-muted-foreground">Rôle</dt>
                 <dd className="flex gap-1 flex-wrap mt-0.5">
-                  {chercheur.role.map(r => (
+                  {utilisateur.role.map(r => (
                     <span key={r} className={`text-xs px-2.5 py-1 rounded-full font-medium ${rolePillClass(r)}`}>
                       {roleLabel(r)}
                     </span>
@@ -217,12 +217,12 @@ export default function ProfileEditor({ chercheur }: { chercheur: Chercheur }) {
             </div>
             <div>
               <dt className="text-muted-foreground">Laboratoire</dt>
-              <dd className="font-medium mt-0.5">{chercheur.laboratoireDeclaratif || '—'}</dd>
+              <dd className="font-medium mt-0.5">{utilisateur.laboratoireDeclaratif || '—'}</dd>
             </div>
-            {chercheur.bio && (
+            {utilisateur.bio && (
               <div>
                 <dt className="text-muted-foreground">Présentation</dt>
-                <dd className="mt-0.5">{chercheur.bio}</dd>
+                <dd className="mt-0.5">{utilisateur.bio}</dd>
               </div>
             )}
           </dl>

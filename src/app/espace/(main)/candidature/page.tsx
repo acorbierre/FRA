@@ -1,6 +1,6 @@
 import { auth, clerkClient } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
-import { getChercheurByEmail, getCandidaturesByChercheur } from '@/services/neon'
+import { getUtilisateurByEmail, getCandidaturesByUtilisateur } from '@/services/neon'
 import { CheckCircle2 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { APPEL_ANNEE, FIELD_LABELS } from '@/lib/config'
@@ -14,12 +14,11 @@ export default async function CandidaturePage() {
   const client = await clerkClient()
   const clerkUser = await client.users.getUser(userId)
   const email = clerkUser.emailAddresses[0]?.emailAddress
-  const chercheur = email ? await getChercheurByEmail(email) : null
-  if (!chercheur) redirect('/espace/profil/completer')
-  const chercheurId = chercheur.id
+  const utilisateur = email ? await getUtilisateurByEmail(email) : null
+  if (!utilisateur) redirect('/espace/profil/completer')
 
   const [candidatures, settings] = await Promise.all([
-    getCandidaturesByChercheur(chercheurId),
+    getCandidaturesByUtilisateur(utilisateur.id),
     getAppSettings(),
   ])
   if (candidatures.length === 0) redirect('/espace/candidature/nouvelle')

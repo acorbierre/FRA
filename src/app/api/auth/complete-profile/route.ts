@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth, clerkClient } from '@clerk/nextjs/server'
-import { createChercheur, getChercheurByEmail, updateChercheur } from '@/services/neon'
+import { createUtilisateur, getUtilisateurByEmail, updateUtilisateur } from '@/services/neon'
 
 export async function POST(request: NextRequest) {
   try {
@@ -19,20 +19,20 @@ export async function POST(request: NextRequest) {
 
     const { prenom, nom, telephone, laboratoire, bio } = await request.json()
 
-    const existing = await getChercheurByEmail(email)
+    const existing = await getUtilisateurByEmail(email)
     if (existing) {
       // User pre-created by admin — update with completed profile
-      await updateChercheur(existing.id, {
+      await updateUtilisateur(existing.id, {
         prenom: prenom.trim(),
         nom: nom.trim(),
         telephone: telephone?.trim(),
         laboratoire: laboratoire?.trim(),
         bio: bio?.trim(),
       })
-      return NextResponse.json({ chercheurId: existing.id })
+      return NextResponse.json({ utilisateurId: existing.id })
     }
 
-    const chercheur = await createChercheur({
+    const utilisateur = await createUtilisateur({
       prenom: prenom.trim(),
       nom: nom.trim(),
       email,
@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
       laboratoire: laboratoire?.trim(),
     })
 
-    return NextResponse.json({ chercheurId: chercheur.id }, { status: 201 })
+    return NextResponse.json({ utilisateurId: utilisateur.id }, { status: 201 })
   } catch (err) {
     console.error('[complete-profile]', err)
     return NextResponse.json({ error: 'Erreur serveur.' }, { status: 500 })

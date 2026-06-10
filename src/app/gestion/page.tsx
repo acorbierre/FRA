@@ -1,5 +1,5 @@
 import { auth, clerkClient } from '@clerk/nextjs/server'
-import { getChercheurByEmail } from '@/services/neon/chercheurs'
+import { getUtilisateurByEmail } from '@/services/neon/utilisateurs'
 import { getAllCandidatures } from '@/services/neon/candidatures'
 import { getProjets } from '@/services/neon/projets'
 import { getRapportsAttendus, getRapports } from '@/services/neon/rapports'
@@ -35,8 +35,8 @@ export default async function GestionPage() {
   const client = await clerkClient()
   const clerkUser = await client.users.getUser(userId!)
   const email = clerkUser.emailAddresses[0]?.emailAddress
-  const chercheur = email ? await getChercheurByEmail(email) : null
-  const prenom = chercheur?.prenom ?? clerkUser.firstName ?? 'vous'
+  const utilisateur = email ? await getUtilisateurByEmail(email) : null
+  const prenom = utilisateur?.prenom ?? clerkUser.firstName ?? 'vous'
 
   const [candidatures, projets, rapportsAttendus, conventions, tousRapports] = await Promise.all([
     getAllCandidatures(),

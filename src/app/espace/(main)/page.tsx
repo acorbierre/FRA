@@ -1,6 +1,6 @@
 import { auth, clerkClient } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
-import { getChercheurByEmail, getCandidaturesByChercheur } from '@/services/neon'
+import { getUtilisateurByEmail, getCandidaturesByUtilisateur } from '@/services/neon'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { APPEL_ANNEE } from '@/lib/config'
 import { getAppSettings } from '@/services/neon/settings'
@@ -14,11 +14,11 @@ export default async function EspacePage() {
   const client = await clerkClient()
   const clerkUser = await client.users.getUser(userId)
   const email = clerkUser.emailAddresses[0]?.emailAddress
-  const chercheur = email ? await getChercheurByEmail(email) : null
-  if (!chercheur || !chercheur.laboratoireDeclaratif) redirect('/espace/profil/completer')
+  const utilisateur = email ? await getUtilisateurByEmail(email) : null
+  if (!utilisateur || !utilisateur.laboratoireDeclaratif) redirect('/espace/profil/completer')
 
   const [candidatures, settings] = await Promise.all([
-    chercheur ? getCandidaturesByChercheur(chercheur.id) : Promise.resolve([]),
+    utilisateur ? getCandidaturesByUtilisateur(utilisateur.id) : Promise.resolve([]),
     getAppSettings(),
   ])
   const candidature = candidatures[0] ?? null
@@ -27,7 +27,7 @@ export default async function EspacePage() {
     <div className="max-w-2xl space-y-6">
       <div>
         <h1 className="font-heading text-2xl font-semibold tracking-tight">
-          Bonjour, {chercheur!.prenom}
+          Bonjour, {utilisateur!.prenom}
         </h1>
         <p className="text-muted-foreground mt-1">
           Bienvenue dans votre espace candidat — Appel à projets {APPEL_ANNEE}.

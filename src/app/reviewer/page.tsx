@@ -1,6 +1,6 @@
 import { auth, clerkClient } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
-import { getChercheurByEmail, getEvaluationsByReviewer, getCandidatureById } from '@/services/neon'
+import { getUtilisateurByEmail, getEvaluationsByReviewer, getCandidatureById } from '@/services/neon'
 import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
@@ -11,9 +11,9 @@ export default async function ReviewerPage() {
   const client = await clerkClient()
   const clerkUser = await client.users.getUser(userId)
   const email = clerkUser.emailAddresses[0]?.emailAddress
-  const chercheur = email ? await getChercheurByEmail(email) : null
-  if (!chercheur) redirect('/sign-in')
-  const reviewerId = chercheur.id
+  const utilisateur = email ? await getUtilisateurByEmail(email) : null
+  if (!utilisateur) redirect('/sign-in')
+  const reviewerId = utilisateur.id
 
   const evaluations = await getEvaluationsByReviewer(reviewerId)
 
@@ -26,7 +26,7 @@ export default async function ReviewerPage() {
     <div className="max-w-3xl space-y-6">
       <div>
         <h1 className="font-heading text-2xl font-semibold tracking-tight">
-          Bonjour, {chercheur.prenom}
+          Bonjour, {utilisateur.prenom}
         </h1>
         <p className="text-muted-foreground mt-1">
           {count === 0

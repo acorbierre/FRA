@@ -21,7 +21,8 @@ export async function POST() {
     reminderMinutes: 15,
   })
 
-  await sql`UPDATE jalons SET calendar_event_id = ${event.id} WHERE id = ${DEMO_JALON_ID}`
+  const todayStr = start.toISOString().slice(0, 10)
+  await sql`UPDATE jalons SET calendar_event_id = ${event.id}, date_prevue = ${todayStr} WHERE id = ${DEMO_JALON_ID}`
 
   return NextResponse.json({ ok: true, eventId: event.id })
 }

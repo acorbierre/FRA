@@ -1,6 +1,6 @@
 import { auth, clerkClient } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
-import { getChercheurByEmail, getCandidaturesByChercheur, createBrouillonCandidature } from '@/services/neon'
+import { getUtilisateurByEmail, getCandidaturesByUtilisateur, createBrouillonCandidature } from '@/services/neon'
 import { getThematiques } from '@/services/neon/thematiques'
 import CandidatureForm from './candidature-form'
 
@@ -11,13 +11,12 @@ export default async function NouvelleCandidaturePage() {
   const client = await clerkClient()
   const clerkUser = await client.users.getUser(userId)
   const email = clerkUser.emailAddresses[0]?.emailAddress
-  const chercheur = email ? await getChercheurByEmail(email) : null
-  if (!chercheur) redirect('/espace/profil/completer')
-  const chercheurId = chercheur.id
-  const nomComplet = chercheur.nomComplet
+  const utilisateur = email ? await getUtilisateurByEmail(email) : null
+  if (!utilisateur) redirect('/espace/profil/completer')
+  const nomComplet = utilisateur.nomComplet
 
   const [candidatures, thematiques] = await Promise.all([
-    getCandidaturesByChercheur(chercheurId),
+    getCandidaturesByUtilisateur(utilisateur.id),
     getThematiques(),
   ])
 
@@ -32,6 +31,6 @@ export default async function NouvelleCandidaturePage() {
   }
 
   // Aucun brouillon → en créer un
-  const draft = await createBrouillonCandidature(chercheurId)
+  const draft = await createBrouillonCandidature(utilisateur.id)
   return <CandidatureForm candidatureId={draft.id} thematiques={thematiques} />
 }

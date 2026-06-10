@@ -1,6 +1,6 @@
 import { assertAdmin } from '@/lib/assert-admin'
 import { NextResponse } from 'next/server'
-import { updateProjetStatut, deleteProjet, getChercheurByEmail } from '@/services/neon'
+import { updateProjetStatut, deleteProjet } from '@/services/neon'
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
   if (!await assertAdmin()) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

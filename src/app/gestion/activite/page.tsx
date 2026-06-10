@@ -1,4 +1,4 @@
-import { getProjets, getAllCandidatures, getConventions, getAllChercheurs } from '@/services/neon'
+import { getProjets, getAllCandidatures, getConventions, getAllUtilisateurs } from '@/services/neon'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import DonutChart from '@/components/gestion/donut-chart'
 import { Microscope, Euro, Users, GraduationCap } from 'lucide-react'
@@ -7,11 +7,11 @@ import { APPEL_ANNEE } from '@/lib/config'
 export default async function ActivitePage() {
   const annee = parseInt(APPEL_ANNEE)
 
-  const [projets, candidatures, conventions, chercheurs] = await Promise.all([
+  const [projets, candidatures, conventions, utilisateurs] = await Promise.all([
     getProjets(),
     getAllCandidatures(),
     getConventions(),
-    getAllChercheurs(),
+    getAllUtilisateurs(),
   ])
 
   // KPI 1 — Nouveaux projets de l'année
@@ -27,12 +27,12 @@ export default async function ActivitePage() {
     .filter(c => c.projetId && projetsAnnee.has(c.projetId))
     .reduce((sum, c) => sum + (c.montantTotal ?? 0), 0)
 
-  // KPI 3 — Chercheurs lauréats (rôle Lauréat)
-  const chercheursLaureats = chercheurs.filter(c => c.role.includes('Lauréat')).length
+  // KPI 3 — Lauréats (rôle Lauréat)
+  const chercheursLaureats = utilisateurs.filter(u => u.role.includes('Lauréat')).length
 
   // KPI 4 — Doctorants financés (contrat = Doctorant)
-  const doctorantsFinances = chercheurs.filter(c =>
-    c.contrat?.toLowerCase().includes('doctorant')
+  const doctorantsFinances = utilisateurs.filter(u =>
+    u.contrat?.toLowerCase().includes('doctorant')
   ).length
 
   // Donut thématiques — répartition des montants de financement

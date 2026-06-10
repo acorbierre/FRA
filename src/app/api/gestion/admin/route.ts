@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth, clerkClient } from '@clerk/nextjs/server'
-import { createChercheur, getChercheurByEmail } from '@/services/neon/chercheurs'
+import { createUtilisateur, getUtilisateurByEmail } from '@/services/neon/utilisateurs'
 
 // POST /api/gestion/admin — créer un utilisateur dans Neon
 export async function POST(req: NextRequest) {
@@ -13,11 +13,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Champs manquants' }, { status: 400 })
     }
 
-    const existing = await getChercheurByEmail(email)
+    const existing = await getUtilisateurByEmail(email)
     if (existing) return NextResponse.json({ error: 'Email déjà enregistré' }, { status: 409 })
 
-    const chercheur = await createChercheur({ prenom: prenom.trim(), nom: nom.trim(), email: email.trim().toLowerCase(), role })
-    return NextResponse.json(chercheur, { status: 201 })
+    const utilisateur = await createUtilisateur({ prenom: prenom.trim(), nom: nom.trim(), email: email.trim().toLowerCase(), role })
+    return NextResponse.json(utilisateur, { status: 201 })
   } catch (err) {
     console.error('[admin POST]', err)
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })

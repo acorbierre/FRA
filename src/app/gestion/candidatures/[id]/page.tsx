@@ -1,4 +1,4 @@
-import { getCandidatureById, getChercheurById, getChercheursByRole, getEvaluationsByCandidature } from '@/services/neon'
+import { getCandidatureById, getUtilisateurById, getUtilisateursByRole, getEvaluationsByCandidature } from '@/services/neon'
 import { getAppSettings } from '@/services/neon/settings'
 import { notFound } from 'next/navigation'
 import { APPEL_ANNEE } from '@/lib/config'
@@ -11,9 +11,9 @@ export default async function CandidatureDetailPage({ params }: { params: Promis
   const c = await getCandidatureById(id).catch(() => null)
   if (!c) notFound()
 
-  const [chercheur, reviewers, evaluations, settings] = await Promise.all([
-    c.chercheurId ? getChercheurById(c.chercheurId).catch(() => null) : Promise.resolve(null),
-    getChercheursByRole('Examinateur'),
+  const [utilisateur, reviewers, evaluations, settings] = await Promise.all([
+    c.utilisateurId ? getUtilisateurById(c.utilisateurId).catch(() => null) : Promise.resolve(null),
+    getUtilisateursByRole('Examinateur'),
     getEvaluationsByCandidature(id),
     getAppSettings(),
   ])
@@ -33,7 +33,7 @@ export default async function CandidatureDetailPage({ params }: { params: Promis
 
       <CandidatureDetailTabs
         candidature={c}
-        chercheurNom={chercheur?.nomComplet}
+        chercheurNom={utilisateur?.nomComplet}
         reviewers={reviewers}
         evaluations={evaluations}
         statutColors={settings.statut_colors}

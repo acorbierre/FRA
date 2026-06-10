@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth, clerkClient } from '@clerk/nextjs/server'
-import { getChercheurByEmail, updateChercheur } from '@/services/neon'
+import { getUtilisateurByEmail, updateUtilisateurPhoto } from '@/services/neon'
 
 export async function PATCH(request: NextRequest) {
   try {
@@ -11,16 +11,18 @@ export async function PATCH(request: NextRequest) {
     const clerkUser = await client.users.getUser(userId)
     const email = clerkUser.emailAddresses[0]?.emailAddress
     if (!email) return NextResponse.json({ error: 'Email introuvable.' }, { status: 400 })
-    const chercheur = await getChercheurByEmail(email)
-    if (!chercheur) return NextResponse.json({ error: 'Profil introuvable.' }, { status: 404 })
+    const utilisateur = await getUtilisateurByEmail(email)
+    if (!utilisateur) return NextResponse.json({ error: 'Profil introuvable.' }, { status: 404 })
 
-    const { prenom, nom, telephone, laboratoire, bio } = await request.json()
+    const { dataUrl } = await request.json()
+    if (!dataUrl || !dataUrl.startsWith('data:image/')) {
+      return NextResponse.json({ error: 'Image invalide.' }, { status: 400 })
+    }
 
-    const updated = await updateChercheur(chercheur.id, { prenom, nom, telephone, bio, laboratoire })
-
-    return NextResponse.json(updated)
+    await updateUtilisateurPhoto(utilisateur.id, dataUrl)
+    return NextResponse.json({ ok: true })
   } catch (err) {
-    console.error('[profil PATCH]', err)
+    console.error('[photo PATCH]', err)
     return NextResponse.json({ error: 'Erreur serveur.' }, { status: 500 })
   }
 }

@@ -20,17 +20,17 @@ export async function verifyInviteToken(token: string): Promise<{ email: string 
 
 // --- Session token (in httpOnly cookie, 30-day expiry) ---
 
-export async function createSessionToken(chercheurId: string): Promise<string> {
-  return new SignJWT({ chercheurId })
+export async function createSessionToken(utilisateurId: string): Promise<string> {
+  return new SignJWT({ utilisateurId })
     .setProtectedHeader({ alg: 'HS256' })
     .setExpirationTime('30d')
     .setIssuedAt()
     .sign(sessionSecret)
 }
 
-export async function verifySessionToken(token: string): Promise<{ chercheurId: string }> {
+export async function verifySessionToken(token: string): Promise<{ utilisateurId: string }> {
   const { payload } = await jwtVerify(token, sessionSecret)
-  return { chercheurId: payload.chercheurId as string }
+  return { utilisateurId: payload.utilisateurId as string }
 }
 
 export const SESSION_COOKIE = 'fra_session'

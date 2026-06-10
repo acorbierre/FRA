@@ -1,20 +1,20 @@
 'use client'
 
 import { useState } from 'react'
-import ChercheursListe from '../chercheurs/chercheurs-list'
+import UtilisateursListe from '../utilisateurs/utilisateurs-list'
 import LaboratoiresListe from '../laboratoires/laboratoires-list'
-import type { Chercheur, Laboratoire } from '@/types'
+import type { Utilisateur, Laboratoire } from '@/types'
 
-const TABS = ['Chercheurs', 'Laboratoires'] as const
+const TABS = ['Utilisateurs', 'Laboratoires'] as const
 type Tab = typeof TABS[number]
 
 interface Props {
-  chercheurs: Chercheur[]
+  utilisateurs: Utilisateur[]
   labos: Laboratoire[]
 }
 
-export default function ChercheurLabosTabs({ chercheurs, labos }: Props) {
-  const [tab, setTab] = useState<Tab>('Chercheurs')
+export default function UtilisateurLabosTabs({ utilisateurs, labos }: Props) {
+  const [tab, setTab] = useState<Tab>('Utilisateurs')
 
   return (
     <div className="space-y-4">
@@ -29,13 +29,13 @@ export default function ChercheurLabosTabs({ chercheurs, labos }: Props) {
           >
             {t}
             <span className="ml-1.5 text-muted-foreground font-normal">
-              ({t === 'Chercheurs' ? chercheurs.length : labos.length})
+              ({t === 'Utilisateurs' ? utilisateurs.length : labos.length})
             </span>
           </button>
         ))}
       </div>
 
-      {tab === 'Chercheurs' && <ChercheursListe chercheurs={chercheurs} />}
+      {tab === 'Utilisateurs' && <UtilisateursListe utilisateurs={utilisateurs} />}
       {tab === 'Laboratoires' && <LaboratoiresListe labos={labos} />}
     </div>
   )

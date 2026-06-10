@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import CandidatureTimeline from '@/components/gestion/candidature-timeline'
-import type { Candidature, Chercheur } from '@/types'
+import type { Candidature } from '@/types'
 
 const TABS = ['En cours', 'Retenues', 'Refusées'] as const
 type Tab = typeof TABS[number]
@@ -69,7 +69,7 @@ export default function CandidaturesTabs({ candidatures, chercheurMap, statutCol
                 {/* Col 2 : méta en grille label | valeur */}
                 <div className="shrink-0 w-60 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 text-sm content-start">
                   <p className="text-xs text-muted-foreground self-center">Candidat</p>
-                  <p className="truncate">{c.chercheurId ? (chercheurMap[c.chercheurId] ?? '—') : '—'}</p>
+                  <p className="truncate">{c.utilisateurId ? (chercheurMap[c.utilisateurId] ?? '—') : '—'}</p>
                   <p className="text-xs text-muted-foreground self-center">Financement</p>
                   <p className="tabular-nums">{c.budgetDemande ? `${c.budgetDemande.toLocaleString('fr-FR')} €` : '—'}</p>
                   <p className="text-xs text-muted-foreground self-center">Durée</p>

@@ -5,7 +5,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { Search, User, Copy, Check } from 'lucide-react'
 import { Input } from '@/components/ui/input'
-import type { Chercheur } from '@/types'
+import type { Utilisateur } from '@/types'
 import { rolePillClass, roleLabel } from '@/lib/role-colors'
 
 function CopyEmailButton({ email }: { email: string }) {
@@ -29,18 +29,18 @@ function CopyEmailButton({ email }: { email: string }) {
   )
 }
 
-export default function ChercheursListe({ chercheurs }: { chercheurs: Chercheur[] }) {
+export default function UtilisateursListe({ utilisateurs }: { utilisateurs: Utilisateur[] }) {
   const [query, setQuery] = useState('')
 
   const filtered = query.trim()
-    ? chercheurs.filter(c =>
+    ? utilisateurs.filter(c =>
         `${c.nom} ${c.prenom} ${c.email} ${c.laboratoireDeclaratif ?? ''} ${c.ville ?? ''}`
           .toLowerCase()
           .includes(query.toLowerCase())
       )
-    : chercheurs
+    : utilisateurs
 
-  const groups: Record<string, Chercheur[]> = {}
+  const groups: Record<string, Utilisateur[]> = {}
   for (const c of filtered) {
     const letter = (c.nom?.[0] ?? '?').toUpperCase()
     if (!groups[letter]) groups[letter] = []
@@ -54,7 +54,7 @@ export default function ChercheursListe({ chercheurs }: { chercheurs: Chercheur[
       <div className="relative max-w-sm">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
         <Input
-          placeholder="Rechercher un chercheur…"
+          placeholder="Rechercher un utilisateur…"
           value={query}
           onChange={e => setQuery(e.target.value)}
           className="pl-9"
@@ -84,7 +84,7 @@ export default function ChercheursListe({ chercheurs }: { chercheurs: Chercheur[
                   i < groups[letter].length - 1 ? 'border-b border-border' : ''
                 }`}
               >
-                <Link href={`/gestion/chercheurs/${c.id}`} className="absolute inset-0" aria-label={c.nomComplet} />
+                <Link href={`/gestion/utilisateurs/${c.id}`} className="absolute inset-0" aria-label={c.nomComplet} />
 
                 {/* Photo */}
                 <div className="size-12 rounded-full bg-muted flex items-center justify-center shrink-0 overflow-hidden">

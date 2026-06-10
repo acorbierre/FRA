@@ -4,13 +4,13 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { X, Check, Loader2 } from 'lucide-react'
 import AssignReviewers from '@/components/gestion/assign-reviewers'
-import type { Chercheur } from '@/types'
+import type { Utilisateur } from '@/types'
 import type { Evaluation } from '@/services/neon/evaluations'
 import { cn } from '@/lib/utils'
 
 interface Props {
   candidatureId: string
-  reviewers: Chercheur[]
+  reviewers: Utilisateur[]
   evaluations: Evaluation[]
   nbSoumises: number
 }

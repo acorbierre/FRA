@@ -41,13 +41,13 @@ function mapRow(r: Record<string, unknown>): Candidature {
     dateCreation:   row.created_at ? new Date(row.created_at).toISOString() : undefined,
     dateSoumission: row.date_soumission ?? undefined,
     statut:         row.statut ?? 'Brouillon',
-    chercheurId:    row.chercheur_id ?? undefined,
+    utilisateurId:  row.chercheur_id ?? undefined,
     appelAProjetId: row.appel_a_projet_id ?? undefined,
   }
 }
 
-export async function getCandidaturesByChercheur(chercheurId: string): Promise<Candidature[]> {
-  const rows = await sql`${SELECT_WITH_THEMATIQUE} WHERE c.chercheur_id = ${chercheurId}`
+export async function getCandidaturesByUtilisateur(utilisateurId: string): Promise<Candidature[]> {
+  const rows = await sql`${SELECT_WITH_THEMATIQUE} WHERE c.chercheur_id = ${utilisateurId}`
   return rows.map(mapRow)
 }
 
@@ -67,9 +67,9 @@ export async function getAllCandidatures(): Promise<Candidature[]> {
   return rows.map(mapRow)
 }
 
-export async function createBrouillonCandidature(chercheurId: string): Promise<Candidature> {
+export async function createBrouillonCandidature(utilisateurId: string): Promise<Candidature> {
   const id = crypto.randomUUID()
-  await sql`INSERT INTO candidatures (id, statut, chercheur_id) VALUES (${id}, 'Brouillon', ${chercheurId})`
+  await sql`INSERT INTO candidatures (id, statut, chercheur_id) VALUES (${id}, 'Brouillon', ${utilisateurId})`
   const rows = await sql`${SELECT_WITH_THEMATIQUE} WHERE c.id = ${id}`
   return mapRow(rows[0])
 }
@@ -82,7 +82,7 @@ export async function createCandidature(data: {
   budgetDemande: number
   dureeMois: number
   partenaires?: string
-  chercheurId: string
+  utilisateurId: string
   appelAProjetId?: string
 }): Promise<Candidature> {
   const id = crypto.randomUUID()
@@ -91,7 +91,7 @@ export async function createCandidature(data: {
     VALUES (
       ${id}, ${data.titre}, ${data.thematiqueId}, ${data.resume}, ${data.description},
       ${data.budgetDemande}, ${data.dureeMois}, ${data.partenaires ?? null},
-      'Soumise', ${data.chercheurId}, ${data.appelAProjetId ?? null}
+      'Soumise', ${data.utilisateurId}, ${data.appelAProjetId ?? null}
     )
   `
   const rows = await sql`${SELECT_WITH_THEMATIQUE} WHERE c.id = ${id}`

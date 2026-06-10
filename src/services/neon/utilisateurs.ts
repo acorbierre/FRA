@@ -1,8 +1,8 @@
 import { z } from 'zod'
 import { sql } from '@/lib/db'
-import type { Chercheur } from '@/types'
+import type { Utilisateur } from '@/types'
 
-const ChercheurSchema = z.object({
+const UtilisateurSchema = z.object({
   id:                     z.string(),
   nom_complet:            z.string(),
   prenom:                 z.string(),
@@ -20,8 +20,8 @@ const ChercheurSchema = z.object({
   laboratoire_id:         z.array(z.string()).nullish(),
 })
 
-function mapRow(r: Record<string, unknown>): Chercheur {
-  const row = ChercheurSchema.parse(r)
+function mapRow(r: Record<string, unknown>): Utilisateur {
+  const row = UtilisateurSchema.parse(r)
   return {
     id:                    row.id,
     nomComplet:            row.nom_complet,
@@ -34,35 +34,35 @@ function mapRow(r: Record<string, unknown>): Chercheur {
     ville:                 row.ville ?? undefined,
     contrat:               row.contrat ?? undefined,
     specialite:            row.specialite ?? undefined,
-    role:                  (row.role ?? []) as Chercheur['role'],
+    role:                  (row.role ?? []) as Utilisateur['role'],
     statutCompte:          row.statut_compte ?? 'Invité',
     laboratoireDeclaratif: row.laboratoire_declaratif ?? undefined,
     laboratoireId:         row.laboratoire_id ?? undefined,
   }
 }
 
-export async function getChercheursByRole(role: string): Promise<Chercheur[]> {
+export async function getUtilisateursByRole(role: string): Promise<Utilisateur[]> {
   const rows = await sql`SELECT * FROM utilisateurs WHERE role @> ARRAY[${role}]::text[] ORDER BY nom`
   return rows.map(mapRow)
 }
 
-export async function getAllChercheurs(): Promise<Chercheur[]> {
+export async function getAllUtilisateurs(): Promise<Utilisateur[]> {
   const rows = await sql`SELECT * FROM utilisateurs ORDER BY nom`
   return rows.map(mapRow)
 }
 
-export async function getChercheurByEmail(email: string): Promise<Chercheur | null> {
+export async function getUtilisateurByEmail(email: string): Promise<Utilisateur | null> {
   const rows = await sql`SELECT * FROM utilisateurs WHERE email = ${email} LIMIT 1`
   return rows[0] ? mapRow(rows[0]) : null
 }
 
-export async function getChercheurById(id: string): Promise<Chercheur> {
+export async function getUtilisateurById(id: string): Promise<Utilisateur> {
   const rows = await sql`SELECT * FROM utilisateurs WHERE id = ${id}`
-  if (!rows[0]) throw new Error(`Chercheur ${id} not found`)
+  if (!rows[0]) throw new Error(`Utilisateur ${id} not found`)
   return mapRow(rows[0])
 }
 
-export async function createChercheur(data: {
+export async function createUtilisateur(data: {
   prenom: string
   nom: string
   email: string
@@ -70,7 +70,7 @@ export async function createChercheur(data: {
   bio?: string
   laboratoire?: string
   role?: string
-}): Promise<Chercheur> {
+}): Promise<Utilisateur> {
   const id = crypto.randomUUID()
   const nomComplet = `${data.prenom} ${data.nom}`
   const role = data.role ?? 'Candidat'
@@ -82,16 +82,16 @@ export async function createChercheur(data: {
   return mapRow(rows[0])
 }
 
-export async function updateChercheurPhoto(id: string, photoUrl: string): Promise<void> {
+export async function updateUtilisateurPhoto(id: string, photoUrl: string): Promise<void> {
   await sql`UPDATE utilisateurs SET photo = ${JSON.stringify([{ url: photoUrl }])}::jsonb WHERE id = ${id}`
 }
 
-export async function updateChercheur(
+export async function updateUtilisateur(
   id: string,
-  data: Partial<Pick<Chercheur, 'prenom' | 'nom' | 'bio' | 'telephone'> & { laboratoire: string }>
-): Promise<Chercheur> {
+  data: Partial<Pick<Utilisateur, 'prenom' | 'nom' | 'bio' | 'telephone'> & { laboratoire: string }>
+): Promise<Utilisateur> {
   const rows = await sql`SELECT * FROM utilisateurs WHERE id = ${id}`
-  if (!rows[0]) throw new Error(`Chercheur ${id} not found`)
+  if (!rows[0]) throw new Error(`Utilisateur ${id} not found`)
   const current = mapRow(rows[0])
 
   const prenom    = data.prenom    ?? current.prenom

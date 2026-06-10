@@ -3,12 +3,12 @@
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { User, CheckCircle2 } from 'lucide-react'
-import type { Chercheur } from '@/types'
+import type { Utilisateur } from '@/types'
 import type { Evaluation } from '@/services/neon/evaluations'
 
 interface Props {
   candidatureId: string
-  reviewers: Chercheur[]
+  reviewers: Utilisateur[]
   evaluations: Evaluation[]
 }
 
@@ -22,9 +22,9 @@ function ReviewerCombobox({
   locked,
 }: {
   slotLabel: string
-  selected: Chercheur | null
-  onSelect: (r: Chercheur | null) => void
-  reviewers: Chercheur[]
+  selected: Utilisateur | null
+  onSelect: (r: Utilisateur | null) => void
+  reviewers: Utilisateur[]
   excludeId?: string
   evaluation?: Evaluation
   locked: boolean
@@ -89,8 +89,8 @@ export default function AssignReviewers({ candidatureId, reviewers, evaluations 
     return ev ? (reviewers.find(r => r.id === ev.reviewerId) ?? null) : null
   }
 
-  const [reviewer1, setReviewer1] = useState<Chercheur | null>(findReviewer(0))
-  const [reviewer2, setReviewer2] = useState<Chercheur | null>(findReviewer(1))
+  const [reviewer1, setReviewer1] = useState<Utilisateur | null>(findReviewer(0))
+  const [reviewer2, setReviewer2] = useState<Utilisateur | null>(findReviewer(1))
 
   const hasSubmitted = evaluations.some(e => e.statut === 'Soumise')
   const selectedIds = [reviewer1?.id, reviewer2?.id].filter(Boolean) as string[]

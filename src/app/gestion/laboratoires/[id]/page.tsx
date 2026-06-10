@@ -1,17 +1,17 @@
-import { getLaboratoireById, getAllChercheurs } from '@/services/neon'
+import { getLaboratoireById, getAllUtilisateurs } from '@/services/neon'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import Link from 'next/link'
 import { ArrowLeft, Globe, MapPin } from 'lucide-react'
 
 export default async function LaboratoireFichePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  const [labo, chercheurs] = await Promise.all([
+  const [labo, utilisateurs] = await Promise.all([
     getLaboratoireById(id),
-    getAllChercheurs(),
+    getAllUtilisateurs(),
   ])
 
-  // Chercheurs liés à ce labo (via champ déclaratif — correspondance approximative sur nom)
-  const membres = chercheurs.filter(c =>
+  // Membres liés à ce labo (via champ déclaratif — correspondance approximative sur nom)
+  const membres = utilisateurs.filter(c =>
     c.laboratoireDeclaratif?.toLowerCase().includes(labo.nom.toLowerCase()) ||
     c.laboratoireId?.includes(id)
   )

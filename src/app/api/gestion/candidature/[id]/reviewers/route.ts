@@ -1,6 +1,6 @@
 import { assertAdmin } from '@/lib/assert-admin'
 import { NextResponse } from 'next/server'
-import { assignReviewers, updateCandidature, getChercheurByEmail } from '@/services/neon'
+import { assignReviewers, updateCandidature } from '@/services/neon'
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   if (!await assertAdmin()) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

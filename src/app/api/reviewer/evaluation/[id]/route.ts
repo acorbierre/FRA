@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server'
 import { sql } from '@/lib/db'
 import { submitEvaluation } from '@/services/neon'
 import { updateCandidature } from '@/services/neon'
-import { getChercheurByEmail } from '@/services/neon/chercheurs'
+import { getUtilisateurByEmail } from '@/services/neon/utilisateurs'
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { userId } = await auth()
@@ -15,12 +15,12 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const client = await clerkClient()
   const user = await client.users.getUser(userId)
   const email = user.emailAddresses[0]?.emailAddress
-  const chercheur = email ? await getChercheurByEmail(email) : null
-  if (!chercheur) return NextResponse.json({ error: 'Utilisateur introuvable' }, { status: 403 })
+  const utilisateur = email ? await getUtilisateurByEmail(email) : null
+  if (!utilisateur) return NextResponse.json({ error: 'Utilisateur introuvable' }, { status: 403 })
 
   const rows = await sql`SELECT reviewer_id FROM evaluations WHERE id = ${id}`
   if (!rows[0]) return NextResponse.json({ error: 'Évaluation introuvable' }, { status: 404 })
-  if (rows[0].reviewer_id !== chercheur.id) return NextResponse.json({ error: 'Accès refusé' }, { status: 403 })
+  if (rows[0].reviewer_id !== utilisateur.id) return NextResponse.json({ error: 'Accès refusé' }, { status: 403 })
 
   const body = await req.json()
   const { noteExperience, noteQuestion, noteMethodes, commentaire } = body

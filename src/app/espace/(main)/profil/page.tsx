@@ -1,6 +1,6 @@
 import { auth, clerkClient } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
-import { getChercheurByEmail } from '@/services/neon'
+import { getUtilisateurByEmail } from '@/services/neon'
 import ProfileEditor from './profile-editor'
 
 export default async function ProfilPage() {
@@ -10,8 +10,8 @@ export default async function ProfilPage() {
   const client = await clerkClient()
   const clerkUser = await client.users.getUser(userId)
   const email = clerkUser.emailAddresses[0]?.emailAddress
-  const chercheur = email ? await getChercheurByEmail(email) : null
-  if (!chercheur || !chercheur.laboratoireDeclaratif) redirect('/espace/profil/completer')
+  const utilisateur = email ? await getUtilisateurByEmail(email) : null
+  if (!utilisateur || !utilisateur.laboratoireDeclaratif) redirect('/espace/profil/completer')
 
   return (
     <div className="max-w-2xl space-y-6">
@@ -21,7 +21,7 @@ export default async function ProfilPage() {
           Vos informations personnelles et professionnelles.
         </p>
       </div>
-      <ProfileEditor chercheur={chercheur} />
+      <ProfileEditor utilisateur={utilisateur} />
     </div>
   )
 }

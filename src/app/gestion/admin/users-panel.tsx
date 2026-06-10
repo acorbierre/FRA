@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import type { Chercheur } from '@/types'
+import type { Utilisateur } from '@/types'
 import { Card, CardContent } from '@/components/ui/card'
 import { Mail, UserPlus, CheckCircle2, AlertCircle, Loader2, Pencil, Trash2, X } from 'lucide-react'
 import { rolePillClass, roleLabel } from '@/lib/role-colors'
@@ -16,14 +16,14 @@ const ROLE_MAP: Record<Tab, string> = {
   'Candidats': 'Candidat',
 }
 
-interface Props { users: Chercheur[]; currentUserEmail: string; registeredEmails: Set<string> }
+interface Props { users: Utilisateur[]; currentUserEmail: string; registeredEmails: Set<string> }
 
 export default function UsersPanel({ users, currentUserEmail, registeredEmails }: Props) {
   const router = useRouter()
   const [tab, setTab] = useState<Tab>('Admin')
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [showModal, setShowModal] = useState(false)
-  const [editUser, setEditUser] = useState<Chercheur | null>(null)
+  const [editUser, setEditUser] = useState<Utilisateur | null>(null)
   const [inviting, setInviting] = useState<Set<string>>(new Set())
   const [deleting, setDeleting] = useState<Set<string>>(new Set())
   const [bulkDeleting, setBulkDeleting] = useState(false)
@@ -300,7 +300,7 @@ export default function UsersPanel({ users, currentUserEmail, registeredEmails }
   )
 }
 
-function EditUserModal({ user, onClose, onSaved }: { user: Chercheur; onClose: () => void; onSaved: () => void }) {
+function EditUserModal({ user, onClose, onSaved }: { user: Utilisateur; onClose: () => void; onSaved: () => void }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [form, setForm] = useState({

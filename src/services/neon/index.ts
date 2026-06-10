@@ -1,5 +1,5 @@
 export * from './laboratoires'
-export * from './chercheurs'
+export * from './utilisateurs'
 export * from './candidatures'
 export * from './projets'
 export * from './conventions'

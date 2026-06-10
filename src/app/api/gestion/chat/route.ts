@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
 import { assertAdmin } from '@/lib/assert-admin'
-import { getAllCandidatures, getAllChercheurs } from '@/services/neon'
+import { getAllCandidatures, getAllUtilisateurs } from '@/services/neon'
 import { getAllEvaluations } from '@/services/neon/evaluations'
 import { getProjets } from '@/services/neon/projets'
 import { getLaboratoires } from '@/services/neon/laboratoires'
@@ -14,9 +14,9 @@ import { sql } from '@/lib/db'
 const client = new Anthropic()
 
 async function buildContext(): Promise<string> {
-  const [candidatures, chercheurs, projets, laboratoires, conventions, versements, rapports, jalons, toutesEvaluations, carteLabs] = await Promise.all([
+  const [candidatures, utilisateurs, projets, laboratoires, conventions, versements, rapports, jalons, toutesEvaluations, carteLabs] = await Promise.all([
     getAllCandidatures(),
-    getAllChercheurs(),
+    getAllUtilisateurs(),
     getProjets(),
     getLaboratoires(),
     getConventions(),
@@ -32,12 +32,12 @@ async function buildContext(): Promise<string> {
     return acc
   }, {})
 
-  const chercheurMap = Object.fromEntries(chercheurs.map(c => [c.id, c]))
+  const utilisateurMap = Object.fromEntries(utilisateurs.map(u => [u.id, u]))
 
   // Candidatures + évaluations
   const candidaturesStr = candidatures.map((c) => {
     const evals = evalMap[c.id] ?? []
-    const candidat = c.chercheurId ? chercheurMap[c.chercheurId] : null
+    const candidat = c.utilisateurId ? utilisateurMap[c.utilisateurId] : null
     const evalsStr = evals.length > 0
       ? evals.map(e => {
           const reviewer = e.reviewerNom ?? e.reviewerId
@@ -62,9 +62,9 @@ Partenaires: ${c.partenaires ?? '—'}
 ${evalsStr}`
   }).join('\n\n')
 
-  // Chercheurs
-  const chercheursStr = chercheurs.map(c =>
-    `- ${c.nomComplet} (${c.email}) | Rôles: ${c.role.join(', ')} | Labo: ${c.laboratoireDeclaratif ?? '—'}`
+  // Utilisateurs
+  const chercheursStr = utilisateurs.map(u =>
+    `- ${u.nomComplet} (${u.email}) | Rôles: ${u.role.join(', ')} | Labo: ${u.laboratoireDeclaratif ?? '—'}`
   ).join('\n')
 
   // Projets financés
@@ -118,7 +118,7 @@ ${carteLabsStr}
 
 ${candidaturesStr}
 
-## Chercheurs et membres
+## Utilisateurs et membres
 
 ${chercheursStr}
 

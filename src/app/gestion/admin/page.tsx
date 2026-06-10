@@ -1,5 +1,5 @@
 import { auth, clerkClient } from '@clerk/nextjs/server'
-import { getAllChercheurs } from '@/services/neon/chercheurs'
+import { getAllUtilisateurs } from '@/services/neon/utilisateurs'
 import { getAppSettings } from '@/services/neon/settings'
 import { getThematiques } from '@/services/neon/thematiques'
 import UsersPanel from './users-panel'
@@ -12,7 +12,7 @@ export default async function AdminPage() {
   const currentUserEmail = clerkUser?.emailAddresses[0]?.emailAddress ?? ''
 
   const [users, settings, thematiques] = await Promise.all([
-    getAllChercheurs(),
+    getAllUtilisateurs(),
     getAppSettings(),
     getThematiques(),
   ])

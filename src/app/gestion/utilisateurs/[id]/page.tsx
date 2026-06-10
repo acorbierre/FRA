@@ -1,19 +1,19 @@
-import { getChercheurById } from '@/services/neon'
+import { getUtilisateurById } from '@/services/neon'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowLeft, Mail, Phone, User } from 'lucide-react'
 import { rolePillClass, roleLabel } from '@/lib/role-colors'
 
-export default async function ChercheurFichePage({ params }: { params: Promise<{ id: string }> }) {
+export default async function UtilisateurFichePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  const c = await getChercheurById(id)
+  const c = await getUtilisateurById(id)
 
   return (
     <div className="max-w-2xl space-y-6">
       <div>
-        <Link href="/gestion/chercheurs" className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-4 transition-colors">
-          <ArrowLeft className="size-4" /> Chercheurs
+        <Link href="/gestion/utilisateurs" className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-4 transition-colors">
+          <ArrowLeft className="size-4" /> Utilisateurs
         </Link>
 
         <div className="flex items-center gap-5">

@@ -1,21 +1,21 @@
-import { getAllChercheurs, getLaboratoires } from '@/services/neon'
-import ChercheurLabosTabs from './tabs'
+import { getAllUtilisateurs, getLaboratoires } from '@/services/neon'
+import UtilisateurLabosTabs from './tabs'
 
-export default async function ChercheurLabosPage() {
+export default async function UtilisateurLabosPage() {
   const [tous, labos] = await Promise.all([
-    getAllChercheurs(),
+    getAllUtilisateurs(),
     getLaboratoires(),
   ])
-  const chercheurs = tous.filter(c => !c.role.includes('Admin') && !c.role.includes('Super-Admin'))
+  const utilisateurs = tous.filter(u => !u.role.includes('Admin') && !u.role.includes('Super-Admin'))
 
   return (
     <div className="max-w-5xl space-y-6">
       <div>
-        <h1 className="page-title">Chercheurs & laboratoires</h1>
-        <p className="page-subtitle">{chercheurs.length} chercheur{chercheurs.length > 1 ? 's' : ''} · {labos.length} laboratoire{labos.length > 1 ? 's' : ''}</p>
+        <h1 className="page-title">Utilisateurs & laboratoires</h1>
+        <p className="page-subtitle">{utilisateurs.length} utilisateur{utilisateurs.length > 1 ? 's' : ''} · {labos.length} laboratoire{labos.length > 1 ? 's' : ''}</p>
       </div>
 
-      <ChercheurLabosTabs chercheurs={chercheurs} labos={labos} />
+      <UtilisateurLabosTabs utilisateurs={utilisateurs} labos={labos} />
     </div>
   )
 }

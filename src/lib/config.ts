@@ -1,5 +1,4 @@
-export const APPEL_ANNEE   = process.env.NEXT_PUBLIC_APPEL_ANNEE ?? '2026'
-export const ADMIN_EMAIL   = process.env.ADMIN_EMAIL ?? ''
+export const APPEL_ANNEE = process.env.NEXT_PUBLIC_APPEL_ANNEE ?? '2026'
 
 export const FIELD_LABELS = {
   titre:         'Titre du projet',
@@ -94,9 +93,9 @@ export type VersementStatut = typeof VERSEMENT_STATUTS[number]
 export const PROJET_STATUTS = ['En cours', 'Terminé', 'Suspendu'] as const
 export type ProjetStatut = typeof PROJET_STATUTS[number]
 
-// ─── Chercheurs ──────────────────────────────────────────────────────────────
-export const CHERCHEUR_ROLES = ['Candidat', 'Lauréat', 'Examinateur', 'Admin', 'Super-Admin'] as const
-export type ChercheurRole = typeof CHERCHEUR_ROLES[number]
+// ─── Utilisateurs ────────────────────────────────────────────────────────────
+export const UTILISATEUR_ROLES = ['Candidat', 'Lauréat', 'Examinateur', 'Admin', 'Super-Admin'] as const
+export type UtilisateurRole = typeof UTILISATEUR_ROLES[number]
 
-export const CHERCHEUR_STATUTS_COMPTE = ['Invité', 'Actif'] as const
-export type ChercheurStatutCompte = typeof CHERCHEUR_STATUTS_COMPTE[number]
+export const UTILISATEUR_STATUTS_COMPTE = ['Invité', 'Actif'] as const
+export type UtilisateurStatutCompte = typeof UTILISATEUR_STATUTS_COMPTE[number]
