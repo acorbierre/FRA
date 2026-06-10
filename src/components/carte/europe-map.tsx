@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import * as d3 from 'd3'
 import * as topojson from 'topojson-client'
 import { type Lab } from '@/data/alzheimer-labs'
-import { ExternalLink, BookOpen, Quote, Tag, ArrowRight, ArrowLeft } from 'lucide-react'
+import { ExternalLink, BookOpen, Quote, Tag, ArrowRight, ArrowLeft, ArrowDown, TrendingUp, Target, Sparkles } from 'lucide-react'
 
 interface Props { labs: Lab[] }
 interface Cluster { labs: Lab[]; cx: number; cy: number }
@@ -59,21 +59,9 @@ function formatCount(n: number) {
 }
 
 // Seuil de spécialisation : >= 15% des publications portent sur Alzheimer
-const SPECIALIST_RATIO_THRESHOLD = 0.15
-
 function specializationRatio(lab: Lab): number | null {
   if (!lab.worksCount || !lab.alzPubCount) return null
   return lab.alzPubCount / lab.worksCount
-}
-
-function impactScore(lab: Lab): number | null {
-  if (!lab.alzPubCount || !lab.citedByCount) return null
-  return lab.citedByCount / lab.alzPubCount
-}
-
-function isSpecialist(lab: Lab): boolean {
-  const r = specializationRatio(lab)
-  return r !== null && r >= SPECIALIST_RATIO_THRESHOLD
 }
 
 function computeClusters(labs: Lab[], projection: d3.GeoProjection, threshold = 15): Cluster[] {
@@ -268,10 +256,32 @@ export default function EuropeMap({ labs }: Props) {
   const [momentum,        setMomentum]        = useState(false)
   const [closingPanel,    setClosingPanel]    = useState(false)
   const [closingFiche,    setClosingFiche]    = useState(false)
-  const [sortBy,          setSortBy]          = useState<'publications' | 'alpha' | 'fra'>('publications')
-  const [specialistOnly,  setSpecialistOnly]  = useState(false)
+  const [sortBy,          setSortBy]          = useState<'publications' | 'impact' | 'specialisation' | 'composite' | 'alpha' | 'fra'>('composite')
+  const [topLabsMode,     setTopLabsMode]     = useState(false)
+  const [topLabsExpanded, setTopLabsExpanded] = useState(false)
+  const [closingTopLabs,  setClosingTopLabs]  = useState(false)
+  const [topSort,         setTopSort]         = useState<'publications' | 'impact' | 'specialisation' | 'composite'>('impact')
+
+  const openTopLabs = () => {
+    setTopLabsMode(true)
+    setTopLabsExpanded(false)   // démarre à 0px
+    setPanel(labs)
+    setPanelOpen(true)
+    setMomentum(true)
+    // Double rAF : assure que le DOM a rendu la largeur 0 avant de déclencher la transition
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      setTopLabsExpanded(true)
+    }))
+    setTimeout(() => setMomentum(false), 900)
+  }
+
+  const fromTopLabsRef = useRef(false)
+  const [ficheOrigin, setFicheOrigin] = useState<'cluster' | 'toplabs'>('cluster')
 
   const openFiche = (lab: Lab) => {
+    fromTopLabsRef.current = topLabsMode
+    setFicheOrigin(topLabsMode ? 'toplabs' : 'cluster')
+    setTopLabsMode(false)
     setPublications([])
     setMomentum(true)
     setSelectedLab(lab)
@@ -294,26 +304,50 @@ export default function EuropeMap({ labs }: Props) {
       .catch(() => {})
   }
 
-  const closeFiche = () => {
+  const closeFiche = (backToTopLabs = false) => {
     setClosingFiche(true)
     setTimeout(() => {
       setClosingFiche(false)
       setMomentum(true)
       setSelectedLab(null)
+      if (backToTopLabs) { setTopLabsMode(true); setTopLabsExpanded(true) }
       setTimeout(() => setMomentum(false), 900)
     }, 350)
   }
 
   const closePanel = () => {
-    setPanelOpen(false)       // SVG revient immédiatement
-    setClosingPanel(true)     // panel slide-out simultané
-    setTimeout(() => { setPanel(null); setSelectedLab(null); setClosingPanel(false) }, 550)
+    if (topLabsMode) {
+      setClosingTopLabs(true)
+      setTopLabsExpanded(false)   // déclenche width 100% → 0%
+      setTimeout(() => {
+        setPanel(null); setSelectedLab(null)
+        setTopLabsMode(false); setClosingTopLabs(false); setPanelOpen(false)
+      }, 620)
+    } else {
+      setPanelOpen(false)
+      setClosingPanel(true)
+      setTopLabsExpanded(false)
+      setTimeout(() => { setPanel(null); setSelectedLab(null); setClosingPanel(false) }, 550)
+    }
   }
 
-  const panelWidth = selectedLab ? '100%' : (isMobile ? '100%' : '540px')
-  const svgShift   = panelOpen && !isMobile ? 'translateX(-180px)' : 'translateX(0)'
-  const MOMENTUM_EASING = 'width 0.65s 120ms cubic-bezier(0.76, 0, 0.24, 1)'
-  const NORMAL_EASING   = 'width 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
+  // Score composite — calculé au niveau composant pour être réutilisable partout
+  const maxImpact = Math.max(...labs.map(l => (l.citedByCount ?? 0) / (l.worksCount || 1)))
+  const maxAlzPub = Math.max(...labs.map(l => l.alzPubCount ?? 0))
+  const maxSpec   = Math.max(...labs.map(l => (l.alzPubCount ?? 0) / (l.worksCount || 1)))
+  const compositeScore = (l: Lab) => {
+    const impact = maxImpact > 0 ? ((l.citedByCount ?? 0) / (l.worksCount || 1)) / maxImpact : 0
+    const alzPub = maxAlzPub > 0 ? (l.alzPubCount ?? 0) / maxAlzPub : 0
+    const spec   = maxSpec   > 0 ? ((l.alzPubCount ?? 0) / (l.worksCount || 1)) / maxSpec : 0
+    return 0.40 * impact + 0.35 * alzPub + 0.25 * spec
+  }
+
+  const panelWidth = selectedLab ? '100%' : topLabsMode ? (topLabsExpanded ? '100%' : '0px') : (isMobile ? '100%' : '540px')
+  const svgShift   = panelOpen && !isMobile && !topLabsMode ? 'translateX(-180px)' : 'translateX(0)'
+  const MOMENTUM_EASING       = 'width 0.65s 120ms cubic-bezier(0.76, 0, 0.24, 1)'
+  const TOPLABS_EASING        = 'width 0.72s cubic-bezier(0.87, 0, 0.13, 1)'
+  const TOPLABS_CLOSE_EASING  = 'width 0.6s cubic-bezier(0.16, 1, 0.3, 1)'
+  const NORMAL_EASING         = 'width 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
   const SLIDE_OUT_EASING = 'panelslide-out 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards'
 
   return (
@@ -373,6 +407,21 @@ export default function EuropeMap({ labs }: Props) {
         ))}
       </div>
 
+      {/* Bouton Top labos */}
+      {ready && (
+        <button
+          onClick={openTopLabs}
+          className="absolute left-4 sm:left-[5%] z-10 cursor-pointer font-heading font-semibold flex items-center gap-1.5 transition-colors hover:opacity-70"
+          style={{
+            top: isMobile ? 'calc(70px + 7.5rem)' : 'calc(50% + 7.5rem)',
+            color: DOT_COLOR,
+            fontSize: '1rem',
+          }}
+        >
+          Top laboratoires <ArrowRight size={14} />
+        </button>
+      )}
+
       {/* Boutons zoom */}
       {ready && (
         <div className="absolute right-4 top-1/2 -translate-y-1/2 flex flex-col gap-1 z-10">
@@ -387,34 +436,141 @@ export default function EuropeMap({ labs }: Props) {
           className="absolute inset-0 sm:inset-auto sm:top-0 sm:right-0 sm:h-full bg-white border-l border-slate-200 flex flex-col overflow-hidden z-20 shadow-xl"
           style={{
             width: panelWidth,
-            transition: momentum ? MOMENTUM_EASING : NORMAL_EASING,
+            transition: topLabsMode ? TOPLABS_EASING : momentum ? MOMENTUM_EASING : NORMAL_EASING,
             animation: closingPanel
               ? SLIDE_OUT_EASING
-              : 'panelslide 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards',
+              : topLabsMode
+                ? 'none'
+                : 'panelslide 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards',
           }}
         >
+          {/* ── Vue top laboratoires ── */}
+          {!selectedLab && topLabsMode && (() => {
+            const sorted = [...labs].filter(l => {
+              if (topSort === 'impact')     return (l.citedByCount ?? 0) > 0 && (l.worksCount ?? 0) > 0
+              if (topSort === 'specialisation') return (l.worksCount ?? 0) > 0 && (l.alzPubCount ?? 0) > 0
+              if (topSort === 'composite')  return (l.alzPubCount ?? 0) > 0 && (l.worksCount ?? 0) > 0
+              return (l.alzPubCount ?? 0) > 0
+            }).sort((a, b) => {
+              if (topSort === 'impact')     return ((b.citedByCount ?? 0) / (b.worksCount ?? 1)) - ((a.citedByCount ?? 0) / (a.worksCount ?? 1))
+              if (topSort === 'specialisation') return ((b.alzPubCount ?? 0) / (b.worksCount ?? 1)) - ((a.alzPubCount ?? 0) / (a.worksCount ?? 1))
+              if (topSort === 'composite')  return compositeScore(b) - compositeScore(a)
+              return (b.alzPubCount ?? 0) - (a.alzPubCount ?? 0)
+            }).slice(0, 20)
+
+            const metricLabel = (lab: Lab) => {
+              if (topSort === 'impact')     return `${Math.round((lab.citedByCount ?? 0) / (lab.worksCount ?? 1)).toLocaleString('fr-FR')} cit./pub.`
+              if (topSort === 'specialisation') return `${Math.round(((lab.alzPubCount ?? 0) / (lab.worksCount ?? 1)) * 100)}\u202f%`
+              if (topSort === 'composite')  return `${Math.round(compositeScore(lab) * 100)}\u202f/ 100`
+              return `${(lab.alzPubCount ?? 0).toLocaleString('fr-FR')} publications`
+            }
+
+            return (
+              <>
+                {/* Topbar — même structure que la fiche */}
+                <div className="sticky top-0 bg-white border-b border-slate-200 px-8 flex items-center gap-4 z-10 flex-shrink-0" style={{ height: '56px' }}>
+                  <button
+                    onClick={closePanel}
+                    className="text-slate-500 hover:text-slate-700 flex items-center gap-1.5 text-sm font-medium transition-colors cursor-pointer"
+                  >
+                    <ArrowLeft size={15} /> Retour
+                  </button>
+                  <span className="text-slate-200">|</span>
+                  <div className="flex-1 flex items-center justify-center gap-6">
+                    <span className="font-heading text-[#62748e] text-sm">Trier par :</span>
+                    {([
+                      { key: 'impact',         label: "Score d'impact" },
+                      { key: 'publications',   label: 'Publications Alzheimer' },
+                      { key: 'specialisation', label: 'Spécialisation Alzheimer' },
+                      { key: 'composite',      label: 'Pertinence FRA' },
+                    ] as const).map(tab => (
+                      <button
+                        key={tab.key}
+                        onClick={() => setTopSort(tab.key)}
+                        className="font-heading cursor-pointer flex items-center gap-1 transition-colors"
+                        style={{
+                          fontSize: '0.88rem',
+                          fontWeight: topSort === tab.key ? 700 : 500,
+                          color: topSort === tab.key ? '#0f172a' : '#64748b',
+                        }}
+                      >
+                        {tab.label}
+                        <ArrowDown size={12} style={{ opacity: topSort === tab.key ? 1 : 0.5 }} />
+                      </button>
+                    ))}
+                  </div>
+                  <button onClick={closePanel} className="text-slate-500 hover:text-slate-600 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-100 cursor-pointer">✕</button>
+                </div>
+                {/* Liste — même container et style que la fiche */}
+                <div className="flex-1 overflow-y-auto">
+                  <div className="px-8 py-8 max-w-2xl mx-auto">
+                    {topSort === 'impact' && (
+                      <p className="text-[#62748e] text-sm leading-relaxed mb-8">
+                        Le score d'impact mesure le nombre moyen de citations reçues par publication, toutes thématiques confondues. Un score élevé signale un laboratoire dont les travaux font référence dans la communauté scientifique — un indicateur de crédibilité et d'influence particulièrement pertinent pour identifier des partenaires FRA de haut niveau.
+                      </p>
+                    )}
+                    {topSort === 'publications' && (
+                      <p className="text-[#62748e] text-sm leading-relaxed mb-8">
+                        Le nombre de publications Alzheimer est extrait d'OpenAlex, base de données bibliographique ouverte qui indexe plus de 250 millions de travaux scientifiques. Il reflète le volume de contributions d'un laboratoire sur la thématique Alzheimer et maladies apparentées.
+                      </p>
+                    )}
+                    {topSort === 'specialisation' && (
+                      <p className="text-[#62748e] text-sm leading-relaxed mb-8">
+                        Le taux de spécialisation correspond à la part des publications Alzheimer dans la production scientifique totale du laboratoire. Un taux élevé indique un laboratoire fortement centré sur la thématique — un critère de pertinence complémentaire au volume brut de publications.
+                      </p>
+                    )}
+                    {topSort === 'composite' && (
+                      <p className="text-[#62748e] text-sm leading-relaxed mb-8">
+                        La pertinence FRA croise trois indicateurs pour identifier les laboratoires à la fois influents, actifs sur Alzheimer et centrés sur le sujet : score d'impact (40&nbsp;%), volume de publications Alzheimer (35&nbsp;%) et taux de spécialisation (25&nbsp;%). Chaque métrique est normalisée de 0 à 100 par rapport au maximum du dataset, puis pondérée pour donner un score global sur 100.
+                      </p>
+                    )}
+                    {sorted.map((lab, idx) => (
+                      <button
+                        key={lab.id}
+                        onClick={() => openFiche(lab)}
+                        className="w-full text-left py-6 border-b border-slate-100 cursor-pointer"
+                        style={{ animation: `fichefade 0.4s cubic-bezier(0.25,0.46,0.45,0.94) ${idx * 30}ms both` }}
+                      >
+                        <div className="flex items-start gap-3 mb-2">
+                          <div className="w-2.5 h-2.5 rounded-full flex-shrink-0 mt-2" style={{ background: lab.type === 'fra' ? DOT_COLOR : LIGHT_COLOR }} />
+                          <div>
+                            <h2 className="text-2xl font-bold font-heading text-slate-900 leading-tight">{lab.name}</h2>
+                            <p className="flex items-center gap-2 text-2xl font-bold font-heading leading-tight" style={{ color: '#7F8997' }}>
+                              {topSort === 'impact'         && <TrendingUp size={20} strokeWidth={2.5} />}
+                              {topSort === 'specialisation' && <Target size={20} strokeWidth={2.5} />}
+                              {topSort === 'composite'      && <Sparkles size={20} strokeWidth={2.5} />}
+                              {topSort === 'publications'   && <BookOpen size={20} strokeWidth={2.5} />}
+                              {metricLabel(lab)}
+                            </p>
+                            <p className="text-slate-500 text-sm mt-1">{lab.city}</p>
+                          </div>
+                        </div>
+                        {lab.type === 'fra' && (
+                          <div className="ml-5">
+                            <span className="inline-flex items-center text-xs font-medium px-2 py-1 rounded-full" style={{ background: 'rgba(130,49,168,0.1)', color: DOT_COLOR }}>
+                              Soutenu par la FRA
+                            </span>
+                          </div>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )
+          })()}
+
           {/* ── Vue liste (panel standard) ── */}
-          {!selectedLab && (
+          {!selectedLab && !topLabsMode && (
             <>
               <div className="flex items-start justify-between px-6 py-5 border-b border-slate-200 flex-shrink-0">
                 <div>
                   <p className="text-2xl font-bold font-heading text-slate-900 leading-tight">{titleCase(dominantCity(panel ?? []))}</p>
                   <p className="text-slate-500 text-sm mt-1">
-                    {(panel ?? []).filter(l => !specialistOnly || isSpecialist(l)).length} institution{(panel ?? []).filter(l => !specialistOnly || isSpecialist(l)).length > 1 ? 's' : ''}
-                    {specialistOnly && <span className="ml-1.5 text-xs font-medium px-1.5 py-0.5 rounded-full" style={{ background: 'rgba(130,49,168,0.1)', color: DOT_COLOR }}>spécialistes uniquement</span>}
+                    {(panel ?? []).length} institution{(panel ?? []).length > 1 ? 's' : ''}
                   </p>
                 </div>
                 <div className="flex items-center gap-3 mt-1 flex-wrap">
-                  <button
-                    onClick={() => setSpecialistOnly(v => !v)}
-                    title="Spécialiste = ≥ 15 % des publications portent sur Alzheimer"
-                    className="text-xs font-medium px-2.5 py-1 rounded-full border transition-colors cursor-pointer whitespace-nowrap"
-                    style={specialistOnly
-                      ? { background: DOT_COLOR, color: 'white', borderColor: DOT_COLOR }
-                      : { background: 'transparent', color: '#64748b', borderColor: '#e2e8f0' }}
-                  >
-                    Spécialistes
-                  </button>
                   <label className="flex items-center gap-1.5 text-sm text-slate-500 cursor-pointer">
                     <span className="whitespace-nowrap">Trier par</span>
                     <select
@@ -422,7 +578,10 @@ export default function EuropeMap({ labs }: Props) {
                       onChange={e => setSortBy(e.target.value as typeof sortBy)}
                       className="text-sm text-slate-500 bg-transparent border-none focus:outline-none cursor-pointer hover:text-slate-700 transition-colors"
                     >
-                      <option value="publications">Nombre de publications</option>
+                      <option value="publications">Publications Alzheimer</option>
+                      <option value="impact">Score d'impact</option>
+                      <option value="specialisation">Spécialisation Alzheimer</option>
+                      <option value="composite">Pertinence FRA</option>
                       <option value="alpha">Ordre alphabétique</option>
                       <option value="fra">Partenaires FRA</option>
                     </select>
@@ -431,13 +590,16 @@ export default function EuropeMap({ labs }: Props) {
                 </div>
               </div>
               <div className="flex-1 overflow-y-auto divide-y divide-slate-50">
-                {[...(panel ?? [])].filter(l => !specialistOnly || isSpecialist(l)).sort((a, b) => {
+                {[...(panel ?? [])].sort((a, b) => {
                   if (sortBy === 'alpha') return a.name.localeCompare(b.name, 'fr')
                   if (sortBy === 'fra') {
                     if (a.type === 'fra' && b.type !== 'fra') return -1
                     if (b.type === 'fra' && a.type !== 'fra') return 1
                     return (b.alzPubCount ?? 0) - (a.alzPubCount ?? 0)
                   }
+                  if (sortBy === 'impact') return ((b.citedByCount ?? 0) / (b.worksCount || 1)) - ((a.citedByCount ?? 0) / (a.worksCount || 1))
+                  if (sortBy === 'specialisation') return ((b.alzPubCount ?? 0) / (b.worksCount || 1)) - ((a.alzPubCount ?? 0) / (a.worksCount || 1))
+                  if (sortBy === 'composite') return compositeScore(b) - compositeScore(a)
                   return (b.alzPubCount ?? 0) - (a.alzPubCount ?? 0)
                 }).map((lab, idx) => (
                   <div
@@ -453,23 +615,39 @@ export default function EuropeMap({ labs }: Props) {
                   >
                     <div className="w-2 h-2 rounded-full flex-shrink-0 mt-1.5" style={{ background: lab.type === 'fra' ? DOT_COLOR : LIGHT_COLOR }} />
                     <div className="min-w-0 flex-1">
-                      <p className="font-heading font-medium leading-snug text-slate-700" style={{ fontSize: '1.05rem' }}>{lab.name}</p>
+                      <p className="font-heading font-semibold leading-snug text-slate-700" style={{ fontSize: '1.1rem' }}>{lab.name}</p>
                       <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                         <p className="tracking-wide font-medium" style={{ fontSize: '0.8rem', color: DOT_COLOR }}>{lab.city.toUpperCase()}</p>
                         {lab.type === 'fra' && (
                           <span className="text-xs font-medium px-1.5 py-0.5 rounded-full" style={{ background: 'rgba(130,49,168,0.1)', color: DOT_COLOR }}>Soutenu FRA</span>
                         )}
-                        {isSpecialist(lab) && (
-                          <span className="text-xs font-medium px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">Spécialiste</span>
-                        )}
                       </div>
-                      {lab.alzPubCount ? (
-                        <p className="flex items-center gap-1.5 mt-1.5 text-slate-700" style={{ fontSize: '0.85rem' }}>
-                          <BookOpen size={13} className="flex-shrink-0 text-slate-700" />
-                          {lab.alzPubCount.toLocaleString('fr-FR')}
-                          <span className="font-normal text-slate-700">publications Alzheimer</span>
-                        </p>
-                      ) : null}
+                      <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1.5" style={{ fontSize: '0.85rem', color: '#62748e' }}>
+                        {lab.alzPubCount ? (
+                          <span className="flex items-center gap-1">
+                            <BookOpen size={12} className="flex-shrink-0" />
+                            {lab.alzPubCount.toLocaleString('fr-FR')} pub.
+                          </span>
+                        ) : null}
+                        {lab.citedByCount && lab.worksCount ? (
+                          <span className="flex items-center gap-1">
+                            <TrendingUp size={12} className="flex-shrink-0" />
+                            {Math.round(lab.citedByCount / lab.worksCount).toLocaleString('fr-FR')} cit./pub.
+                          </span>
+                        ) : null}
+                        {specializationRatio(lab) !== null ? (
+                          <span className="flex items-center gap-1">
+                            <Target size={12} className="flex-shrink-0" />
+                            {Math.round((specializationRatio(lab) ?? 0) * 100)}&nbsp;%
+                          </span>
+                        ) : null}
+                        {(lab.alzPubCount ?? 0) > 0 && (lab.worksCount ?? 0) > 0 ? (
+                          <span className="flex items-center gap-1">
+                            <Sparkles size={12} className="flex-shrink-0" />
+                            {Math.round(compositeScore(lab) * 100)}&nbsp;/ 100
+                          </span>
+                        ) : null}
+                      </div>
                     </div>
                     <ArrowRight
                       size={20}
@@ -486,16 +664,16 @@ export default function EuropeMap({ labs }: Props) {
           {selectedLab && (
             <div className="flex-1 overflow-y-auto" style={{ animation: 'fichefade 0.35s ease forwards' }}>
               {/* Header */}
-              <div className="sticky top-0 bg-white border-b border-slate-200 px-8 py-4 flex items-center gap-4 z-10">
+              <div className="sticky top-0 bg-white border-b border-slate-200 px-8 flex items-center gap-4 z-10 flex-shrink-0" style={{ height: '56px' }}>
                 <button
-                  onClick={closeFiche}
+                  onClick={() => closeFiche(fromTopLabsRef.current)}
                   className="text-slate-500 hover:text-slate-700 flex items-center gap-1.5 text-sm font-medium transition-colors cursor-pointer"
                 >
                   <ArrowLeft size={15} /> Retour
                 </button>
                 <span className="text-slate-200">|</span>
-                <span className="text-slate-500 text-sm truncate">{dominantCity(panel ?? [])}</span>
-                <button onClick={closePanel} className="ml-auto text-slate-500 hover:text-slate-600 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-100 cursor-pointer">✕</button>
+                <span className="text-slate-500 text-sm truncate flex-1 text-center">Actualité du laboratoire</span>
+                <button onClick={closePanel} className="text-slate-500 hover:text-slate-600 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-100 cursor-pointer">✕</button>
               </div>
 
               {/* Corps */}
@@ -513,11 +691,6 @@ export default function EuropeMap({ labs }: Props) {
                   {selectedLab.type === 'fra' && (
                     <span className="inline-flex items-center text-xs font-medium px-2 py-1 rounded-full" style={{ background: 'rgba(130,49,168,0.1)', color: DOT_COLOR }}>
                       Soutenu par la FRA
-                    </span>
-                  )}
-                  {isSpecialist(selectedLab) && (
-                    <span className="inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200" title={`${Math.round((specializationRatio(selectedLab) ?? 0) * 100)} % des publications portent sur Alzheimer`}>
-                      ★ Spécialiste Alzheimer
                     </span>
                   )}
                 </div>
@@ -544,10 +717,19 @@ export default function EuropeMap({ labs }: Props) {
                     <div className="flex items-center gap-2 text-slate-500 text-xs font-semibold uppercase tracking-wide mb-1">
                       <Quote size={12} /> Score d'impact
                     </div>
-                    <p className="text-3xl font-bold font-heading text-slate-700">
-                      {impactScore(selectedLab) !== null ? Math.round(impactScore(selectedLab)!).toLocaleString('fr-FR') : '—'}
-                    </p>
-                    <p className="text-slate-400 text-xs mt-0.5">citations / pub. Alzheimer</p>
+                    {selectedLab.citedByCount && selectedLab.worksCount ? (
+                      <>
+                        <p className="text-3xl font-bold font-heading text-slate-700">
+                          {Math.round(selectedLab.citedByCount / selectedLab.worksCount).toLocaleString('fr-FR')}
+                        </p>
+                        <p className="text-[#62748e] text-xs mt-0.5">citations moy. / publication</p>
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-3xl font-bold font-heading text-slate-700">—</p>
+                        <p className="text-[#62748e] text-xs mt-0.5">disponible après import</p>
+                      </>
+                    )}
                   </div>
                   <div className="rounded-xl border border-slate-200 p-4 bg-slate-100/70">
                     <div className="flex items-center gap-2 text-slate-500 text-xs font-semibold uppercase tracking-wide mb-1">
@@ -555,10 +737,10 @@ export default function EuropeMap({ labs }: Props) {
                     </div>
                     {specializationRatio(selectedLab) !== null ? (
                       <>
-                        <p className="text-3xl font-bold font-heading" style={{ color: isSpecialist(selectedLab) ? '#b45309' : 'rgb(100 116 139)' }}>
+                        <p className="text-3xl font-bold font-heading text-slate-700">
                           {Math.round((specializationRatio(selectedLab) ?? 0) * 100)} %
                         </p>
-                        <p className="text-slate-400 text-xs mt-0.5">des publications en Alzheimer</p>
+                        <p className="text-[#62748e] text-xs mt-0.5">des publications en Alzheimer</p>
                       </>
                     ) : (
                       <p className="text-3xl font-bold font-heading text-slate-700">—</p>
@@ -583,10 +765,10 @@ export default function EuropeMap({ labs }: Props) {
                         >
                           <div className="w-1.5 h-1.5 rounded-full flex-shrink-0 mt-2" style={{ background: DOT_COLOR, opacity: 0.5 }} />
                           <div className="min-w-0 flex-1">
-                            <p className="font-heading font-medium text-slate-700 leading-snug line-clamp-2 group-hover:underline group-hover:text-slate-900 transition-colors" style={{ fontSize: '1.05rem' }}>{pub.title}</p>
-                            <p className="text-slate-400 text-xs mt-1">{pub.year} · {pub.citations.toLocaleString('fr-FR')} citations</p>
+                            <p className="font-heading font-semibold text-slate-700 leading-snug line-clamp-2 group-hover:underline group-hover:text-slate-900 transition-colors" style={{ fontSize: '1.1rem' }}>{pub.title}</p>
+                            <p className="text-[#62748e] text-xs mt-1">{pub.year} · {pub.citations.toLocaleString('fr-FR')} citations</p>
                           </div>
-                          <ExternalLink size={15} className="flex-shrink-0 mt-1.5 text-slate-400 group-hover:text-purple-500 transition-colors" />
+                          <ExternalLink size={15} className="flex-shrink-0 mt-1.5 text-[#62748e] group-hover:text-purple-500 transition-colors" />
                         </a>
                       ))}
                     </div>
