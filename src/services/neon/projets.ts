@@ -84,3 +84,13 @@ export async function updateProjetTitreCourt(id: string, titreCourt: string): Pr
 export async function deleteProjet(id: string): Promise<void> {
   await sql`DELETE FROM projets WHERE id = ${id}`
 }
+
+export async function createProjet(data: { titre: string; montantAccorde: number; candidatureId: string }): Promise<Projet> {
+  const rows = await sql`
+    INSERT INTO projets (id, titre, montant_accorde, statut, candidature_id)
+    VALUES (gen_random_uuid(), ${data.titre}, ${data.montantAccorde}, 'En cours', ${data.candidatureId})
+    RETURNING *
+  `
+  const row = rows[0] as Record<string, unknown>
+  return mapRow({ ...row, thematique_label: null })
+}

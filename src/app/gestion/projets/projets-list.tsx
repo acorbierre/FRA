@@ -75,6 +75,9 @@ export default function ProjetsListe({ projets, projetColors, projetLabels, them
     if (statut && p.statut !== statut) return false
     if (internat && !p.dimensionInternationale) return false
     return true
+  }).sort((a, b) => {
+    if (a.dateDebut && b.dateDebut) return b.dateDebut.localeCompare(a.dateDebut)
+    return (b.anneeSelection ?? 0) - (a.anneeSelection ?? 0)
   })
 
   const hasFilters = annee || thematique || villeQuery || statut || internat

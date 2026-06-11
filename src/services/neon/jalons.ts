@@ -52,6 +52,35 @@ function mapRow(r: Record<string, unknown>): Jalon {
   }
 }
 
+export async function getVersementsForAgenda(): Promise<Jalon[]> {
+  const rows = await sql`
+    SELECT
+      v.id, v.numero, v.montant, v.date_prevue, v.date_realisee,
+      p.id AS projet_id, p.titre AS projet_titre
+    FROM versements v
+    LEFT JOIN conventions c ON c.id = v.convention_id
+    LEFT JOIN projets p ON p.id = c.projet_id
+    WHERE v.date_prevue IS NOT NULL
+    ORDER BY v.date_prevue ASC
+  `
+  return rows.map(r => {
+    const datePrevue  = String(r.date_prevue).slice(0, 10)
+    const dateReelle  = r.date_realisee ? String(r.date_realisee).slice(0, 10) : null
+    return {
+      id:          String(r.id),
+      projetId:    r.projet_id ? String(r.projet_id) : '',
+      projetTitre: r.projet_titre ? String(r.projet_titre) : undefined,
+      type:        'versement' as const,
+      label:       `Versement ${r.numero}`,
+      montant:     r.montant != null ? Number(r.montant) : null,
+      datePrevue,
+      dateReelle,
+      statut:      computeStatut(datePrevue, dateReelle),
+      calendarEventId: null,
+    }
+  })
+}
+
 export async function getAllJalons(): Promise<Jalon[]> {
   const rows = await sql`
     SELECT j.*, p.titre AS projet_titre

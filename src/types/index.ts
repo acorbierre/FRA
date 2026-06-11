@@ -100,6 +100,7 @@ export interface Convention {
   montantTotal: number
   statut: ConventionStatut
   projetId?: string
+  candidatureId?: string
 }
 
 export interface Versement {

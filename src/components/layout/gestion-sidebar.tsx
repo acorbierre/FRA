@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Home, NotebookPen, BriefcaseBusiness, Microscope, Users, FlaskConical, BarChart2, Settings, Sparkles, CalendarDays } from 'lucide-react'
+import { Home, NotebookPen, Microscope, Users, BarChart2, Settings, Sparkles, CalendarDays } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import AppSidebarBrand from './app-sidebar-brand'
 import AppSidebarSignout from './app-sidebar-signout'
@@ -12,7 +12,6 @@ const NAV_SECTIONS = [
     label: 'Gestion et suivi',
     items: [
       { href: '/gestion/candidatures',   label: 'Candidatures',        icon: NotebookPen },
-      { href: '/gestion/conventions',    label: 'Conventions',          icon: BriefcaseBusiness },
       { href: '/gestion/suivi',          label: 'Projets de recherche', icon: Microscope },
       { href: '/gestion/projets/agenda', label: 'Agenda financier',     icon: CalendarDays },
     ],
@@ -21,7 +20,7 @@ const NAV_SECTIONS = [
     label: 'Consultation',
     items: [
       { href: '/gestion/activite',          label: 'Activité de la FRA',  icon: BarChart2 },
-      { href: '/gestion/chercheurs-labos',  label: 'Utilisateurs & labos', icon: Users },
+      { href: '/gestion/chercheurs-labos',  label: 'Chercheurs & labos', icon: Users },
       { href: '/gestion/projets',           label: 'Projets financés',    icon: Microscope, exact: true },
     ],
   },

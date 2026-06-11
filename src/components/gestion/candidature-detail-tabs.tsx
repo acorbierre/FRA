@@ -3,7 +3,8 @@
 import { useState } from 'react'
 import CandidatureTimeline from '@/components/gestion/candidature-timeline'
 import EvaluationTab from '@/components/gestion/evaluation-tab'
-import type { Candidature, Utilisateur } from '@/types'
+import ConventionTab from '@/components/gestion/convention-tab'
+import type { Candidature, Convention, Utilisateur } from '@/types'
 import type { Evaluation } from '@/services/neon/evaluations'
 import { FIELD_LABELS } from '@/lib/config'
 import { cn } from '@/lib/utils'
@@ -15,20 +16,27 @@ interface Props {
   evaluations: Evaluation[]
   statutColors: Record<string, string>
   statutLabelsGestion: Record<string, string>
+  convention: Convention | null
 }
 
-type Tab = 'dossier' | 'evaluation'
+type Tab = 'dossier' | 'evaluation' | 'convention'
 
-export default function CandidatureDetailTabs({ candidature: c, chercheurNom, reviewers, evaluations, statutColors, statutLabelsGestion }: Props) {
+export default function CandidatureDetailTabs({ candidature: c, chercheurNom, reviewers, evaluations, statutColors, statutLabelsGestion, convention }: Props) {
   const [activeTab, setActiveTab] = useState<Tab>('dossier')
   const statut = c.statut ?? 'Brouillon'
   const nbSoumises = evaluations.filter(e => e.statut === 'Soumise').length
+
+  const tabLabels: Record<Tab, string> = {
+    dossier: 'Dossier',
+    evaluation: `Évaluation`,
+    convention: 'Convention',
+  }
 
   return (
     <div style={{ filter: 'drop-shadow(0 4px 14px rgba(0,0,0,0.09))' }}>
       {/* Tab bar */}
       <div className="flex items-end gap-1">
-        {(['dossier', 'evaluation'] as Tab[]).map((tab) => {
+        {(['dossier', 'evaluation', 'convention'] as Tab[]).map((tab) => {
           const isActive = activeTab === tab
           return (
             <button
@@ -41,12 +49,12 @@ export default function CandidatureDetailTabs({ candidature: c, chercheurNom, re
                   : 'bg-muted text-muted-foreground hover:text-foreground'
               )}
             >
-              {tab === 'dossier' ? 'Dossier' : (
-                <span className="flex items-center gap-1.5">
-                  Évaluation
-                  <span className="text-xs text-muted-foreground font-normal">({nbSoumises}/2 reçues)</span>
-                </span>
-              )}
+              {tab === 'evaluation'
+                ? <span className="flex items-center gap-1.5">Évaluation <span className="text-xs text-muted-foreground font-normal">({nbSoumises}/2)</span></span>
+                : tab === 'convention' && convention
+                ? <span className="flex items-center gap-1.5">Convention <span className="size-1.5 rounded-full bg-primary inline-block" /></span>
+                : tabLabels[tab]
+              }
             </button>
           )
         })}
@@ -55,19 +63,17 @@ export default function CandidatureDetailTabs({ candidature: c, chercheurNom, re
       {/* Content panel */}
       <div className={cn(
         'bg-card rounded-b-xl divide-y divide-border',
-        activeTab === 'dossier' ? 'rounded-tr-xl' : 'rounded-tl-xl'
+        activeTab === 'dossier' ? 'rounded-tr-xl' : activeTab === 'convention' ? 'rounded-tl-xl rounded-tr-xl' : 'rounded-tl-xl'
       )}>
         {activeTab === 'dossier' && (
           <>
-            <div className="px-8 py-6 flex items-center gap-8">
-              <div className="space-y-1.5 shrink-0">
-                <span className={`inline-block whitespace-nowrap rounded-full px-3.5 py-1.5 text-sm font-medium ${statutColors[statut] ?? 'bg-zinc-100 text-zinc-700'}`}>
-                  {statutLabelsGestion[statut] ?? statut}
-                </span>
-                <p className="font-heading text-base font-medium leading-snug">{c.titre}</p>
-                {chercheurNom && <p className="text-sm text-muted-foreground">{chercheurNom}</p>}
-              </div>
-              <div className="flex-1 min-w-0">
+            <div className="px-8 py-6">
+              <span className={`inline-block whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium mb-3 ${statutColors[statut] ?? 'bg-zinc-100 text-zinc-700'}`}>
+                {statutLabelsGestion[statut] ?? statut}
+              </span>
+              <p className="font-heading text-base font-medium leading-snug">{c.titre}</p>
+              {chercheurNom && <p className="text-sm text-muted-foreground mt-0.5">{chercheurNom}</p>}
+              <div className="mt-6">
                 <CandidatureTimeline statut={statut} dateSoumission={c.dateSoumission} />
               </div>
             </div>
@@ -91,6 +97,13 @@ export default function CandidatureDetailTabs({ candidature: c, chercheurNom, re
             reviewers={reviewers}
             evaluations={evaluations}
             nbSoumises={nbSoumises}
+          />
+        )}
+
+        {activeTab === 'convention' && (
+          <ConventionTab
+            candidatureId={c.id}
+            convention={convention}
           />
         )}
       </div>

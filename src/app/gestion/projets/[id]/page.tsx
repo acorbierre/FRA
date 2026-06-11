@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import ProjetTimeline from '@/components/gestion/projet-timeline'
 import Link from 'next/link'
 import { ArrowLeft, FileText, Banknote, NotebookPen, AlertTriangle, Euro, CalendarDays } from 'lucide-react'
+import DateBadge from '@/components/ui/date-badge'
 
 const RAPPORT_STATUT_COLORS: Record<string, string> = {
   'Attendu':  'bg-amber-50 text-amber-700',
@@ -56,20 +57,18 @@ export default async function ProjetFichePage({ params }: { params: Promise<{ id
   const dureeProjet = duree(projet.dateDebut, projet.dateFinPrevue)
 
   return (
-    <div className="max-w-2xl space-y-6">
+    <div className="max-w-5xl space-y-6">
       <div>
         <Link href="/gestion/suivi?tab=projets" className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-4 transition-colors">
           <ArrowLeft className="size-4" /> Suivi des projets
         </Link>
+        <span className={`inline-block rounded-full px-3 py-1 text-xs font-medium mb-2 ${settings.projet_colors[projet.statut] ?? 'bg-zinc-100 text-zinc-700'}`}>
+          {settings.projet_labels[projet.statut] ?? projet.statut}
+        </span>
+        <h1 className="page-title">{projet.titre}</h1>
         {projet.thematique && (
-          <p className="text-xs font-medium uppercase tracking-wide text-primary/70 mb-1">{projet.thematique}</p>
+          <p className="text-xs font-medium uppercase tracking-wide text-primary/70 mt-1">{projet.thematique}</p>
         )}
-        <div className="flex items-start justify-between gap-3">
-          <h1 className="page-title">{projet.titre}</h1>
-          <span className={`shrink-0 rounded-full px-3 py-1 text-sm font-medium ${settings.projet_colors[projet.statut] ?? 'bg-zinc-100 text-zinc-700'}`}>
-            {settings.projet_labels[projet.statut] ?? projet.statut}
-          </span>
-        </div>
       </div>
 
       {/* Mini-cartes budget + durée */}
@@ -185,28 +184,24 @@ export default async function ProjetFichePage({ params }: { params: Promise<{ id
 
                   {/* Versements */}
                   {verts.length > 0 && (
-                    <div className="ml-3 border-l-2 border-border pl-3 space-y-2">
+                    <div className="space-y-2 mt-2">
                       {verts
                         .sort((a, b) => a.numero - b.numero)
-                        .map(v => (
-                          <div key={v.id} className="flex items-center justify-between text-xs gap-2">
-                            <div className="min-w-0">
-                              <span className="font-medium text-muted-foreground">V{v.numero}</span>
-                              {' · '}
-                              <span className="tabular-nums">{v.montant.toLocaleString('fr-FR')} €</span>
-                            </div>
-                            <div className="flex items-center gap-2 shrink-0">
-                              {v.datePrevue && (
-                                <span className="text-muted-foreground">
-                                  {v.dateRealisee ? fmtDate(v.dateRealisee) : `prévu ${fmtDate(v.datePrevue)}`}
-                                </span>
-                              )}
-                              <span className={`rounded-full px-2 py-0.5 font-medium ${VERSEMENT_STATUT_COLORS[v.statut] ?? 'bg-muted text-muted-foreground'}`}>
+                        .map(v => {
+                          const dateStr = v.dateRealisee ?? v.datePrevue
+                          return (
+                            <div key={v.id} className="flex items-center gap-3 p-3 bg-background rounded-xl shadow-[0_0_10px_rgba(0,0,0,0.06)]">
+                              {dateStr && <DateBadge dateStr={dateStr} size="sm" />}
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium">Versement {v.numero}</p>
+                                <p className="text-xs text-muted-foreground tabular-nums">{v.montant.toLocaleString('fr-FR')} €</p>
+                              </div>
+                              <span className={`text-xs rounded-full px-2.5 py-0.5 font-medium shrink-0 ${VERSEMENT_STATUT_COLORS[v.statut] ?? 'bg-muted text-muted-foreground'}`}>
                                 {v.statut}
                               </span>
                             </div>
-                          </div>
-                        ))}
+                          )
+                        })}
                     </div>
                   )}
                 </div>

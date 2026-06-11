@@ -32,3 +32,18 @@ export async function getVersements(): Promise<Versement[]> {
   const rows = await sql`SELECT * FROM versements`
   return rows.map(mapRow)
 }
+
+export async function createVersement(data: {
+  conventionId: string
+  numero: number
+  montant: number
+  datePrevue: string
+}): Promise<Versement> {
+  const reference = `VIR-${Date.now()}-${data.numero}`
+  const rows = await sql`
+    INSERT INTO versements (id, reference, numero, montant, date_prevue, statut, convention_id)
+    VALUES (gen_random_uuid(), ${reference}, ${data.numero}, ${data.montant}, ${data.datePrevue}, 'Prévu', ${data.conventionId})
+    RETURNING *
+  `
+  return mapRow(rows[0])
+}
