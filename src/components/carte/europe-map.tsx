@@ -233,7 +233,7 @@ export default function EuropeMap({ labs }: Props) {
     setTimeout(() => setMomentum(false), 900)
     fetch(
       `https://api.openalex.org/works?filter=institutions.id:${lab.id},title.search:alzheimer` +
-      `&sort=publication_year:desc&per-page=5&select=id,title,publication_year,cited_by_count,doi`,
+      `&sort=publication_year:desc&per-page=10&select=id,title,publication_year,cited_by_count,doi`,
       { headers: { 'User-Agent': 'mailto:contact@fra-recherche.org' } }
     )
       .then(r => r.json())
@@ -369,7 +369,7 @@ export default function EuropeMap({ labs }: Props) {
           onClick={openTopLabs}
           className="absolute left-4 sm:left-[5%] z-10 cursor-pointer font-heading font-semibold flex items-center gap-1.5 transition-colors hover:opacity-70"
           style={{
-            top: isMobile ? 'calc(70px + 7.5rem)' : 'calc(50% + 7.5rem)',
+            top: isMobile ? 'calc(70px + 7rem)' : 'calc(50% + 6rem)',
             color: DOT_COLOR,
             fontSize: '1rem',
           }}

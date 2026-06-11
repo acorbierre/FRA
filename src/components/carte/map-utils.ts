@@ -11,10 +11,9 @@ export const STREAM_LINES = [
   'des équipes de',
   'recherche',
   'en Alzheimer',
-  'et Neurosciences',
 ]
 
-const HIGHLIGHT_WORDS = ['Alzheimer', 'Neurosciences']
+const HIGHLIGHT_WORDS = ['recherche', 'Alzheimer']
 
 export function buildHighlightMap(lines: string[]): boolean[][] {
   return lines.map(line => {
