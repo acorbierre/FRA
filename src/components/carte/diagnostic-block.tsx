@@ -71,7 +71,7 @@ export function DiagnosticBlock({ lab, publications }: Props) {
 
     async function run() {
       try {
-        const res = await fetch('/api/carte/diagnostic', {
+        const res = await fetch('/api/carto/diagnostic', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ lab, publications }),

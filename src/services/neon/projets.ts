@@ -85,6 +85,25 @@ export async function deleteProjet(id: string): Promise<void> {
   await sql`DELETE FROM projets WHERE id = ${id}`
 }
 
+export async function getProjetByCandidatureId(candidatureId: string): Promise<Projet | null> {
+  const rows = await sql`${SELECT_WITH_THEMATIQUE} WHERE p.candidature_id = ${candidatureId}`
+  return rows[0] ? mapRow(rows[0]) : null
+}
+
+export async function getProjetByLaboNeonId(laboNeonId: string): Promise<Projet | null> {
+  const rows = await sql`
+    SELECT p.*, t.label AS thematique_label
+    FROM projets p
+    LEFT JOIN thematiques t ON p.thematique_id = t.id
+    JOIN candidatures c ON c.id = p.candidature_id
+    JOIN utilisateurs u ON u.id = c.chercheur_id
+    WHERE ${laboNeonId} = ANY(u.laboratoire_id)
+    AND p.statut = 'En cours'
+    LIMIT 1
+  `
+  return rows[0] ? mapRow(rows[0]) : null
+}
+
 export async function createProjet(data: { titre: string; montantAccorde: number; candidatureId: string }): Promise<Projet> {
   const rows = await sql`
     INSERT INTO projets (id, titre, montant_accorde, statut, candidature_id)

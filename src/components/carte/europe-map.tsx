@@ -14,7 +14,7 @@ import { TopLabsPanel } from './top-labs-panel'
 import { FichePanel } from './fiche-panel'
 import { CityPanel } from './city-panel'
 
-interface Props { labs: Lab[] }
+interface Props { labs: Lab[]; initialLabId?: string | null }
 
 type TopSort = 'publications' | 'impact' | 'specialisation' | 'composite'
 type SortBy  = 'publications' | 'impact' | 'specialisation' | 'composite' | 'alpha' | 'fra'
@@ -37,7 +37,7 @@ const TOPLABS_EASING   = 'width 0.72s cubic-bezier(0.87, 0, 0.13, 1)'
 const NORMAL_EASING    = 'width 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
 const SLIDE_OUT_EASING = 'panelslide-out 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards'
 
-export default function EuropeMap({ labs }: Props) {
+export default function EuropeMap({ labs, initialLabId }: Props) {
   const svgRef   = useRef<SVGSVGElement>(null)
   const worldRef = useRef<any>(null)
   const zoomRef  = useRef<d3.ZoomBehavior<SVGSVGElement, unknown> | null>(null)
@@ -185,6 +185,30 @@ export default function EuropeMap({ labs }: Props) {
     window.addEventListener('resize', onResize)
     return () => window.removeEventListener('resize', onResize)
   }, [draw])
+
+  const initialLabIdRef = useRef<string | null | undefined>(initialLabId)
+  useEffect(() => {
+    if (!ready || !initialLabIdRef.current) return
+    const lab = labs.find(l => String(l.id) === String(initialLabIdRef.current))
+    if (!lab) return
+    setPublications([])
+    setMomentum(true)
+    setTimeout(() => setMomentum(false), 900)
+    setPanelState({ tag: 'fiche', lab, origin: 'city' })
+    fetch(
+      `https://api.openalex.org/works?filter=institutions.id:${lab.id},title.search:alzheimer` +
+      `&sort=publication_year:desc&per-page=10&select=id,title,publication_year,cited_by_count,doi`,
+      { headers: { 'User-Agent': 'mailto:contact@fra-recherche.org' } }
+    )
+      .then(r => r.json())
+      .then(data => setPublications(
+        (data.results ?? []).map((w: any) => ({
+          id: w.id, title: w.title ?? '', year: w.publication_year ?? null,
+          citations: w.cited_by_count ?? 0, doi: w.doi ?? null,
+        }))
+      ))
+      .catch(() => {})
+  }, [ready, labs])
 
   useEffect(() => {
     if (!ready) return

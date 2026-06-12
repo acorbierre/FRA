@@ -5,7 +5,7 @@ import UtilisateursListe from '../utilisateurs/utilisateurs-list'
 import LaboratoiresListe from '../laboratoires/laboratoires-list'
 import type { Utilisateur, Laboratoire } from '@/types'
 
-const TABS = ['Utilisateurs', 'Laboratoires'] as const
+const TABS = ['Laboratoires', 'Chercheurs'] as const
 type Tab = typeof TABS[number]
 
 interface Props {
@@ -14,7 +14,7 @@ interface Props {
 }
 
 export default function UtilisateurLabosTabs({ utilisateurs, labos }: Props) {
-  const [tab, setTab] = useState<Tab>('Utilisateurs')
+  const [tab, setTab] = useState<Tab>('Laboratoires')
 
   return (
     <div className="space-y-4">
@@ -29,13 +29,13 @@ export default function UtilisateurLabosTabs({ utilisateurs, labos }: Props) {
           >
             {t}
             <span className="ml-1.5 text-muted-foreground font-normal">
-              ({t === 'Utilisateurs' ? utilisateurs.length : labos.length})
+              ({t === 'Chercheurs' ? utilisateurs.length : labos.length})
             </span>
           </button>
         ))}
       </div>
 
-      {tab === 'Utilisateurs' && <UtilisateursListe utilisateurs={utilisateurs} />}
+      {tab === 'Chercheurs' && <UtilisateursListe utilisateurs={utilisateurs} />}
       {tab === 'Laboratoires' && <LaboratoiresListe labos={labos} />}
     </div>
   )

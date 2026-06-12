@@ -4,7 +4,9 @@ import { Settings, ExternalLink } from 'lucide-react'
 
 export const metadata = { title: 'Cartographie des équipes de recherche — FRA' }
 
-export default async function CartePage() {
+export default async function CartePage({ searchParams }: { searchParams: Promise<Record<string, string>> }) {
+  const sp = await searchParams
+  const initialLabId = sp.lab ?? null
   const rows = await sql`
     SELECT id, nom, ville, pays, lat, lon, type, fra_funded, labo_neon_id, url,
            alz_pub_count, cited_by_count, works_count, topics
@@ -33,7 +35,7 @@ export default async function CartePage() {
 
   return (
     <div className="flex-1 relative">
-      <EuropeMap labs={labs} />
+      <EuropeMap labs={labs} initialLabId={initialLabId} />
 
       <header className="absolute top-0 left-0 right-0 h-[60px] flex items-center justify-between px-4 sm:px-8 pointer-events-none z-10">
         <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center flex-shrink-0 pointer-events-auto">

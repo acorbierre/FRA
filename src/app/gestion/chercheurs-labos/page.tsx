@@ -11,8 +11,8 @@ export default async function UtilisateurLabosPage() {
   return (
     <div className="max-w-5xl space-y-6">
       <div>
-        <h1 className="page-title">Utilisateurs & laboratoires</h1>
-        <p className="page-subtitle">{utilisateurs.length} utilisateur{utilisateurs.length > 1 ? 's' : ''} · {labos.length} laboratoire{labos.length > 1 ? 's' : ''}</p>
+        <h1 className="page-title">Labos & chercheurs</h1>
+        <p className="page-subtitle">{utilisateurs.length} chercheur{utilisateurs.length > 1 ? 's' : ''} · {labos.length} laboratoire{labos.length > 1 ? 's' : ''}</p>
       </div>
 
       <UtilisateurLabosTabs utilisateurs={utilisateurs} labos={labos} />

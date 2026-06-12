@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { ExternalLink, BookOpen, Quote, Tag, TrendingUp, Target } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { ExternalLink, BookOpen, Quote, Tag, TrendingUp, Target, ArrowRight } from 'lucide-react'
 import { type Lab } from '@/data/alzheimer-labs'
 import { PanelTopbar } from './panel-topbar'
 import { DOT_COLOR, LIGHT_COLOR, formatCount, specializationRatio } from './map-utils'
@@ -23,13 +23,7 @@ interface Props {
   onClose: () => void
 }
 
-type Tab = 'overview' | 'publications' | 'domaines'
-
-const TABS: { key: Tab; label: string }[] = [
-  { key: 'overview',      label: 'Vue d\'ensemble' },
-  { key: 'publications',  label: 'Publications' },
-  { key: 'domaines',      label: 'Domaines' },
-]
+type Tab = 'overview' | 'projets-fra' | 'publications' | 'domaines'
 
 function fadeAnim(closing: boolean, delay: number, enterDelay: number) {
   return closing
@@ -37,8 +31,27 @@ function fadeAnim(closing: boolean, delay: number, enterDelay: number) {
     : `fichefade 0.55s ${enterDelay}ms cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards`
 }
 
+interface ProjetFRA {
+  id: string
+  titre: string
+  statut: string
+  montantAccorde: number
+  dateDebut?: string
+  dateFinPrevue?: string
+}
+
 export function FichePanel({ lab, publications, closingFiche, onBack, onClose }: Props) {
   const [tab, setTab] = useState<Tab>('overview')
+  const [projetFRA, setProjetFRA] = useState<ProjetFRA | null | undefined>(undefined)
+
+  useEffect(() => {
+    if (!lab.neonId) { setProjetFRA(null); return }
+    setProjetFRA(undefined)
+    fetch(`/api/carto/lab-projet?neonId=${lab.neonId}`)
+      .then(r => r.json())
+      .then(d => setProjetFRA(d.projet ?? null))
+      .catch(() => setProjetFRA(null))
+  }, [lab.neonId])
 
   return (
     <div className="flex-1 overflow-y-auto flex flex-col" style={{ animation: 'fichefade 0.35s ease forwards' }}>
@@ -73,7 +86,12 @@ export function FichePanel({ lab, publications, closingFiche, onBack, onClose }:
           className="flex border-b border-slate-200 mb-6"
           style={{ animation: fadeAnim(closingFiche, 120, 500), opacity: closingFiche ? 1 : 0 }}
         >
-          {TABS.map(({ key, label }) => (
+          {([
+            { key: 'overview' as Tab,      label: 'Vue d\'ensemble' },
+            ...(lab.neonId ? [{ key: 'projets-fra' as Tab, label: 'Projets FRA' }] : []),
+            { key: 'publications' as Tab,  label: 'Publications' },
+            { key: 'domaines' as Tab,      label: 'Domaines' },
+          ]).map(({ key, label }) => (
             <button
               key={key}
               onClick={() => setTab(key)}
@@ -155,6 +173,54 @@ export function FichePanel({ lab, publications, closingFiche, onBack, onClose }:
           </>
         </div>
 
+        {/* Projets FRA — toujours monté */}
+        <div style={{ display: tab === 'projets-fra' ? 'block' : 'none' }}>
+          {projetFRA === undefined && (
+            <p className="text-sm" style={{ color: '#62748e' }}>Chargement…</p>
+          )}
+          {projetFRA === null && (
+            <p className="text-sm mb-4" style={{ color: '#62748e' }}>Aucun projet en cours de suivi.</p>
+          )}
+          {projetFRA && (
+            <a
+              href={`/gestion/projets/${projetFRA.id}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group flex items-center justify-between gap-4 rounded-xl p-5 border border-slate-200 transition-colors hover:border-purple-300 mb-4"
+            >
+              <div className="min-w-0 space-y-2">
+                <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: DOT_COLOR }}>
+                  Projet en cours de suivi
+                </p>
+                <p className="text-base font-semibold text-slate-800 leading-snug">{projetFRA.titre}</p>
+                <div className="flex flex-wrap gap-3 text-sm text-slate-500">
+                  {projetFRA.montantAccorde > 0 && (
+                    <span>{projetFRA.montantAccorde.toLocaleString('fr-FR')} €</span>
+                  )}
+                  {projetFRA.dateDebut && projetFRA.dateFinPrevue && (
+                    <span>{new Date(projetFRA.dateDebut).getFullYear()} → {new Date(projetFRA.dateFinPrevue).getFullYear()}</span>
+                  )}
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium" style={{ background: 'rgba(130,49,168,0.12)', color: DOT_COLOR }}>
+                    {projetFRA.statut}
+                  </span>
+                </div>
+              </div>
+              <ArrowRight size={16} className="shrink-0 text-slate-400 group-hover:text-purple-500 transition-colors" />
+            </a>
+          )}
+          {lab.neonId && (
+            <div className="mt-2">
+              <a
+                href={`/gestion/laboratoires/${lab.neonId}`}
+                className="inline-flex items-center gap-1.5 text-sm font-medium px-4 py-2 rounded-lg text-white transition-colors"
+                style={{ background: DOT_COLOR }}
+              >
+                Fiche labo FRA →
+              </a>
+            </div>
+          )}
+        </div>
+
         {/* Publications — toujours monté pour éviter le restreamage */}
         <div style={{ display: tab === 'publications' ? 'block' : 'none' }}>
           {publications.length > 0 ? (
@@ -211,15 +277,6 @@ export function FichePanel({ lab, publications, closingFiche, onBack, onClose }:
                 className="inline-flex items-center gap-1.5 text-sm font-medium px-4 py-2 rounded-lg border border-slate-200 text-slate-600 hover:border-purple-300 hover:text-purple-700 transition-colors"
               >
                 Site web <ExternalLink size={12} />
-              </a>
-            )}
-            {lab.neonId && (
-              <a
-                href={`/gestion/laboratoires/${lab.neonId}`}
-                className="inline-flex items-center gap-1.5 text-sm font-medium px-4 py-2 rounded-lg text-white transition-colors"
-                style={{ background: DOT_COLOR }}
-              >
-                Fiche labo FRA →
               </a>
             )}
           </div>

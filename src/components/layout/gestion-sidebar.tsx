@@ -20,7 +20,7 @@ const NAV_SECTIONS = [
     label: 'Consultation',
     items: [
       { href: '/gestion/activite',          label: 'Activité de la FRA',  icon: BarChart2 },
-      { href: '/gestion/chercheurs-labos',  label: 'Chercheurs & labos', icon: Users },
+      { href: '/gestion/chercheurs-labos',  label: 'Labos & chercheurs', icon: Users },
       { href: '/gestion/projets',           label: 'Projets financés',    icon: Microscope, exact: true },
     ],
   },

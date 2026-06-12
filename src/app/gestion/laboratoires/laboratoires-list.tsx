@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Search, Building2, MapPin, ChevronRight } from 'lucide-react'
+import { Search, Building2, MapPin, ChevronRight, Map } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import type { Laboratoire } from '@/types'
 
@@ -41,7 +41,7 @@ export default function LaboratoiresListe({ labos }: { labos: Laboratoire[] }) {
         <p className="text-sm text-muted-foreground">Aucun résultat pour « {query} ».</p>
       )}
 
-      <div className="rounded-xl bg-background overflow-hidden shadow-[0_0_14px_rgba(0,0,0,0.07)]">
+      <div className="rounded-xl bg-background overflow-hidden border border-border/60">
         {letters.map((letter, li) => (
           <div key={letter}>
             <div className={`px-6 py-2 bg-muted/40 border-b border-border ${li > 0 ? 'border-t' : ''}`}>
@@ -73,6 +73,18 @@ export default function LaboratoiresListe({ labos }: { labos: Laboratoire[] }) {
                   </p>
                 )}
 
+                {l.carteLabId && (
+                  <a
+                    href={`/carto?lab=${l.carteLabId}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={e => e.stopPropagation()}
+                    className="relative z-10 inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors shrink-0 px-2 py-1 rounded-md hover:bg-muted"
+                  >
+                    <Map className="size-3" />
+                    Carto
+                  </a>
+                )}
                 <ChevronRight className="size-4 text-muted-foreground group-hover:text-primary transition-colors shrink-0" />
               </Link>
             ))}

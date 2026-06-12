@@ -26,6 +26,7 @@ export interface Laboratoire {
   institution?: string
   ville?: string
   siteWeb?: string
+  carteLabId?: string
 }
 
 export interface AppelAProjet {
