@@ -1,6 +1,7 @@
 'use client'
 
-import { ArrowRight, BookOpen, TrendingUp, Target, Sparkles } from 'lucide-react'
+import { useState } from 'react'
+import { ArrowRight, BookOpen, TrendingUp, Target, Sparkles, Search } from 'lucide-react'
 import { type Lab } from '@/data/alzheimer-labs'
 import { DOT_COLOR, LIGHT_COLOR, dominantCity, titleCase, specializationRatio } from './map-utils'
 
@@ -16,7 +17,13 @@ interface Props {
 }
 
 export function CityPanel({ labs, sortBy, onSortChange, compositeScore, onLabClick, onClose }: Props) {
-  const sorted = [...labs].sort((a, b) => {
+  const [query, setQuery] = useState('')
+
+  const filtered = query.trim()
+    ? labs.filter(l => l.name.toLowerCase().includes(query.toLowerCase()))
+    : labs
+
+  const sorted = [...filtered].sort((a, b) => {
     if (sortBy === 'alpha') return a.name.localeCompare(b.name, 'fr')
     if (sortBy === 'fra') {
       if (a.type === 'fra' && b.type !== 'fra') return -1
@@ -31,35 +38,50 @@ export function CityPanel({ labs, sortBy, onSortChange, compositeScore, onLabCli
 
   return (
     <>
-      <div className="flex items-start justify-between px-6 py-5 border-b border-slate-200 flex-shrink-0">
-        <div>
-          <p className="text-2xl font-bold font-heading text-slate-900 leading-tight">{titleCase(dominantCity(labs))}</p>
-          <p className="text-slate-500 text-sm mt-1">
-            {labs.length} institution{labs.length > 1 ? 's' : ''}
-          </p>
+      <div className="px-6 pt-5 pb-3 border-b border-slate-200 flex-shrink-0 space-y-3">
+        <div className="flex items-start justify-between">
+          <div>
+            <p className="text-2xl font-bold font-heading text-slate-900 leading-tight">{titleCase(dominantCity(labs))}</p>
+            <p className="text-slate-500 text-sm mt-1">
+              {filtered.length !== labs.length
+                ? `${filtered.length} / ${labs.length} institution${labs.length > 1 ? 's' : ''}`
+                : `${labs.length} institution${labs.length > 1 ? 's' : ''}`}
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            className="text-slate-500 hover:text-slate-600 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-100 flex-shrink-0 cursor-pointer mt-1"
+          >
+            ✕
+          </button>
         </div>
-        <div className="flex items-center gap-3 mt-1 flex-wrap">
-          <label className="flex items-center gap-1.5 text-sm text-slate-500 cursor-pointer">
+
+        <div className="flex items-center gap-4">
+          <div className="relative flex-1">
+            <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+            <input
+              type="text"
+              value={query}
+              onChange={e => setQuery(e.target.value)}
+              placeholder="Rechercher un laboratoire…"
+              className="w-full pl-8 pr-3 py-1.5 text-sm bg-slate-100 border border-transparent rounded-lg text-slate-700 placeholder-slate-400 focus:outline-none focus:border-slate-300 focus:bg-white transition-colors"
+            />
+          </div>
+          <label className="flex items-center gap-1.5 text-sm text-slate-500 cursor-pointer flex-shrink-0">
             <span className="whitespace-nowrap">Trier par</span>
             <select
               value={sortBy}
               onChange={e => onSortChange(e.target.value as SortBy)}
               className="text-sm text-slate-500 bg-transparent border-none focus:outline-none cursor-pointer hover:text-slate-700 transition-colors"
             >
-              <option value="publications">Publications Alzheimer</option>
+              <option value="publications">Pub. Alzheimer</option>
               <option value="impact">Score d'impact</option>
-              <option value="specialisation">Spécialisation Alzheimer</option>
+              <option value="specialisation">Spé. Alzheimer</option>
               <option value="composite">Pertinence FRA</option>
               <option value="alpha">Ordre alphabétique</option>
-              <option value="fra">Partenaires FRA</option>
+              <option value="fra">Soutenus FRA</option>
             </select>
           </label>
-          <button
-            onClick={onClose}
-            className="text-slate-500 hover:text-slate-600 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-100 flex-shrink-0 cursor-pointer"
-          >
-            ✕
-          </button>
         </div>
       </div>
 
