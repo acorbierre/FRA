@@ -4,9 +4,10 @@ import { getThematiques } from '@/services/neon/thematiques'
 import ProjetsListe from './projets-list'
 
 export default async function ProjetsPage() {
-  const [projets, settings, thematiques] = await Promise.all([
+  const [allProjets, settings, thematiques] = await Promise.all([
     getProjets(), getAppSettings(), getThematiques(),
   ])
+  const projets = allProjets.filter(p => p.statut === 'Terminé')
 
   return (
     <div className="max-w-5xl space-y-6">

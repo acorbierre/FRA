@@ -41,12 +41,14 @@ function getMailtoUrl(p: Projet) {
   return `mailto:?subject=${subject}&body=${body}`
 }
 
-function getTeamsUrl(p: Projet, meta: string) {
+function getTeamsUrl(p: Projet, versePct: number, verse: number) {
   const lines = [
-    `📌 ${p.titre}`,
+    `📌 Projet : ${p.titre}`,
     ...(p.thematique ? [`Thématique : ${p.thematique}`] : []),
     ...(p.ville ? [`Ville : ${p.ville}`] : []),
-    ...(meta ? [meta] : []),
+    ...(p.montantAccorde ? [`Montant accordé : ${p.montantAccorde.toLocaleString('fr-FR')} €`] : []),
+    ...(p.montantAccorde && verse > 0 ? [`Versé : ${verse.toLocaleString('fr-FR')} € (${versePct} %)`] : []),
+    ...(p.dateDebut && p.dateFinPrevue ? [`Période : ${new Date(p.dateDebut).toLocaleDateString('fr-FR')} → ${new Date(p.dateFinPrevue).toLocaleDateString('fr-FR')}`] : []),
   ]
   return `https://teams.microsoft.com/l/chat/0/0?users=&message=${encodeURIComponent(lines.join('\n'))}`
 }
@@ -60,7 +62,8 @@ export default async function SuiviPage() {
     getAppSettings(),
   ])
 
-  projets.sort((a, b) => {
+  const projetsEnCours = projets.filter(p => p.statut === 'En cours')
+  projetsEnCours.sort((a, b) => {
     if (a.dateDebut && b.dateDebut) return b.dateDebut.localeCompare(a.dateDebut)
     if (a.dateDebut) return 1
     if (b.dateDebut) return -1
@@ -98,13 +101,13 @@ export default async function SuiviPage() {
     <div className="max-w-5xl space-y-6">
       <div>
         <h1 className="page-title">Suivi des projets</h1>
-        <p className="page-subtitle">{projets.length} projet{projets.length > 1 ? 's' : ''} en gestion</p>
+        <p className="page-subtitle">{projetsEnCours.length} projet{projetsEnCours.length > 1 ? 's' : ''} en gestion</p>
       </div>
 
-      {projets.length === 0
+      {projetsEnCours.length === 0
         ? <p className="text-sm text-muted-foreground">Aucun projet.</p>
         : <div className="space-y-3">
-            {projets.map(p => {
+            {projetsEnCours.map(p => {
               const rapportsDuProjet = rapportsParProjet[p.id] ?? []
               const alertes = rapportsDuProjet.filter(r => r.statut === 'Attendu')
               const versementsDuProjet = versementsParProjet[p.id] ?? []
@@ -121,7 +124,7 @@ export default async function SuiviPage() {
               const versePct = p.montantAccorde > 0 ? Math.min(100, Math.round((verse / p.montantAccorde) * 100)) : 0
 
               return (
-                <div key={p.id} className="relative rounded-xl bg-background px-7 py-5 flex flex-col gap-3 shadow-[0_0_14px_rgba(0,0,0,0.07)]">
+                <div key={p.id} className="relative rounded-xl bg-background px-7 py-6 flex flex-col gap-3 shadow-[0_0_14px_rgba(0,0,0,0.07)]">
                   <Link href={`/gestion/projets/${p.id}`} className="absolute inset-0 rounded-xl" />
 
                   {/* Ligne 1 : pill statut + alertes */}
@@ -155,12 +158,12 @@ export default async function SuiviPage() {
 
                     <div className="relative z-10 flex items-center gap-3 shrink-0">
                     {p.montantAccorde > 0 && (
-                      <div className="flex flex-col gap-2 mr-6 w-52">
+                      <div className="flex flex-col gap-2 mr-6">
                         <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
                           <div className="h-full rounded-full" style={{ width: `${versePct}%`, background: versePct === 100 ? '#16a34a' : 'var(--color-primary)' }} />
                         </div>
                         <p className="text-xs tabular-nums text-muted-foreground whitespace-nowrap">
-                          {verse.toLocaleString('fr-FR')} € versés sur {p.montantAccorde.toLocaleString('fr-FR')} € <span className="font-medium" style={{ color: versePct === 100 ? '#16a34a' : undefined }}>({versePct} %)</span>
+                          {Math.round(verse / 1000)} k€ versés sur {Math.round(p.montantAccorde / 1000)} k€ <span className="font-medium" style={{ color: versePct === 100 ? '#16a34a' : undefined }}>({versePct} %)</span>
                         </p>
                       </div>
                     )}
@@ -173,7 +176,7 @@ export default async function SuiviPage() {
                       Contacter le labo
                     </a>
                     <a
-                      href={getTeamsUrl(p, meta)}
+                      href={getTeamsUrl(p, versePct, verse)}
                       target="_blank"
                       rel="noopener noreferrer"
                       title="Partager dans Teams"

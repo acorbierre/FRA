@@ -83,18 +83,10 @@ export default function TitreProjet({ id, titre, titreCourt: initialTitreCourt, 
 
   return (
     <div ref={containerRef} className="relative flex items-center gap-1.5 min-w-0">
-      <button
-        onClick={handleOpen}
-        title="Modifier le titre court"
-        className="shrink-0 cursor-pointer text-muted-foreground/40 hover:text-foreground transition-colors"
-      >
-        <Pencil className="size-3" />
-      </button>
-
       <div className="group/tooltip relative shrink min-w-0">
         <Link
           href={href}
-          className="font-heading truncate text-base font-medium hover:text-primary transition-colors block"
+          className="truncate text-[15px] font-medium hover:text-primary transition-colors block"
         >
           {displayed}
         </Link>
@@ -104,6 +96,14 @@ export default function TitreProjet({ id, titre, titreCourt: initialTitreCourt, 
           </div>
         </div>
       </div>
+
+      <button
+        onClick={handleOpen}
+        title="Modifier le titre court"
+        className="shrink-0 cursor-pointer text-muted-foreground/40 hover:text-foreground transition-colors"
+      >
+        <Pencil className="size-3" />
+      </button>
 
       {open && (
         <div className="absolute left-0 top-full mt-1.5 z-50 w-80 rounded-lg border border-border bg-background shadow-lg p-3 space-y-2">

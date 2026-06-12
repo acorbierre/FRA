@@ -17,12 +17,13 @@ interface Props {
   statutColors: Record<string, string>
   statutLabelsGestion: Record<string, string>
   convention: Convention | null
+  defaultTab?: Tab
 }
 
 type Tab = 'dossier' | 'evaluation' | 'convention'
 
-export default function CandidatureDetailTabs({ candidature: c, chercheurNom, reviewers, evaluations, statutColors, statutLabelsGestion, convention }: Props) {
-  const [activeTab, setActiveTab] = useState<Tab>('dossier')
+export default function CandidatureDetailTabs({ candidature: c, chercheurNom, reviewers, evaluations, statutColors, statutLabelsGestion, convention, defaultTab = 'dossier' }: Props) {
+  const [activeTab, setActiveTab] = useState<Tab>(defaultTab)
   const statut = c.statut ?? 'Brouillon'
   const nbSoumises = evaluations.filter(e => e.statut === 'Soumise').length
 

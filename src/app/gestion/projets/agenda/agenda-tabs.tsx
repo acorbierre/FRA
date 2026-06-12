@@ -124,29 +124,23 @@ export default function AgendaTabs({ jalons }: { jalons: Jalon[] }) {
                 {formatMonthHeader(monthKey)}
               </h3>
               {grouped[monthKey].map(j => (
-                <div key={j.id} className="flex items-center gap-4 p-4 bg-background rounded-xl shadow-[0_0_14px_rgba(0,0,0,0.07)]">
+                <div key={j.id} className="grid items-center gap-4 p-4 bg-background rounded-xl shadow-[0_0_14px_rgba(0,0,0,0.07)]" style={{ gridTemplateColumns: 'auto 5rem 1fr 22rem' }}>
                   <DateBadge dateStr={j.datePrevue} />
-                  <div className="w-20 shrink-0">
-                    {j.statut === 'en_retard' && (
-                      <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-red-50 text-red-700">En retard</span>
-                    )}
-                    {j.type === 'versement' && j.statut === 'prevu' && (
-                      <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-blue-50 text-blue-700">Prévu</span>
-                    )}
-                    {j.type === 'versement' && j.statut === 'realise' && (
-                      <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-green-50 text-green-700">Versé</span>
+                  <div>
+                    {j.statut === 'en_retard' && <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-red-50 text-red-700">En retard</span>}
+                    {j.type === 'versement' && j.statut === 'prevu' && <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-blue-50 text-blue-700">Prévu</span>}
+                    {j.type === 'versement' && j.statut === 'realise' && <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-green-50 text-green-700">Versé</span>}
+                  </div>
+                  <div className="min-w-0 flex items-center gap-10">
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium">{j.label}</p>
+                      {j.projetTitre && <p className="text-xs text-muted-foreground truncate">{j.projetTitre}</p>}
+                    </div>
+                    {j.montant != null && (
+                      <span className="text-sm tabular-nums shrink-0">{j.montant.toLocaleString('fr-FR')} €</span>
                     )}
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">{j.label}</p>
-                    {j.projetTitre && (
-                      <p className="text-xs text-muted-foreground truncate">{j.projetTitre}</p>
-                    )}
-                  </div>
-                  <span className="w-28 text-right text-sm font-medium tabular-nums shrink-0">
-                    {j.montant != null ? `${j.montant.toLocaleString('fr-FR')} €` : ''}
-                  </span>
-                  <div className="flex items-center gap-2 shrink-0 ml-1">
+                  <div className="flex items-center gap-2 justify-end">
                     {j.type === 'versement' && j.statut !== 'realise' && (
                       <button
                         onClick={() => handleVerse(j.id)}
