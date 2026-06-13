@@ -41,6 +41,33 @@ export function dominantCity(labs: Lab[]) {
   return Object.entries(counts).sort((a, b) => b[1] - a[1])[0]?.[0] ?? ''
 }
 
+/** Sépare un nom HAL de la forme "Nom complet [Ville] (ACRONYME (UMR_XXXX))"
+ *  en { name: "Nom complet", acronym: "ACRONYME (UMR_XXXX)" | null }
+ *  en retirant aussi les [crochets] de ville redondants dans le nom. */
+export function parseName(fullName: string): { name: string; acronym: string | null } {
+  let name = fullName
+  let acronym: string | null = null
+
+  if (fullName.endsWith(')')) {
+    // Trouve la parenthèse ouvrante correspondante (gère les parens imbriquées)
+    let depth = 0
+    let i = fullName.length - 1
+    while (i >= 0) {
+      if (fullName[i] === ')') depth++
+      else if (fullName[i] === '(') { depth--; if (depth === 0) break }
+      i--
+    }
+    if (i > 0 && fullName[i - 1] === ' ') {
+      name    = fullName.slice(0, i - 1)
+      acronym = fullName.slice(i + 1, -1)
+    }
+  }
+
+  // Supprime les [Ville] entre crochets (redondant avec le champ city)
+  name = name.replace(/\s*\[[^\]]*\]/g, '').trim()
+  return { name, acronym }
+}
+
 export function titleCase(str: string) {
   return str.toLowerCase().replace(/(?:^|\s|-)\S/g, c => c.toUpperCase())
 }

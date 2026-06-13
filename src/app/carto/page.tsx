@@ -2,6 +2,7 @@ import EuropeMap from '@/components/carte/europe-map'
 import { sql } from '@/lib/db'
 import { ExternalLink } from 'lucide-react'
 import { InfoSourcesButton } from '@/components/carte/info-sources-button'
+import Link from 'next/link'
 
 export const metadata = { title: 'Cartographie des équipes de recherche — FRA' }
 
@@ -49,9 +50,9 @@ export default async function CartePage({ searchParams }: { searchParams: Promis
       <EuropeMap labs={labs} initialLabId={initialLabId} />
 
       <header className="absolute top-0 left-0 right-0 h-[60px] flex items-center justify-between px-4 sm:px-8 pointer-events-none z-10">
-        <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center flex-shrink-0 pointer-events-auto">
+        <Link href="/gestion" className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center flex-shrink-0 pointer-events-auto hover:opacity-80 transition-opacity">
           <span className="text-white text-xs font-bold">FRA</span>
-        </div>
+        </Link>
         <a
           href="https://openalex.org"
           target="_blank"

@@ -16,7 +16,7 @@ import { CityPanel } from './city-panel'
 
 interface Props { labs: Lab[]; initialLabId?: string | null }
 
-type TopSort = 'publications' | 'impact' | 'specialisation' | 'composite'
+type TopSort = 'publications' | 'specialisation' | 'composite'
 type SortBy  = 'publications' | 'impact' | 'specialisation' | 'composite' | 'alpha' | 'fra'
 
 // ── State machine ──────────────────────────────────────────────────────────────
@@ -51,10 +51,11 @@ export default function EuropeMap({ labs, initialLabId }: Props) {
 
   // Panel state machine + animation helpers
   const [panelState,      setPanelState]      = useState<PanelState>({ tag: 'closed' })
+  const panelStateRef = useRef<PanelState>({ tag: 'closed' })
   const [topLabsExpanded, setTopLabsExpanded] = useState(false)
   const [momentum,        setMomentum]        = useState(false)
   const [sortBy,          setSortBy]          = useState<SortBy>('composite')
-  const [topSort,         setTopSort]         = useState<TopSort>('impact')
+  const [topSort,         setTopSort]         = useState<TopSort>('publications')
 
   // Score composite — partagé entre CityPanel et TopLabsPanel
   const maxImpact = Math.max(...labs.map(l => (l.citedByCount ?? 0) / (l.worksCount || 1)))
@@ -150,6 +151,7 @@ export default function EuropeMap({ labs, initialLabId }: Props) {
         })
         .on('click', () => {
           setTooltip(null)
+          history.pushState({ carto: 'city' }, '')
           setPanelState({ tag: 'city', labs: cluster.labs, slide: true })
         })
     })
@@ -191,6 +193,7 @@ export default function EuropeMap({ labs, initialLabId }: Props) {
     if (!ready || !initialLabIdRef.current) return
     const lab = labs.find(l => String(l.id) === String(initialLabIdRef.current))
     if (!lab) return
+    history.pushState({ carto: 'fiche', labId: lab.id }, '')
     setPublications([])
     setMomentum(true)
     setTimeout(() => setMomentum(false), 900)
@@ -221,6 +224,34 @@ export default function EuropeMap({ labs, initialLabId }: Props) {
     return () => clearTimeout(delay)
   }, [ready])
 
+  // Sync ref + browser back button
+  useEffect(() => { panelStateRef.current = panelState }, [panelState])
+
+  useEffect(() => {
+    const handle = () => {
+      const ps = panelStateRef.current
+      if (ps.tag === 'fiche') {
+        const { lab, origin, cityLabs } = ps
+        setPanelState({ tag: 'closing-fiche', lab, returnTo: origin, cityLabs })
+        setTimeout(() => {
+          setMomentum(true)
+          setTimeout(() => setMomentum(false), 900)
+          if (origin === 'toplabs') { setTopLabsExpanded(true); setPanelState({ tag: 'toplabs' }) }
+          else setPanelState({ tag: 'city', labs: cityLabs ?? [] })
+        }, 350)
+      } else if (ps.tag === 'city') {
+        setPanelState({ tag: 'closing-city', labs: ps.labs })
+        setTimeout(() => setPanelState({ tag: 'closed' }), 550)
+      } else if (ps.tag === 'toplabs') {
+        setTopLabsExpanded(false)
+        setPanelState({ tag: 'closing-toplabs' })
+        setTimeout(() => setPanelState({ tag: 'closed' }), 620)
+      }
+    }
+    window.addEventListener('popstate', handle)
+    return () => window.removeEventListener('popstate', handle)
+  }, [])
+
   const handleZoom = (factor: number) => {
     if (!svgRef.current || !zoomRef.current) return
     d3.select(svgRef.current).transition().duration(250).call(zoomRef.current.scaleBy, factor)
@@ -229,6 +260,7 @@ export default function EuropeMap({ labs, initialLabId }: Props) {
   // ── Transitions ───────────────────────────────────────────────────────────────
 
   const openTopLabs = () => {
+    history.pushState({ carto: 'toplabs' }, '')
     setPanelState({ tag: 'toplabs' })
     setTopLabsExpanded(false)
     setMomentum(true)
@@ -277,6 +309,7 @@ export default function EuropeMap({ labs, initialLabId }: Props) {
   }
 
   const openFiche = (lab: Lab) => {
+    history.pushState({ carto: 'fiche', labId: lab.id }, '')
     const origin: 'city' | 'toplabs' = panelState.tag === 'toplabs' ? 'toplabs' : 'city'
     const cityLabs = panelState.tag === 'city' ? panelState.labs : undefined
     setPanelState({ tag: 'fiche', lab, origin, cityLabs })
@@ -418,8 +451,8 @@ export default function EuropeMap({ labs, initialLabId }: Props) {
       {/* Boutons zoom */}
       {ready && (
         <div className="absolute right-4 top-1/2 -translate-y-1/2 flex flex-col gap-1 z-10">
-          <button onClick={() => handleZoom(1.4)} className="w-8 h-8 rounded-lg bg-white/80 border border-slate-200 text-slate-500 text-lg leading-none flex items-center justify-center hover:bg-white transition-colors shadow-sm">+</button>
-          <button onClick={() => handleZoom(1 / 1.4)} className="w-8 h-8 rounded-lg bg-white/80 border border-slate-200 text-slate-500 text-lg leading-none flex items-center justify-center hover:bg-white transition-colors shadow-sm">−</button>
+          <button onClick={() => handleZoom(1.4)} className="w-8 h-8 rounded-lg bg-white/80 border border-slate-200 text-slate-500 text-lg leading-none flex items-center justify-center hover:bg-white transition-colors shadow-sm cursor-pointer">+</button>
+          <button onClick={() => handleZoom(1 / 1.4)} className="w-8 h-8 rounded-lg bg-white/80 border border-slate-200 text-slate-500 text-lg leading-none flex items-center justify-center hover:bg-white transition-colors shadow-sm cursor-pointer">−</button>
         </div>
       )}
 
@@ -477,7 +510,7 @@ export default function EuropeMap({ labs, initialLabId }: Props) {
         <div className="fixed bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-4 bg-white/80 backdrop-blur-sm rounded-xl px-4 py-2 border border-slate-200 shadow-sm z-10">
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ background: LIGHT_COLOR }} />
-            <span className="text-slate-500 text-xs whitespace-nowrap">Cluster · taille ∝ publications</span>
+            <span className="text-slate-500 text-xs whitespace-nowrap">Cluster · taille = volume de publications Alzheimer</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ background: DOT_COLOR }} />

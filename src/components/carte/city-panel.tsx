@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { ArrowRight, BookOpen, TrendingUp, Target, Sparkles, Search } from 'lucide-react'
 import { type Lab } from '@/data/alzheimer-labs'
-import { DOT_COLOR, LIGHT_COLOR, dominantCity, titleCase, specializationRatio } from './map-utils'
+import { DOT_COLOR, LIGHT_COLOR, dominantCity, titleCase, specializationRatio, parseName } from './map-utils'
 
 type SortBy = 'publications' | 'impact' | 'specialisation' | 'composite' | 'alpha' | 'fra'
 
@@ -100,9 +100,11 @@ export function CityPanel({ labs, sortBy, onSortChange, compositeScore, onLabCli
           >
             <div className="w-2 h-2 rounded-full flex-shrink-0 mt-1.5" style={{ background: lab.type === 'fra' ? DOT_COLOR : LIGHT_COLOR }} />
             <div className="min-w-0 flex-1">
-              <p className="font-heading font-semibold leading-snug text-slate-700" style={{ fontSize: '1.1rem' }}>{lab.name}</p>
+              <p className="font-heading font-semibold leading-snug text-slate-700" style={{ fontSize: '1.1rem' }}>{parseName(lab.name).name}</p>
               <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                <p className="tracking-wide font-medium" style={{ fontSize: '0.8rem', color: DOT_COLOR }}>{lab.city.toUpperCase()}</p>
+                <p className="tracking-wide font-medium" style={{ fontSize: '0.8rem', color: DOT_COLOR }}>
+                  {lab.city.toUpperCase()}{parseName(lab.name).acronym ? ` · ${parseName(lab.name).acronym}` : ''}
+                </p>
                 {lab.type === 'fra' && (
                   <span className="text-xs font-medium px-1.5 py-0.5 rounded-full" style={{ background: 'rgba(130,49,168,0.1)', color: DOT_COLOR }}>Soutenu FRA</span>
                 )}
