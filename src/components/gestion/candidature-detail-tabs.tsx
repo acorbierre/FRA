@@ -33,11 +33,13 @@ export default function CandidatureDetailTabs({ candidature: c, chercheurNom, re
     convention: 'Convention',
   }
 
+  const visibleTabs: Tab[] = ['dossier', 'evaluation', ...(statut === 'Retenue' ? ['convention' as Tab] : [])]
+
   return (
     <div style={{ filter: 'drop-shadow(0 4px 14px rgba(0,0,0,0.09))' }}>
       {/* Tab bar */}
       <div className="flex items-end gap-1">
-        {(['dossier', 'evaluation', 'convention'] as Tab[]).map((tab) => {
+        {visibleTabs.map((tab) => {
           const isActive = activeTab === tab
           return (
             <button
@@ -98,6 +100,7 @@ export default function CandidatureDetailTabs({ candidature: c, chercheurNom, re
             reviewers={reviewers}
             evaluations={evaluations}
             nbSoumises={nbSoumises}
+            statut={statut}
           />
         )}
 

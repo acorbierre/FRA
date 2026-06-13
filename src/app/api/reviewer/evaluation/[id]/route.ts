@@ -4,6 +4,7 @@ import { sql } from '@/lib/db'
 import { submitEvaluation } from '@/services/neon'
 import { updateCandidature } from '@/services/neon'
 import { getUtilisateurByEmail } from '@/services/neon/utilisateurs'
+import { createNotification } from '@/services/neon/notifications'
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { userId } = await auth()
@@ -44,6 +45,13 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     if (total > 0 && total === soumises) {
       await updateCandidature(evaluation.candidatureId, { statut: 'En délibération CS' })
     }
+
+    await createNotification(
+      'evaluation_transmise',
+      `Évaluation transmise par ${utilisateur.nomComplet ?? utilisateur.prenom ?? 'un examinateur'}`,
+      evaluation.candidatureId,
+      user.imageUrl ?? undefined,
+    )
 
     return NextResponse.json({ ok: true })
   } catch (err) {

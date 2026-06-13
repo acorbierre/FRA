@@ -47,7 +47,7 @@ function mapRow(r: Record<string, unknown>): Candidature {
 }
 
 export async function getCandidaturesByUtilisateur(utilisateurId: string): Promise<Candidature[]> {
-  const rows = await sql`${SELECT_WITH_THEMATIQUE} WHERE c.chercheur_id = ${utilisateurId}`
+  const rows = await sql`${SELECT_WITH_THEMATIQUE} WHERE c.chercheur_id = ${utilisateurId} ORDER BY c.created_at ASC`
   return rows.map(mapRow)
 }
 

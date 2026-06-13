@@ -23,7 +23,7 @@ export default async function CandidaturePage() {
   ])
   if (candidatures.length === 0) redirect('/espace/candidature/nouvelle')
 
-  const c = candidatures[0]
+  const c = candidatures.find(c => c.statut !== 'Brouillon') ?? candidatures[0]
   const statut = c.statut ?? 'Brouillon'
 
   return (
