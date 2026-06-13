@@ -16,7 +16,7 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 })
 
 export const metadata: Metadata = {
-  title: "Espace candidat — Appels à projets",
+  title: "Espace FRA",
   description: "Portail de candidature aux appels à projets de recherche",
 }
 

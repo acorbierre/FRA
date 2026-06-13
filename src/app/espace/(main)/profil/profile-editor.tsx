@@ -198,7 +198,7 @@ export default function ProfileEditor({ utilisateur }: { utilisateur: Utilisateu
             {utilisateur.bio && (
               <div>
                 <dt className="text-muted-foreground">Présentation</dt>
-                <dd className="mt-0.5">{utilisateur.bio}</dd>
+                <dd className="mt-0.5 whitespace-pre-wrap">{utilisateur.bio}</dd>
               </div>
             )}
           </dl>

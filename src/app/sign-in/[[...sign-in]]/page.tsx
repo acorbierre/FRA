@@ -15,7 +15,7 @@ const localization = {
 
 const appearance = {
   variables: {
-    colorPrimary: '#8231a8',
+    colorPrimary: '#8131A6',
     colorText: '#0a0a0a',
     colorTextSecondary: '#71717a',
     colorBackground: '#ffffff',
@@ -29,6 +29,8 @@ const appearance = {
     formButtonPrimary: 'h-11 text-sm font-medium',
     footer: { display: 'none' },
     badge: { display: 'none' },
+    pageScrollBox: { background: 'transparent', backgroundImage: 'none' },
+    cardBox: { backgroundImage: 'none' },
   },
 }
 

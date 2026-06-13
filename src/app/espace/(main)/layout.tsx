@@ -1,8 +1,11 @@
+import type { Metadata } from 'next'
 import { auth, clerkClient } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 import { getUtilisateurByEmail, getCandidaturesByUtilisateur } from '@/services/neon'
 import Sidebar from '@/components/layout/sidebar'
 import AppTopbar from '@/components/layout/app-topbar'
+
+export const metadata: Metadata = { title: 'Espace candidat — FRA' }
 
 export default async function EspaceLayout({ children }: { children: React.ReactNode }) {
   const { userId } = await auth()
