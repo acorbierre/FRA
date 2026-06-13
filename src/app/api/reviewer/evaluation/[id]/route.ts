@@ -50,7 +50,11 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       'evaluation_transmise',
       `Évaluation transmise par ${utilisateur.nomComplet ?? utilisateur.prenom ?? 'un examinateur'}`,
       evaluation.candidatureId,
-      user.imageUrl ?? undefined,
+      (() => {
+        const neonPhoto = utilisateur.photo?.[0]?.url
+        if (neonPhoto?.startsWith('http')) return neonPhoto
+        return user.hasImage ? user.imageUrl : undefined
+      })(),
     )
 
     return NextResponse.json({ ok: true })

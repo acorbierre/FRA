@@ -8,6 +8,7 @@ import type { Candidature, Convention, Utilisateur } from '@/types'
 import type { Evaluation } from '@/services/neon/evaluations'
 import { FIELD_LABELS } from '@/lib/config'
 import { cn } from '@/lib/utils'
+import { FileText } from 'lucide-react'
 
 interface Props {
   candidature: Candidature
@@ -71,10 +72,15 @@ export default function CandidatureDetailTabs({ candidature: c, chercheurNom, re
         {activeTab === 'dossier' && (
           <>
             <div className="px-8 py-6">
-              <span className={`inline-block whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium mb-3 ${statutColors[statut] ?? 'bg-zinc-100 text-zinc-700'}`}>
-                {statutLabelsGestion[statut] ?? statut}
-              </span>
-              <p className="font-heading text-base font-medium leading-snug">{c.titre}</p>
+              <div className="size-12 rounded-full bg-muted flex items-center justify-center mb-5">
+                <FileText className="size-5 text-muted-foreground" />
+              </div>
+              <div className="flex items-center gap-2.5 mb-3">
+                <span className={`inline-block whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium ${statutColors[statut] ?? 'bg-zinc-100 text-zinc-700'}`}>
+                  {statutLabelsGestion[statut] ?? statut}
+                </span>
+              </div>
+              <p className="text-base font-medium leading-snug">{c.titre}</p>
               {chercheurNom && <p className="text-sm text-muted-foreground mt-0.5">{chercheurNom}</p>}
               <div className="mt-6">
                 <CandidatureTimeline statut={statut} dateSoumission={c.dateSoumission} />

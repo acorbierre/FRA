@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { X, Check, Loader2 } from 'lucide-react'
+import { X, Check, Loader2, Users, BarChart2 } from 'lucide-react'
 import AssignReviewers from '@/components/gestion/assign-reviewers'
 import type { Utilisateur } from '@/types'
 import type { Evaluation } from '@/services/neon/evaluations'
@@ -46,11 +46,14 @@ export default function EvaluationTab({ candidatureId, reviewers, evaluations, n
   }
 
   return (
-    <div className="px-8 py-6 grid grid-cols-2 divide-x divide-border items-start">
+    <div className="px-10 py-8 grid grid-cols-2 divide-x divide-border items-start">
 
       {/* Bloc 1 : Évaluations indépendantes */}
-      <div className="pr-8 space-y-4">
-        <div className="flex items-center justify-between">
+      <div className="pr-10 space-y-4">
+        <div className="size-12 rounded-full bg-muted flex items-center justify-center mb-5">
+          <Users className="size-5 text-muted-foreground" />
+        </div>
+        <div className="flex items-center justify-between mb-5">
           <h2 className="font-heading text-sm font-semibold">Évaluations indépendantes</h2>
           <span className="text-xs text-muted-foreground tabular-nums">{nbSoumises}/2 reçues</span>
         </div>
@@ -59,8 +62,11 @@ export default function EvaluationTab({ candidatureId, reviewers, evaluations, n
       </div>
 
       {/* Bloc 2 : Note finale */}
-      <div className="pl-8 space-y-4 flex flex-col">
-        <h2 className="font-heading text-sm font-semibold">Note finale</h2>
+      <div className="pl-10 space-y-4 flex flex-col">
+        <div className="size-12 rounded-full bg-muted flex items-center justify-center mb-5">
+          <BarChart2 className="size-5 text-muted-foreground" />
+        </div>
+        <h2 className="font-heading text-sm font-semibold mb-5">Note finale</h2>
 
         <div className="space-y-2 text-sm flex-1">
           <NoteRow
@@ -95,21 +101,21 @@ export default function EvaluationTab({ candidatureId, reviewers, evaluations, n
           </p>
         )}
 
-        <div className="flex gap-2 pt-1">
+        <div className="flex gap-2 pt-2">
           <button
             onClick={() => changerStatut('Refusée')}
             disabled={loading !== null || decided}
-            className="flex-1 flex items-center justify-center gap-1.5 rounded-lg bg-primary/10 px-3 py-2 text-sm font-medium text-primary hover:bg-primary/20 transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+            className="flex-1 inline-flex items-center justify-center gap-2 h-11 px-4 rounded-lg bg-primary/10 text-primary text-sm font-medium hover:bg-primary/20 transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
           >
-            {loading === 'refuser' ? <Loader2 className="size-3.5 animate-spin" /> : <X className="size-3.5" />}
+            {loading === 'refuser' ? <Loader2 className="size-4 animate-spin" /> : <X className="size-4" />}
             Refuser
           </button>
           <button
             onClick={() => changerStatut('Retenue')}
             disabled={loading !== null || decided}
-            className="flex-1 flex items-center justify-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+            className="flex-1 inline-flex items-center justify-center gap-2 h-11 px-4 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
           >
-            {loading === 'accepter' ? <Loader2 className="size-3.5 animate-spin" /> : <Check className="size-3.5" />}
+            {loading === 'accepter' ? <Loader2 className="size-4 animate-spin" /> : <Check className="size-4" />}
             Accepter
           </button>
         </div>

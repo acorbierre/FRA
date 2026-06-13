@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { Bell, X } from 'lucide-react'
+import { Bell, X, User } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { Notification } from '@/services/neon/notifications'
 
@@ -23,11 +23,11 @@ function timeAgo(dateStr: string): string {
   return `il y a ${d}j`
 }
 
-function Avatar({ url, fallback }: { url: string | null; fallback: string }) {
+function Avatar({ url }: { url: string | null; fallback?: string }) {
   if (url) return <img src={url} alt="" className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
   return (
-    <div className="w-8 h-8 rounded-full bg-primary/15 flex items-center justify-center flex-shrink-0">
-      <span className="text-xs font-semibold text-primary">{fallback}</span>
+    <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
+      <User className="size-4 text-muted-foreground" />
     </div>
   )
 }
@@ -104,7 +104,7 @@ export default function NotificationBell() {
         </button>
 
         {open && (
-          <div className="absolute right-0 top-full mt-2 w-80 bg-card border border-border rounded-xl shadow-lg z-50 overflow-hidden">
+          <div className="absolute right-0 top-full mt-2 w-96 bg-card border border-border rounded-xl shadow-lg z-50 overflow-hidden">
             <div className="px-4 py-3 border-b border-border flex items-center justify-between">
               <span className="text-sm font-semibold font-heading">Notifications</span>
               {notifications.length > 0 && (
@@ -135,9 +135,9 @@ export default function NotificationBell() {
 
       {/* Toast */}
       {toast && (
-        <div className="fixed top-[72px] right-6 z-50 w-80 bg-card border border-border rounded-2xl shadow-xl overflow-hidden animate-in slide-in-from-top-2 fade-in duration-300">
+        <div className="fixed top-[72px] right-6 z-50 w-96 bg-card border border-border rounded-2xl shadow-xl overflow-hidden animate-in slide-in-from-top-2 fade-in duration-300">
           <div className="flex items-start gap-3 px-4 py-3.5">
-            <Avatar url={toast.avatarUrl} fallback={toast.type === 'candidature_soumise' ? 'C' : 'E'} />
+            <Avatar url={toast.avatarUrl} />
             <div className="flex-1 min-w-0">
               <p className="text-xs font-semibold text-primary mb-0.5">{TYPE_LABELS[toast.type] ?? toast.type}</p>
               <p className="text-sm text-foreground leading-snug line-clamp-2">{toast.message}</p>

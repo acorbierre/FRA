@@ -1,6 +1,7 @@
 import { auth, clerkClient } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 import { getUtilisateurByEmail, getEvaluationsByReviewer, getCandidatureById } from '@/services/neon'
+import { getAppSettings } from '@/services/neon/settings'
 import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
@@ -15,7 +16,10 @@ export default async function ReviewerPage() {
   if (!utilisateur) redirect('/sign-in')
   const reviewerId = utilisateur.id
 
-  const evaluations = await getEvaluationsByReviewer(reviewerId)
+  const [evaluations, settings] = await Promise.all([
+    getEvaluationsByReviewer(reviewerId),
+    getAppSettings(),
+  ])
 
   const candidatures = await Promise.all(
     evaluations.map(e => getCandidatureById(e.candidatureId).catch(() => null))
@@ -49,11 +53,9 @@ export default async function ReviewerPage() {
                     <p className="text-xs text-muted-foreground mt-1">{c.thematique ?? '—'}</p>
                   </div>
                   <span className={`shrink-0 rounded-full px-3.5 py-1.5 text-sm font-medium ${
-                    soumise
-                      ? 'bg-green-100 text-green-700'
-                      : 'bg-amber-50 text-amber-700'
+                    settings.evaluation_colors[e.statut] ?? (soumise ? 'bg-green-100 text-green-700' : 'bg-amber-50 text-amber-700')
                   }`}>
-                    {soumise ? 'Évaluation transmise' : 'En attente'}
+                    {settings.evaluation_labels[e.statut] ?? (soumise ? 'Évaluation transmise' : 'En attente')}
                   </span>
                 </CardHeader>
                 <CardContent>

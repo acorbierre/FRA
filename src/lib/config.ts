@@ -50,6 +50,16 @@ export const EVALUATION_STATUT_LABELS: Record<EvaluationStatut, string> = {
   'Soumise':    'Note reçue',
 }
 
+export const EVALUATION_COLORS: Record<EvaluationStatut, string> = {
+  'En attente': 'bg-amber-50 text-amber-700',
+  'Soumise':    'bg-green-100 text-green-700',
+}
+
+export const EVALUATION_LABELS: Record<EvaluationStatut, string> = {
+  'En attente': 'En attente',
+  'Soumise':    'Évaluation transmise',
+}
+
 // ─── Jalons ──────────────────────────────────────────────────────────────────
 export const JALON_STATUTS = ['prevu', 'realise', 'en_retard'] as const
 export type JalonStatut = typeof JALON_STATUTS[number]

@@ -4,6 +4,8 @@ import {
   STATUT_COLORS,
   STATUT_LABELS,
   STATUT_LABELS_GESTION,
+  EVALUATION_COLORS,
+  EVALUATION_LABELS,
 } from '@/lib/config'
 
 export type AppSettings = {
@@ -12,6 +14,8 @@ export type AppSettings = {
   statut_labels_gestion: Record<string, string>
   projet_colors: Record<string, string>
   projet_labels: Record<string, string>
+  evaluation_colors: Record<string, string>
+  evaluation_labels: Record<string, string>
 }
 
 const DEFAULTS: AppSettings = {
@@ -28,6 +32,8 @@ const DEFAULTS: AppSettings = {
     'Terminé':  'Terminé',
     'Suspendu': 'Suspendu',
   },
+  evaluation_colors: { ...EVALUATION_COLORS },
+  evaluation_labels: { ...EVALUATION_LABELS },
 }
 
 export const getAppSettings = cache(async (): Promise<AppSettings> => {

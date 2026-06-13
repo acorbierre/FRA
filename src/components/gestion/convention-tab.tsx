@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { FileText, ArrowRight, Loader2, CheckCircle2, FileType } from 'lucide-react'
+import { FileText, ArrowRight, Loader2, CheckCircle2, FileType, Banknote, FileCheck, Wand2 } from 'lucide-react'
 import type { Convention } from '@/types'
 interface Props {
   candidatureId: string
@@ -29,6 +29,8 @@ export default function ConventionTab({ candidatureId, convention: initialConven
   const router = useRouter()
   const [convention, setConvention] = useState<Convention | null>(initialConvention)
   const [loading, setLoading]       = useState(false)
+  const [generating, setGenerating] = useState(false)
+  const [generated, setGenerated]   = useState(false)
   const [converting, setConverting] = useState(false)
   const [done, setDone]             = useState(false)
 
@@ -53,6 +55,24 @@ export default function ConventionTab({ candidatureId, convention: initialConven
     }
   }
 
+  async function handleGenerer() {
+    if (!convention) return
+    setGenerating(true)
+    try {
+      const res = await fetch(`/api/gestion/conventions/${convention.id}/convertir`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          versements: versements.map(v => ({ montant: parseFloat(v.montant) || 0, datePrevue: v.datePrevue })),
+          generateOnly: true,
+        }),
+      })
+      if (res.ok) setGenerated(true)
+    } finally {
+      setGenerating(false)
+    }
+  }
+
   async function handleConvertir() {
     if (!convention) return
     setConverting(true)
@@ -60,9 +80,7 @@ export default function ConventionTab({ candidatureId, convention: initialConven
       const res = await fetch(`/api/gestion/conventions/${convention.id}/convertir`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          versements: versements.map(v => ({ montant: parseFloat(v.montant) || 0, datePrevue: v.datePrevue })),
-        }),
+        body: JSON.stringify({ signOnly: true }),
       })
       if (res.ok) {
         setDone(true)
@@ -82,15 +100,15 @@ export default function ConventionTab({ candidatureId, convention: initialConven
         </div>
         <div>
           <p className="font-medium text-sm">Aucune convention créée</p>
-          <p className="text-xs text-muted-foreground mt-1">Accepter la candidature génère automatiquement une convention.</p>
+          <p className="text-xs text-muted-foreground mt-1">Saisir la convention pour cette candidature.</p>
         </div>
         <button
           onClick={handleAccepter}
           disabled={loading}
-          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 cursor-pointer"
+          className="inline-flex items-center gap-2 h-11 px-4 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 cursor-pointer"
         >
-          {loading ? <Loader2 className="size-4 animate-spin" /> : <CheckCircle2 className="size-4" />}
-          Accepter la candidature
+          {loading ? <Loader2 className="size-4 animate-spin" /> : <FileText className="size-4" />}
+          Saisir la convention
         </button>
       </div>
     )
@@ -109,8 +127,11 @@ export default function ConventionTab({ candidatureId, convention: initialConven
           <div className="flex divide-x divide-border">
 
               {/* Col 1 : échéancier */}
-              <div className="flex-1 pr-6 space-y-3">
-                <p className="font-heading font-semibold text-base">Échéancier de versements</p>
+              <div className="flex-1 pr-8 space-y-4">
+                <div className="size-12 rounded-full bg-muted flex items-center justify-center mb-5">
+                  <Banknote className="size-5 text-muted-foreground" />
+                </div>
+                <p className="font-heading font-semibold text-base mb-5">Échéancier de versements</p>
                 {versements.map((v, i) => (
                   <div key={i} className="grid grid-cols-[1fr_1fr_auto] gap-2 items-center">
                     <div>
@@ -120,7 +141,8 @@ export default function ConventionTab({ candidatureId, convention: initialConven
                         placeholder="ex : 15 000"
                         value={v.montant}
                         onChange={e => updateVersement(i, 'montant', e.target.value)}
-                        className={INPUT_CLASS}
+                        disabled={generated}
+                        className={INPUT_CLASS + (generated ? ' opacity-50 cursor-not-allowed' : '')}
                       />
                     </div>
                     <div>
@@ -129,7 +151,8 @@ export default function ConventionTab({ candidatureId, convention: initialConven
                         type="date"
                         value={v.datePrevue}
                         onChange={e => updateVersement(i, 'datePrevue', e.target.value)}
-                        className={INPUT_CLASS}
+                        disabled={generated}
+                        className={INPUT_CLASS + (generated ? ' opacity-50 cursor-not-allowed' : '')}
                       />
                     </div>
                     <div className={i === 0 ? 'mt-5' : ''}>
@@ -139,58 +162,89 @@ export default function ConventionTab({ candidatureId, convention: initialConven
                     </div>
                   </div>
                 ))}
+                <div className="pt-2">
+                  {generated ? (
+                    <div className="inline-flex items-center gap-2 h-11 px-4 rounded-lg bg-green-100 text-green-700 text-sm font-medium">
+                      <CheckCircle2 className="size-4" />
+                      Convention Docusign créée
+                    </div>
+                  ) : (
+                    <button
+                      onClick={handleGenerer}
+                      disabled={generating}
+                      className="inline-flex items-center gap-2 h-11 px-4 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 cursor-pointer"
+                    >
+                      {generating ? <Loader2 className="size-4 animate-spin" /> : <Wand2 className="size-4" />}
+                      {generating ? 'Génération…' : 'Générer la convention'}
+                    </button>
+                  )}
+                </div>
               </div>
 
-              {/* Col 2 : faux doc avec infos + bouton superposés */}
-              <div className="flex-1 pl-6">
-                <div className="relative">
-                  {/* Faux document PDF */}
-                  <div className="rounded-lg border border-border bg-white shadow-sm overflow-hidden select-none">
-                    <div className="bg-muted border-b border-border px-3 py-2 flex items-center gap-2">
-                      <FileType className="size-3.5 text-muted-foreground shrink-0" />
-                      <span className="text-[10px] font-semibold text-muted-foreground tracking-wide">convention.pdf</span>
-                    </div>
-                    <div className="px-3 py-3 space-y-1.5">
-                      <div className="h-1.5 rounded bg-muted w-4/5" />
-                      <div className="h-1.5 rounded bg-muted w-full" />
-                      <div className="h-1.5 rounded bg-muted w-3/4" />
-                      <div className="h-1.5 rounded bg-muted w-full" />
-                      <div className="h-px bg-border my-2" />
-                      <div className="h-1.5 rounded bg-muted w-full" />
-                      <div className="h-1.5 rounded bg-muted w-4/5" />
-                      <div className="h-1.5 rounded bg-muted w-2/3" />
-                      <div className="h-1.5 rounded bg-muted w-full" />
-                      <div className="h-px bg-border my-2" />
-                      <div className="h-1.5 rounded bg-muted w-full" />
-                      <div className="h-1.5 rounded bg-muted w-3/4" />
-                      <div className="h-1.5 rounded bg-muted w-full" />
-                      <div className="h-1.5 rounded bg-muted w-2/3" />
-                    </div>
+              {/* Col 2 : faux doc Docusign */}
+                <div className={`flex-1 pl-8 transition-opacity duration-300 ${generated ? 'opacity-100' : 'opacity-40 pointer-events-none'}`}>
+                  <div className="size-12 rounded-full bg-muted flex items-center justify-center mb-5">
+                    <FileCheck className="size-5 text-muted-foreground" />
                   </div>
-
-                  {/* Overlay : infos + bouton centrés */}
-                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-white/60 backdrop-blur-[2px] rounded-lg">
-                    <div className="text-center">
-                      <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${STATUT_STYLES[convention.statut ?? 'En cours']}`}>
-                        {convention.statut}
-                      </span>
-                      <p className="font-heading font-semibold text-base mt-2">{convention.numeroConvention}</p>
+                  <p className="font-heading font-semibold text-base mb-5">Convention Docusign</p>
+                  <div className="relative">
+                    {/* Faux document PDF */}
+                    <div className="rounded-lg border border-border bg-white shadow-sm overflow-hidden select-none">
+                      <div className="bg-muted border-b border-border px-3 py-2 flex items-center gap-2">
+                        <FileType className="size-3.5 text-muted-foreground shrink-0" />
+                        <span className="text-[10px] font-semibold text-muted-foreground tracking-wide">convention.pdf</span>
+                      </div>
+                      <div className="px-3 py-3 space-y-1.5">
+                        <div className="h-1.5 rounded bg-muted w-4/5" />
+                        <div className="h-1.5 rounded bg-muted w-full" />
+                        <div className="h-1.5 rounded bg-muted w-3/4" />
+                        <div className="h-1.5 rounded bg-muted w-full" />
+                        <div className="h-px bg-border my-2" />
+                        <div className="h-1.5 rounded bg-muted w-full" />
+                        <div className="h-1.5 rounded bg-muted w-4/5" />
+                        <div className="h-1.5 rounded bg-muted w-2/3" />
+                        <div className="h-1.5 rounded bg-muted w-full" />
+                        <div className="h-px bg-border my-2" />
+                        <div className="h-1.5 rounded bg-muted w-full" />
+                        <div className="h-1.5 rounded bg-muted w-3/4" />
+                        <div className="h-1.5 rounded bg-muted w-full" />
+                        <div className="h-1.5 rounded bg-muted w-2/3" />
+                        <div className="h-px bg-border my-2" />
+                        <div className="h-1.5 rounded bg-muted w-4/5" />
+                        <div className="h-1.5 rounded bg-muted w-full" />
+                        <div className="h-1.5 rounded bg-muted w-3/5" />
+                        <div className="h-1.5 rounded bg-muted w-full" />
+                        <div className="h-px bg-border my-2" />
+                        <div className="h-1.5 rounded bg-muted w-full" />
+                        <div className="h-1.5 rounded bg-muted w-2/3" />
+                        <div className="h-1.5 rounded bg-muted w-4/5" />
+                        <div className="h-1.5 rounded bg-muted w-full" />
+                      </div>
                     </div>
-                    <button
-                      onClick={handleConvertir}
-                      disabled={converting || done}
-                      className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 cursor-pointer shadow-md"
-                    >
-                      {done
-                        ? <><CheckCircle2 className="size-4" /> Projet créé !</>
-                        : converting
-                        ? <><Loader2 className="size-4 animate-spin" /> Création…</>
-                        : <>Convention signée <ArrowRight className="size-4" /></>
-                      }
-                    </button>
+
+                    {/* Overlay : infos + bouton centrés */}
+                    <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-white/60 backdrop-blur-[2px] rounded-lg">
+                      <div className="text-center">
+                        <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${STATUT_STYLES[convention.statut ?? 'En cours']}`}>
+                          {convention.statut}
+                        </span>
+                        <p className="font-heading font-semibold text-base mt-2">{convention.numeroConvention}</p>
+                      </div>
+                      <button
+                        onClick={handleConvertir}
+                        disabled={converting || done}
+                        className="inline-flex items-center gap-2 h-11 px-4 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 cursor-pointer shadow-md"
+                      >
+                        {done
+                          ? <><CheckCircle2 className="size-4" /> Projet créé !</>
+                          : converting
+                          ? <><Loader2 className="size-4 animate-spin" /> Création…</>
+                          : <>Convention signée <ArrowRight className="size-4" /></>
+                        }
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>{/* fin col 2 */}
 
             </div>
       )}

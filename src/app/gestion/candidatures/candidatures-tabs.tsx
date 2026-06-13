@@ -73,9 +73,8 @@ export default function CandidaturesTabs({ candidatures, chercheurMap, statutCol
                   </span>
                 </div>
 
-                {/* Ligne 2 : icône + titre/meta + actions */}
+                {/* Ligne 2 : titre/meta + actions */}
                 <div className="flex items-start gap-6">
-                  <div className="mt-0.5"><ThematiqueAvatar label={c.thematique} /></div>
                   <div className="flex-1 min-w-0 pointer-events-none">
                     <p className="font-medium text-[15px] leading-snug mb-1">{c.titre}</p>
                     {meta && <p className="text-xs text-muted-foreground">{meta}</p>}

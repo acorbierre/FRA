@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { CheckCircle2 } from 'lucide-react'
+import { CheckCircle2, Send, Loader2 } from 'lucide-react'
 import type { Evaluation } from '@/services/neon/evaluations'
 
 const CRITERES = [
@@ -124,8 +124,9 @@ export default function EvaluationForm({ evaluation }: Props) {
       <button
         onClick={handleSubmit}
         disabled={!allFilled || pending}
-        className="px-5 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 cursor-pointer"
+        className="inline-flex items-center gap-2 h-11 px-4 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 cursor-pointer"
       >
+        {pending ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
         {pending ? 'Transmission…' : 'Transmettre mon évaluation'}
       </button>
     </div>

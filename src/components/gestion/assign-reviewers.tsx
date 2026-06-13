@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { User, CheckCircle2 } from 'lucide-react'
+import { User, CheckCircle2, Send, Loader2 } from 'lucide-react'
 import type { Utilisateur } from '@/types'
 import type { Evaluation } from '@/services/neon/evaluations'
 
@@ -140,8 +140,9 @@ export default function AssignReviewers({ candidatureId, reviewers, evaluations 
             <button
               onClick={handleSubmit}
               disabled={pending || !changed || selectedIds.length === 0}
-              className="px-4 py-1.5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 cursor-pointer"
+              className="inline-flex items-center gap-2 h-11 px-4 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 cursor-pointer"
             >
+              {pending ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
               {pending ? 'Transmission…' : 'Transmettre aux examinateurs'}
             </button>
             {saved && !changed && (

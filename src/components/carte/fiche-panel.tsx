@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { ExternalLink, BookOpen, Tag, TrendingUp, Target, ArrowRight, Share2 } from 'lucide-react'
 import { type Lab } from '@/data/alzheimer-labs'
 import { PanelTopbar } from './panel-topbar'
-import { DOT_COLOR, LIGHT_COLOR, formatCount, specializationRatio } from './map-utils'
+import { DOT_COLOR, LIGHT_COLOR, formatCount, specializationRatio, parseName } from './map-utils'
 import { DiagnosticBlock } from './diagnostic-block'
 
 interface Publication {
@@ -66,8 +66,11 @@ export function FichePanel({ lab, publications, closingFiche, onBack, onClose, o
         >
           <div className="w-2.5 h-2.5 rounded-full flex-shrink-0 mt-2" style={{ background: lab.type === 'fra' ? DOT_COLOR : LIGHT_COLOR }} />
           <div>
-            <h1 className="text-3xl font-bold font-heading text-slate-900 leading-tight">{lab.name}</h1>
-            <p className="text-slate-500 text-sm mt-1">{lab.city} · {lab.country}</p>
+            <h1 className="text-3xl font-bold font-heading text-slate-900 leading-tight">{parseName(lab.name).name}</h1>
+            <p className="text-slate-500 text-sm mt-1">
+              {lab.city}{lab.country && lab.country !== 'France' ? ` · ${lab.country}` : ''}
+              {parseName(lab.name).acronym ? ` · ${parseName(lab.name).acronym}` : ''}
+            </p>
           </div>
         </div>
 

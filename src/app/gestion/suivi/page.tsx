@@ -142,8 +142,6 @@ export default async function SuiviPage() {
 
                   {/* Ligne 2 : icône + titre/meta + actions */}
                   <div className="flex items-start gap-6">
-                    <div className="mt-0.5"><ThematiqueAvatar label={p.thematique} /></div>
-
                     <div className="flex-1 min-w-0 pointer-events-none">
                       <div className="relative z-10 mb-1">
                         <TitreProjet

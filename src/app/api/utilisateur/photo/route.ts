@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth, clerkClient } from '@clerk/nextjs/server'
+import { put } from '@vercel/blob'
 import { getUtilisateurByEmail, updateUtilisateurPhoto } from '@/services/neon'
 
 export async function PATCH(request: NextRequest) {
@@ -14,15 +15,22 @@ export async function PATCH(request: NextRequest) {
     const utilisateur = await getUtilisateurByEmail(email)
     if (!utilisateur) return NextResponse.json({ error: 'Profil introuvable.' }, { status: 404 })
 
-    const { dataUrl } = await request.json()
-    if (!dataUrl || !dataUrl.startsWith('data:image/')) {
+    const formData = await request.formData()
+    const file = formData.get('file') as File | null
+    if (!file || !file.type.startsWith('image/')) {
       return NextResponse.json({ error: 'Image invalide.' }, { status: 400 })
     }
 
-    await updateUtilisateurPhoto(utilisateur.id, dataUrl)
-    return NextResponse.json({ ok: true })
+    const blob = await put(`avatars/${utilisateur.id}.jpg`, file, {
+      access: 'public',
+      contentType: file.type,
+      addRandomSuffix: true,
+    })
+
+    await updateUtilisateurPhoto(utilisateur.id, blob.url)
+    return NextResponse.json({ url: blob.url })
   } catch (err) {
     console.error('[photo PATCH]', err)
-    return NextResponse.json({ error: 'Erreur serveur.' }, { status: 500 })
+    return NextResponse.json({ error: String(err) }, { status: 500 })
   }
 }

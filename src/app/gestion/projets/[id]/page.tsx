@@ -1,9 +1,11 @@
 import { getProjetById, getConventions, getRapports, getVersements, getCandidatureById } from '@/services/neon'
 import { getAppSettings } from '@/services/neon/settings'
+import { getUtilisateurById } from '@/services/neon/utilisateurs'
+import { getLaboratoireById } from '@/services/neon/laboratoires'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import ProjetTimeline from '@/components/gestion/projet-timeline'
 import Link from 'next/link'
-import { ArrowLeft, FileText, Banknote, NotebookPen, AlertTriangle, Euro, CalendarDays } from 'lucide-react'
+import { ArrowLeft, FileText, Banknote, NotebookPen, AlertTriangle, Euro, CalendarDays, User, FlaskConical } from 'lucide-react'
 import DateBadge from '@/components/ui/date-badge'
 
 const RAPPORT_STATUT_COLORS: Record<string, string> = {
@@ -39,9 +41,15 @@ export default async function ProjetFichePage({ params }: { params: Promise<{ id
     versementsParConvention[conv.id] = allVersements.filter(v => v.conventionId?.includes(conv.id))
   }
 
-  // Candidature liée
+  // Candidature liée + chercheur + labo
   const candidatureId = projet.candidatureId?.[0]
   const candidature = candidatureId ? await getCandidatureById(candidatureId).catch(() => null) : null
+  const chercheur = candidature?.utilisateurId
+    ? await getUtilisateurById(candidature.utilisateurId).catch(() => null)
+    : null
+  const labo = chercheur?.laboratoireId?.[0]
+    ? await getLaboratoireById(chercheur.laboratoireId[0]).catch(() => null)
+    : null
 
   const today = new Date()
 
@@ -71,8 +79,8 @@ export default async function ProjetFichePage({ params }: { params: Promise<{ id
         )}
       </div>
 
-      {/* Mini-cartes budget + durée */}
-      <div className="grid grid-cols-2 gap-4">
+      {/* Mini-cartes budget + durée + labo */}
+      <div className="grid grid-cols-3 gap-4">
         <Card>
           <CardContent className="pt-4 space-y-1">
             <Euro className="size-4 text-muted-foreground" />
@@ -80,15 +88,43 @@ export default async function ProjetFichePage({ params }: { params: Promise<{ id
             <p className="text-xs text-muted-foreground">Budget alloué</p>
           </CardContent>
         </Card>
-        {dureeProjet && (
-          <Card>
-            <CardContent className="pt-4 space-y-1">
-              <CalendarDays className="size-4 text-muted-foreground" />
-              <p className="text-xl font-semibold">{dureeProjet}</p>
-              <p className="text-xs text-muted-foreground">Durée du projet</p>
-            </CardContent>
-          </Card>
-        )}
+        <Card>
+          <CardContent className="pt-4 space-y-1">
+            <CalendarDays className="size-4 text-muted-foreground" />
+            <p className="text-xl font-semibold">{dureeProjet ?? '—'}</p>
+            <p className="text-xs text-muted-foreground">Durée du projet</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-4">
+            {chercheur ? (
+              <div className="flex items-start gap-3">
+                {chercheur.photo?.[0]?.url ? (
+                  <img src={chercheur.photo[0].url} alt="" className="w-10 h-10 rounded-full object-cover shrink-0" />
+                ) : (
+                  <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center shrink-0">
+                    <User className="size-4 text-muted-foreground" />
+                  </div>
+                )}
+                <div className="min-w-0">
+                  <p className="text-sm font-medium truncate">{chercheur.nomComplet}</p>
+                  <p className="text-xs text-muted-foreground truncate">{chercheur.email}</p>
+                  {(labo?.nom ?? chercheur.laboratoireDeclaratif) && (
+                    <p className="text-xs text-muted-foreground truncate mt-0.5 flex items-center gap-1">
+                      <FlaskConical className="size-3 shrink-0" />
+                      {labo?.nom ?? chercheur.laboratoireDeclaratif}
+                    </p>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <User className="size-4" />
+                <p className="text-xs">Candidat non renseigné</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
 
       {/* Timeline */}

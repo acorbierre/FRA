@@ -5,7 +5,7 @@ import { CheckCircle2, AlertCircle, Loader2, Palette } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { saveAppearanceSettings } from './actions'
 import type { AppSettings } from '@/services/neon/settings'
-import { CANDIDATURE_STATUTS, PROJET_STATUTS } from '@/lib/config'
+import { CANDIDATURE_STATUTS, PROJET_STATUTS, EVALUATION_STATUTS } from '@/lib/config'
 
 const COLOR_PALETTE = [
   { label: 'Bleu pâle',   value: 'bg-blue-50 text-blue-700',     swatch: 'bg-blue-100' },
@@ -86,6 +86,8 @@ export default function AppearancePanel({ settings, section }: Props) {
   const [labelsGestion, setLabelsGestion] = useState({ ...settings.statut_labels_gestion })
   const [projetColors, setProjetColors] = useState({ ...settings.projet_colors })
   const [projetLabels, setProjetLabels] = useState({ ...settings.projet_labels })
+  const [evalColors, setEvalColors] = useState({ ...settings.evaluation_colors })
+  const [evalLabels, setEvalLabels] = useState({ ...settings.evaluation_labels })
   const [toast, setToast] = useState<{ type: 'success' | 'error'; msg: string } | null>(null)
   const [isPending, startTransition] = useTransition()
 
@@ -100,6 +102,8 @@ export default function AppearancePanel({ settings, section }: Props) {
         await saveAppearanceSettings('statut_colors', colors)
         await saveAppearanceSettings('statut_labels', labels)
         await saveAppearanceSettings('statut_labels_gestion', labelsGestion)
+        await saveAppearanceSettings('evaluation_colors', evalColors)
+        await saveAppearanceSettings('evaluation_labels', evalLabels)
         showToast('success', 'Statuts candidatures mis à jour')
       } catch {
         showToast('error', 'Erreur lors de la sauvegarde')
@@ -172,6 +176,42 @@ export default function AppearancePanel({ settings, section }: Props) {
                       <ColorPicker
                         currentValue={colors[statut] ?? 'bg-zinc-100 text-zinc-600'}
                         onChange={v => setColors(cs => ({ ...cs, [statut]: v }))}
+                      />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </CardContent>
+        </Card>
+
+        {/* Évaluations */}
+        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mt-6 mb-2">Statuts évaluations (espace examinateur)</p>
+        <Card className="shadow-none border border-border">
+          <CardContent className="p-0">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border">
+                  <th className="px-4 py-3 text-left font-medium text-muted-foreground w-36">Statut interne</th>
+                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">Libellé affiché</th>
+                  <th className="px-4 py-3 text-left font-medium text-muted-foreground w-36">Couleur</th>
+                </tr>
+              </thead>
+              <tbody>
+                {EVALUATION_STATUTS.map(statut => (
+                  <tr key={statut} className="border-b border-border last:border-0">
+                    <td className="px-4 py-3 text-muted-foreground font-mono text-xs">{statut}</td>
+                    <td className="px-4 py-3">
+                      <input
+                        value={evalLabels[statut] ?? statut}
+                        onChange={e => setEvalLabels(l => ({ ...l, [statut]: e.target.value }))}
+                        className="w-full border border-border rounded-md px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                      />
+                    </td>
+                    <td className="px-4 py-3">
+                      <ColorPicker
+                        currentValue={evalColors[statut] ?? 'bg-zinc-100 text-zinc-600'}
+                        onChange={v => setEvalColors(cs => ({ ...cs, [statut]: v }))}
                       />
                     </td>
                   </tr>

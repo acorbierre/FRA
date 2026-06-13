@@ -19,7 +19,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
         'candidature_soumise',
         `Nouvelle candidature reçue${updated.titre ? ` — ${updated.titre}` : ''}`,
         id,
-        clerkUser.imageUrl ?? undefined,
+        clerkUser.hasImage ? clerkUser.imageUrl : undefined,
       )
     }
     return NextResponse.json(updated)

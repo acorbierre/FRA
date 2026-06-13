@@ -27,27 +27,6 @@ const schema = z.object({
 
 type FormValues = z.infer<typeof schema>
 
-function resizeToBase64(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onload = e => {
-      const img = new window.Image()
-      img.src = e.target!.result as string
-      img.onload = () => {
-        const MAX = 300
-        const scale = Math.min(MAX / img.width, MAX / img.height, 1)
-        const canvas = document.createElement('canvas')
-        canvas.width = Math.round(img.width * scale)
-        canvas.height = Math.round(img.height * scale)
-        canvas.getContext('2d')!.drawImage(img, 0, 0, canvas.width, canvas.height)
-        resolve(canvas.toDataURL('image/jpeg', 0.85))
-      }
-      img.onerror = reject
-    }
-    reader.onerror = reject
-    reader.readAsDataURL(file)
-  })
-}
 
 export default function ProfileEditor({ utilisateur }: { utilisateur: Utilisateur }) {
   const router = useRouter()
@@ -62,15 +41,12 @@ export default function ProfileEditor({ utilisateur }: { utilisateur: Utilisateu
     if (!file) return
     setUploadingPhoto(true)
     try {
-      const dataUrl = await resizeToBase64(file)
-      const res = await fetch('/api/utilisateur/photo', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ dataUrl }),
-      })
+      const form = new FormData()
+      form.append('file', file)
+      const res = await fetch('/api/utilisateur/photo', { method: 'PATCH', body: form })
       if (res.ok) {
-        setPhotoUrl(dataUrl)
-        router.refresh()
+        const { url } = await res.json()
+        setPhotoUrl(url)
       }
     } finally {
       setUploadingPhoto(false)

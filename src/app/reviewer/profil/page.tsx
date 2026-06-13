@@ -14,7 +14,7 @@ export default async function ReviewerProfilPage() {
   if (!utilisateur) redirect('/sign-in')
 
   return (
-    <div className="max-w-2xl space-y-6">
+    <div className="max-w-3xl space-y-6">
       <div>
         <h1 className="page-title">Mon profil</h1>
         <p className="page-subtitle">Vos informations personnelles et professionnelles.</p>
