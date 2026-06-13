@@ -42,7 +42,7 @@ export default async function CandidaturePage() {
 
       <Card>
         <CardHeader className="flex flex-row items-start justify-between gap-4 pb-3">
-          <CardTitle className="text-base leading-snug">{c.titre}</CardTitle>
+          <CardTitle className="text-base leading-snug">{c.titre || 'Candidature sans titre'}</CardTitle>
           <span className={`shrink-0 rounded-full px-3.5 py-1 text-sm font-medium ${settings.statut_colors[statut] ?? 'bg-zinc-100 text-zinc-700'}`}>
             {settings.statut_labels[statut] ?? statut}
           </span>

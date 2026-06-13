@@ -177,7 +177,7 @@ export default function UsersPanel({ users, currentUserEmail, registeredEmails }
       )}
 
       {/* Table */}
-      <Card>
+      <Card className="shadow-none border border-border">
         <CardContent className="p-0">
           {filtered.length === 0 ? (
             <p className="text-sm text-muted-foreground p-6">Aucun utilisateur dans cette catégorie.</p>

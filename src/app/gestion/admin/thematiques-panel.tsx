@@ -97,7 +97,7 @@ export default function ThematiquesPanel({ thematiques: initial }: Props) {
         </button>
       </div>
 
-      <Card>
+      <Card className="shadow-none border border-border">
         <CardContent className="p-0">
           {items.length === 0 ? (
             <p className="px-4 py-6 text-sm text-muted-foreground text-center">Aucune thématique définie.</p>

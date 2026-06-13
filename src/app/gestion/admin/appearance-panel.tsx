@@ -135,7 +135,7 @@ export default function AppearancePanel({ settings, section }: Props) {
             Enregistrer
           </button>
         </div>
-        <Card>
+        <Card className="shadow-none border border-border">
           <CardContent className="p-0">
             <table className="w-full text-sm">
               <thead>
@@ -195,7 +195,7 @@ export default function AppearancePanel({ settings, section }: Props) {
             Enregistrer
           </button>
         </div>
-        <Card>
+        <Card className="shadow-none border border-border">
           <CardContent className="p-0">
             <table className="w-full text-sm">
               <thead>

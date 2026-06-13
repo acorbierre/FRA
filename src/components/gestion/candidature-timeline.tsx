@@ -41,7 +41,7 @@ export default function CandidatureTimeline({ statut, dateSoumission }: Props) {
   return (
     <div className="relative mt-1">
       {/* Track + progression */}
-      <div className="absolute top-[3px] left-0 right-0 h-1 rounded-full bg-muted overflow-hidden">
+      <div className="absolute top-[2px] left-0 right-0 h-0.5 rounded-full bg-muted overflow-hidden">
         <div className="absolute inset-y-0 left-0 rounded-full bg-primary/50" style={{ width: `${progressPct}%` }} />
       </div>
 
@@ -53,7 +53,7 @@ export default function CandidatureTimeline({ statut, dateSoumission }: Props) {
           const isLast = i === STAGES.length - 1
           const isVerdict = i === 4
 
-          let dotClass = 'size-2.5 rounded-full border-2 shrink-0 '
+          let dotClass = 'size-2 rounded-full border-2 shrink-0 '
           if (isVerdict && statut === 'Retenue')       dotClass += 'bg-green-600 border-green-600'
           else if (isVerdict && statut === 'Refusée')  dotClass += 'bg-orange-400 border-orange-400'
           else if (state === 'done')                   dotClass += 'bg-primary border-primary'

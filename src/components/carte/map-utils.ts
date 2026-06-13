@@ -30,7 +30,7 @@ export const HIGHLIGHT_MAP = buildHighlightMap(STREAM_LINES)
 
 export function rOuter(alzTotal: number) {
   if (!alzTotal || alzTotal === 0) return 5
-  return 3 + Math.pow(alzTotal, 0.35) * 0.6
+  return 4 + Math.pow(alzTotal, 0.38) * 1.0
 }
 
 export function rInner(alzTotal: number) { return rOuter(alzTotal) * 0.38 }
@@ -53,7 +53,9 @@ export function formatCount(n: number) {
 
 export function specializationRatio(lab: Lab): number | null {
   if (!lab.worksCount || !lab.alzPubCount) return null
-  return lab.alzPubCount / lab.worksCount
+  const ratio = lab.alzPubCount / lab.worksCount
+  if (ratio > 1) return null  // works_count incohérent avec alz_pub_count
+  return ratio
 }
 
 export function computeClusters(labs: Lab[], projection: d3.GeoProjection, threshold = 15): Cluster[] {

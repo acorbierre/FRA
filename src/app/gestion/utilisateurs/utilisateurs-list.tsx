@@ -54,7 +54,7 @@ export default function UtilisateursListe({ utilisateurs }: { utilisateurs: Util
       <div className="relative max-w-sm">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
         <Input
-          placeholder="Rechercher un utilisateur…"
+          placeholder="Rechercher un chercheur…"
           value={query}
           onChange={e => setQuery(e.target.value)}
           className="pl-9"
@@ -66,7 +66,7 @@ export default function UtilisateursListe({ utilisateurs }: { utilisateurs: Util
       )}
 
       {/* Liste alphabétique */}
-      <div className="rounded-xl bg-background overflow-hidden shadow-[0_0_14px_rgba(0,0,0,0.07)]">
+      <div className="rounded-xl bg-background overflow-hidden border border-border/60">
         {letters.map((letter, li) => (
           <div key={letter}>
             {/* Intertitre lettre */}

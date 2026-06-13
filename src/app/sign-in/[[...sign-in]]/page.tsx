@@ -27,6 +27,8 @@ const appearance = {
   elements: {
     card: 'shadow-sm border border-zinc-200',
     formButtonPrimary: 'h-11 text-sm font-medium',
+    footer: { display: 'none' },
+    badge: { display: 'none' },
   },
 }
 

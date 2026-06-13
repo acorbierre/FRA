@@ -17,7 +17,7 @@ export default function AppTopbar({ title, showBell }: Props) {
             <Bell className="size-4" />
           </button>
         )}
-        <a href="/carte" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors" title="Cartographie">
+        <a href="/carto" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors" title="Cartographie">
           <Globe className="size-4" />
         </a>
       </div>

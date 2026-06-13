@@ -96,7 +96,7 @@ export default function EvaluationTab({ candidatureId, reviewers, evaluations, n
         <div className="flex gap-2 pt-1">
           <button
             onClick={() => changerStatut('Refusée')}
-            disabled={!pret || loading !== null}
+            disabled={loading !== null}
             className="flex-1 flex items-center justify-center gap-1.5 rounded-lg bg-primary/10 px-3 py-2 text-sm font-medium text-primary hover:bg-primary/20 transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
           >
             {loading === 'refuser' ? <Loader2 className="size-3.5 animate-spin" /> : <X className="size-3.5" />}
@@ -104,7 +104,7 @@ export default function EvaluationTab({ candidatureId, reviewers, evaluations, n
           </button>
           <button
             onClick={() => changerStatut('Retenue')}
-            disabled={!pret || loading !== null}
+            disabled={loading !== null}
             className="flex-1 flex items-center justify-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
           >
             {loading === 'accepter' ? <Loader2 className="size-3.5 animate-spin" /> : <Check className="size-3.5" />}

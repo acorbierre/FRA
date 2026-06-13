@@ -10,7 +10,6 @@ import { Card, CardContent } from '@/components/ui/card'
 import { APPEL_ANNEE } from '@/lib/config'
 import { FileText, AlertTriangle, Folder, Euro } from 'lucide-react'
 import WeekCalendar, { type CalendarEvent } from '@/components/gestion/week-calendar'
-import HomeChatInput from './home-chat-input'
 
 function getWeekRange() {
   const now = new Date()
@@ -100,21 +99,16 @@ export default async function GestionPage() {
   return (
     <div className="max-w-5xl space-y-8">
 
-      <div className="flex items-center justify-between gap-6">
-        <div>
-          <h1 className="font-heading text-2xl font-semibold tracking-tight">Bonjour, {prenom}</h1>
-          <p className="text-muted-foreground mt-1">Portail de gestion — Appel à projets {APPEL_ANNEE}</p>
-        </div>
-        <div className="w-[480px] shrink-0">
-          <HomeChatInput />
-        </div>
+      <div>
+        <h1 className="font-heading text-2xl font-semibold tracking-tight">Bonjour, {prenom}</h1>
+        <p className="text-muted-foreground mt-1">Portail de gestion — Appel à projets {APPEL_ANNEE}</p>
       </div>
 
       {/* KPIs */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         {kpis.map(({ label, value, sub, icon: Icon, color, hasNotif, href }) => {
           const card = (
-            <Card key={label} className={href ? 'hover:shadow-[0_0_24px_rgba(0,0,0,0.13)] transition-shadow' : ''}>
+            <Card key={label} className="shadow-none border border-border">
               <CardContent className="pt-2 space-y-3">
                 <div className={`size-9 rounded-lg flex items-center justify-center ${color}`}>
                   <Icon className={`size-4 ${hasNotif ? 'animate-bounce [animation-duration:0.6s]' : ''}`} />

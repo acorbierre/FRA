@@ -1,6 +1,7 @@
 import EuropeMap from '@/components/carte/europe-map'
 import { sql } from '@/lib/db'
-import { Settings, ExternalLink } from 'lucide-react'
+import { ExternalLink } from 'lucide-react'
+import { InfoSourcesButton } from '@/components/carte/info-sources-button'
 
 export const metadata = { title: 'Cartographie des équipes de recherche — FRA' }
 
@@ -9,11 +10,11 @@ export default async function CartePage({ searchParams }: { searchParams: Promis
   const initialLabId = sp.lab ?? null
   const rows = await sql`
     SELECT id, nom, ville, pays, lat, lon, type, fra_funded, labo_neon_id, url,
-           alz_pub_count, cited_by_count, works_count, topics
+           alz_pub_count, cited_by_count, works_count, topics, top_collabs
     FROM carte_laboratoires
     WHERE lat IS NOT NULL AND lon IS NOT NULL
     AND pays = 'FR'
-    AND (fra_funded = TRUE OR source = 'openalex')
+    AND (fra_funded = TRUE OR source IN ('openalex', 'hal'))
     ORDER BY fra_funded DESC, alz_pub_count DESC NULLS LAST
   `
 
@@ -31,7 +32,17 @@ export default async function CartePage({ searchParams }: { searchParams: Promis
     citedByCount: r.cited_by_count ?? 0,
     worksCount: r.works_count ?? 0,
     topics: r.topics ?? [],
+    topCollabs: r.top_collabs ?? [],
   }))
+
+  // Enrichir topCollabs avec labId si le co-labo est dans la carto
+  const labIdSet = new Set(labs.map(l => l.id))
+  for (const lab of labs) {
+    lab.topCollabs = (lab.topCollabs ?? []).map((c: { id: string; nom: string; count: number }) => ({
+      ...c,
+      labId: labIdSet.has(`hal_${c.id}`) ? `hal_${c.id}` : undefined,
+    }))
+  }
 
   return (
     <div className="flex-1 relative">
@@ -47,12 +58,10 @@ export default async function CartePage({ searchParams }: { searchParams: Promis
           rel="noopener noreferrer"
           className="pointer-events-auto flex items-center gap-1.5 text-slate-500 text-sm font-medium whitespace-nowrap hover:text-slate-700 hover:underline transition-colors"
         >
-          {labs.length} institutions · Source OpenAlex
+          {labs.length} équipes de recherche · Sources HAL · OpenAlex
           <ExternalLink size={12} />
         </a>
-        <a href="/gestion" className="pointer-events-auto text-slate-500 hover:text-slate-600 transition-colors" title="Espace de gestion">
-          <Settings size={18} />
-        </a>
+        <InfoSourcesButton />
       </header>
     </div>
   )

@@ -16,11 +16,12 @@ export interface Lab {
   type: LabType
   url?: string | null
   neonId?: string | null
-  // Données OpenAlex
+  // Données OpenAlex / HAL
   alzPubCount?: number
   citedByCount?: number
   worksCount?: number
   topics?: LabTopic[]
+  topCollabs?: { id: string; nom: string; count: number; labId?: string }[]
 }
 
 export const LAB_CONFIG: Record<LabType, { color: string; glowColor: string; label: string }> = {

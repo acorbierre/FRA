@@ -27,7 +27,7 @@ const TYPE_STYLES: Record<EvenementType, string> = {
 
 export default function WeekCalendar({ weekDays, todayStr, events, moreHref }: Props) {
   return (
-    <Card>
+    <Card className="shadow-none border border-border">
       <CardHeader>
         <CardTitle className="text-base flex items-center gap-2">
           <CalendarDays className="size-4 text-muted-foreground" />

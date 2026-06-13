@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { ExternalLink, BookOpen, Quote, Tag, TrendingUp, Target, ArrowRight } from 'lucide-react'
+import { ExternalLink, BookOpen, Tag, TrendingUp, Target, ArrowRight, Share2 } from 'lucide-react'
 import { type Lab } from '@/data/alzheimer-labs'
 import { PanelTopbar } from './panel-topbar'
 import { DOT_COLOR, LIGHT_COLOR, formatCount, specializationRatio } from './map-utils'
@@ -21,6 +21,7 @@ interface Props {
   closingFiche: boolean
   onBack: () => void
   onClose: () => void
+  onOpenLab?: (labId: string) => void
 }
 
 type Tab = 'overview' | 'projets-fra' | 'publications' | 'domaines'
@@ -40,7 +41,7 @@ interface ProjetFRA {
   dateFinPrevue?: string
 }
 
-export function FichePanel({ lab, publications, closingFiche, onBack, onClose }: Props) {
+export function FichePanel({ lab, publications, closingFiche, onBack, onClose, onOpenLab }: Props) {
   const [tab, setTab] = useState<Tab>('overview')
   const [projetFRA, setProjetFRA] = useState<ProjetFRA | null | undefined>(undefined)
 
@@ -65,7 +66,7 @@ export function FichePanel({ lab, publications, closingFiche, onBack, onClose }:
         >
           <div className="w-2.5 h-2.5 rounded-full flex-shrink-0 mt-2" style={{ background: lab.type === 'fra' ? DOT_COLOR : LIGHT_COLOR }} />
           <div>
-            <h1 className="text-2xl font-bold font-heading text-slate-900 leading-tight">{lab.name}</h1>
+            <h1 className="text-3xl font-bold font-heading text-slate-900 leading-tight">{lab.name}</h1>
             <p className="text-slate-500 text-sm mt-1">{lab.city} · {lab.country}</p>
           </div>
         </div>
@@ -115,45 +116,36 @@ export function FichePanel({ lab, publications, closingFiche, onBack, onClose }:
       >
         <div style={{ display: tab === 'overview' ? 'block' : 'none' }}>
           <>
-            {/* KPI cards */}
-            <div className="grid grid-cols-2 gap-4 mb-6">
+            {/* KPI cards — 4 colonnes */}
+            <div className="grid grid-cols-4 gap-3 mb-6 items-stretch">
               <div className="rounded-xl border border-slate-200 p-4 bg-slate-100/70">
-                <div className="flex items-center gap-2 text-slate-500 text-xs font-semibold uppercase tracking-wide mb-1">
-                  <BookOpen size={12} /> Publications Alzheimer
+                <div className="flex items-center gap-1.5 text-slate-500 text-xs font-semibold uppercase tracking-wide mb-2">
+                  <BookOpen size={11} /> Pub. Alzheimer
                 </div>
                 <p className="text-3xl font-bold font-heading" style={{ color: DOT_COLOR }}>
                   {lab.alzPubCount ? lab.alzPubCount.toLocaleString('fr-FR') : '—'}
                 </p>
               </div>
+
               <div className="rounded-xl border border-slate-200 p-4 bg-slate-100/70">
-                <div className="flex items-center gap-2 text-slate-500 text-xs font-semibold uppercase tracking-wide mb-1">
-                  <Quote size={12} /> Citations (toutes thématiques)
-                </div>
-                <p className="text-3xl font-bold font-heading text-slate-700">
-                  {lab.citedByCount ? formatCount(lab.citedByCount) : '—'}
-                </p>
-              </div>
-              <div className="rounded-xl border border-slate-200 p-4 bg-slate-100/70">
-                <div className="flex items-center gap-2 text-slate-500 text-xs font-semibold uppercase tracking-wide mb-1">
-                  <TrendingUp size={12} /> Score d'impact
+                <div className="flex items-center gap-1.5 text-slate-500 text-xs font-semibold uppercase tracking-wide mb-2">
+                  <TrendingUp size={11} /> Impact
                 </div>
                 {lab.citedByCount && lab.worksCount ? (
                   <>
                     <p className="text-3xl font-bold font-heading text-slate-700">
                       {Math.round(lab.citedByCount / lab.worksCount).toLocaleString('fr-FR')}
                     </p>
-                    <p className="text-[#62748e] text-xs mt-0.5">citations moy. / publication</p>
+                    <p className="text-[#62748e] text-xs mt-0.5">cit. moy. / pub.</p>
                   </>
                 ) : (
-                  <>
-                    <p className="text-3xl font-bold font-heading text-slate-700">—</p>
-                    <p className="text-[#62748e] text-xs mt-0.5">disponible après import</p>
-                  </>
+                  <p className="text-3xl font-bold font-heading text-slate-700">—</p>
                 )}
               </div>
+
               <div className="rounded-xl border border-slate-200 p-4 bg-slate-100/70">
-                <div className="flex items-center gap-2 text-slate-500 text-xs font-semibold uppercase tracking-wide mb-1">
-                  <Target size={12} /> Spécialisation Alzheimer
+                <div className="flex items-center gap-1.5 text-slate-500 text-xs font-semibold uppercase tracking-wide mb-2">
+                  <Target size={11} /> Spécialisation
                 </div>
                 {specializationRatio(lab) !== null ? (
                   <>
@@ -162,6 +154,37 @@ export function FichePanel({ lab, publications, closingFiche, onBack, onClose }:
                     </p>
                     <p className="text-[#62748e] text-xs mt-0.5">des publications</p>
                   </>
+                ) : (
+                  <p className="text-3xl font-bold font-heading text-slate-700">—</p>
+                )}
+              </div>
+
+              <div className="rounded-xl border border-slate-200 p-4 bg-slate-100/70">
+                <div className="flex items-center gap-1.5 text-slate-500 text-xs font-semibold uppercase tracking-wide mb-2">
+                  <Share2 size={11} /> Réseau
+                </div>
+                {lab.topCollabs && lab.topCollabs.length > 0 ? (
+                  <div className="flex flex-col gap-1.5 mt-1">
+                    {lab.topCollabs.slice(0, 5).map((c, i) => (
+                      <div key={i} className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <div className="w-1 h-1 rounded-full flex-shrink-0" style={{ background: DOT_COLOR, opacity: 1 - i * 0.15 }} />
+                          {c.labId && onOpenLab ? (
+                            <button
+                              onClick={() => onOpenLab(c.labId!)}
+                              className="text-xs truncate hover:underline cursor-pointer text-left"
+                              style={{ color: DOT_COLOR }}
+                            >
+                              {c.nom}
+                            </button>
+                          ) : (
+                            <span className="text-slate-700 text-xs truncate">{c.nom}</span>
+                          )}
+                        </div>
+                        <span className="text-[#62748e] text-xs flex-shrink-0">{c.count}</span>
+                      </div>
+                    ))}
+                  </div>
                 ) : (
                   <p className="text-3xl font-bold font-heading text-slate-700">—</p>
                 )}

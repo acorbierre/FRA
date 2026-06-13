@@ -138,10 +138,6 @@
   background-color: #6e2990 !important;
 }
 
-/* Masquer le bandeau "Development mode" de Clerk */
-.cl-internal-1dauvpw {
-  display: none !important;
-}
 
 /* Boutons sociaux Clerk côte à côte, pleine largeur */
 .cl-socialButtonsRoot {
@@ -196,12 +192,7 @@
   font-family: var(--font-heading), var(--font-inter), system-ui, sans-serif;
 }
 
-/* Hide Clerk development mode badge */
-.cl-developmentBadge,
-[data-clerk-development-badge],
-.__clerk_internal_development_badge {
-  display: none !important;
-}
+/* Clerk badge (stripes + "Development mode") — géré via appearance.elements dans sign-in et sign-up */
 @keyframes panelfade {
   from { opacity: 0; }
   to   { opacity: 1; }

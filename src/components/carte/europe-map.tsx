@@ -195,19 +195,7 @@ export default function EuropeMap({ labs, initialLabId }: Props) {
     setMomentum(true)
     setTimeout(() => setMomentum(false), 900)
     setPanelState({ tag: 'fiche', lab, origin: 'city' })
-    fetch(
-      `https://api.openalex.org/works?filter=institutions.id:${lab.id},title.search:alzheimer` +
-      `&sort=publication_year:desc&per-page=10&select=id,title,publication_year,cited_by_count,doi`,
-      { headers: { 'User-Agent': 'mailto:contact@fra-recherche.org' } }
-    )
-      .then(r => r.json())
-      .then(data => setPublications(
-        (data.results ?? []).map((w: any) => ({
-          id: w.id, title: w.title ?? '', year: w.publication_year ?? null,
-          citations: w.cited_by_count ?? 0, doi: w.doi ?? null,
-        }))
-      ))
-      .catch(() => {})
+    fetchPublications(lab)
   }, [ready, labs])
 
   useEffect(() => {
@@ -248,6 +236,46 @@ export default function EuropeMap({ labs, initialLabId }: Props) {
     setTimeout(() => setMomentum(false), 900)
   }
 
+  const fetchPublications = (lab: Lab) => {
+    if (lab.id.startsWith('hal_')) {
+      const halId = lab.id.replace('hal_', '')
+      fetch(
+        `https://api.archives-ouvertes.fr/search/` +
+        `?q=alzheimer&fq=labStructId_i:${halId}` +
+        `&sort=submittedDate_tdate+desc&rows=10` +
+        `&fl=halId_s,title_s,producedDateY_i,doiId_s&wt=json`
+      )
+        .then(r => r.json())
+        .then(data => setPublications(
+          (data.response?.docs ?? []).map((w: any) => ({
+            id:        w.halId_s ?? '',
+            title:     Array.isArray(w.title_s) ? w.title_s[0] : (w.title_s ?? ''),
+            year:      w.producedDateY_i ?? null,
+            citations: 0,
+            doi:       w.doiId_s ?? null,
+          }))
+        ))
+        .catch(() => {})
+    } else {
+      fetch(
+        `https://api.openalex.org/works?filter=institutions.id:${lab.id},title.search:alzheimer` +
+        `&sort=publication_year:desc&per-page=10&select=id,title,publication_year,cited_by_count,doi`,
+        { headers: { 'User-Agent': 'mailto:contact@fra-recherche.org' } }
+      )
+        .then(r => r.json())
+        .then(data => setPublications(
+          (data.results ?? []).map((w: any) => ({
+            id:        w.id,
+            title:     w.title ?? '',
+            year:      w.publication_year ?? null,
+            citations: w.cited_by_count ?? 0,
+            doi:       w.doi ?? null,
+          }))
+        ))
+        .catch(() => {})
+    }
+  }
+
   const openFiche = (lab: Lab) => {
     const origin: 'city' | 'toplabs' = panelState.tag === 'toplabs' ? 'toplabs' : 'city'
     const cityLabs = panelState.tag === 'city' ? panelState.labs : undefined
@@ -255,22 +283,7 @@ export default function EuropeMap({ labs, initialLabId }: Props) {
     setPublications([])
     setMomentum(true)
     setTimeout(() => setMomentum(false), 900)
-    fetch(
-      `https://api.openalex.org/works?filter=institutions.id:${lab.id},title.search:alzheimer` +
-      `&sort=publication_year:desc&per-page=10&select=id,title,publication_year,cited_by_count,doi`,
-      { headers: { 'User-Agent': 'mailto:contact@fra-recherche.org' } }
-    )
-      .then(r => r.json())
-      .then(data => setPublications(
-        (data.results ?? []).map((w: any) => ({
-          id:        w.id,
-          title:     w.title ?? '',
-          year:      w.publication_year ?? null,
-          citations: w.cited_by_count ?? 0,
-          doi:       w.doi ?? null,
-        }))
-      ))
-      .catch(() => {})
+    fetchPublications(lab)
   }
 
   const closeFiche = () => {
@@ -450,6 +463,10 @@ export default function EuropeMap({ labs, initialLabId }: Props) {
               closingFiche={panelState.tag === 'closing-fiche'}
               onBack={closeFiche}
               onClose={closePanel}
+              onOpenLab={(labId) => {
+                const target = labs.find(l => l.id === labId)
+                if (target) openFiche(target)
+              }}
             />
           )}
         </div>

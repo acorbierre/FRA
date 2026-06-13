@@ -96,7 +96,7 @@ export default async function ActivitePage() {
       {/* KPIs */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         {kpis.map(({ icon: Icon, value, label, color }) => (
-          <Card key={label}>
+          <Card key={label} className="shadow-none border border-border">
             <CardContent className="pt-4 space-y-3">
               <div className={`size-9 rounded-lg flex items-center justify-center ${color}`}>
                 <Icon className="size-4" />
@@ -113,7 +113,7 @@ export default async function ActivitePage() {
 
       {/* Donuts */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <Card>
+        <Card className="shadow-none border border-border">
           <CardHeader>
             <CardTitle className="text-base">Répartition des financements par thématique</CardTitle>
           </CardHeader>
@@ -125,7 +125,7 @@ export default async function ActivitePage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="shadow-none border border-border">
           <CardHeader>
             <CardTitle className="text-base">Répartition des financements par ville</CardTitle>
           </CardHeader>
