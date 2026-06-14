@@ -64,7 +64,10 @@ export default function CandidaturesTabs({ candidatures, chercheurMap, statutCol
 
             return (
               <div key={c.id} className="relative rounded-xl bg-background px-7 py-6 flex flex-col gap-3 shadow-[0_0_14px_rgba(0,0,0,0.07)]">
-                <Link href={`/gestion/candidatures/${c.id}`} className="absolute inset-0 rounded-xl" />
+                <Link
+                  href={`/gestion/candidatures/${c.id}${['En évaluation', 'En délibération CS', 'Retenue', 'Refusée'].includes(c.statut) ? '?tab=evaluation' : ''}`}
+                  className="absolute inset-0 rounded-xl"
+                />
 
                 {/* Ligne 1 : pill statut */}
                 <div className="pointer-events-none">

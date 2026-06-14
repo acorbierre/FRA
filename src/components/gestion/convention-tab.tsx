@@ -7,6 +7,7 @@ import type { Convention } from '@/types'
 interface Props {
   candidatureId: string
   convention: Convention | null
+  dureeMois?: number | null
 }
 
 const STATUT_STYLES: Record<string, string> = {
@@ -25,7 +26,7 @@ function addMonths(months: number): string {
 
 const INPUT_CLASS = 'w-full h-9 rounded-lg border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30'
 
-export default function ConventionTab({ candidatureId, convention: initialConvention }: Props) {
+export default function ConventionTab({ candidatureId, convention: initialConvention, dureeMois }: Props) {
   const router = useRouter()
   const [convention, setConvention] = useState<Convention | null>(initialConvention)
   const [loading, setLoading]       = useState(false)
@@ -33,6 +34,7 @@ export default function ConventionTab({ candidatureId, convention: initialConven
   const [generated, setGenerated]   = useState(false)
   const [converting, setConverting] = useState(false)
   const [done, setDone]             = useState(false)
+  const [dateDebut, setDateDebut]   = useState(new Date().toISOString().split('T')[0])
 
   const [versements, setVersements] = useState<VersementRow[]>([
     { montant: '200000', datePrevue: addMonths(6) },
@@ -80,7 +82,7 @@ export default function ConventionTab({ candidatureId, convention: initialConven
       const res = await fetch(`/api/gestion/conventions/${convention.id}/convertir`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ signOnly: true }),
+        body: JSON.stringify({ signOnly: true, dateDebut }),
       })
       if (res.ok) {
         setDone(true)
@@ -132,18 +134,45 @@ export default function ConventionTab({ candidatureId, convention: initialConven
                   <Banknote className="size-5 text-muted-foreground" />
                 </div>
                 <p className="font-heading font-semibold text-base mb-5">Échéancier de versements</p>
+
+                <div className="grid grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <label className="text-xs text-muted-foreground mb-1 block">Date de démarrage</label>
+                    <input
+                      type="date"
+                      value={dateDebut}
+                      onChange={e => setDateDebut(e.target.value)}
+                      disabled={generated}
+                      className={INPUT_CLASS + (generated ? ' opacity-50 cursor-not-allowed' : '')}
+                    />
+                  </div>
+                  {dureeMois && (
+                    <div>
+                      <label className="text-xs text-muted-foreground mb-1 block">Durée (candidature)</label>
+                      <div className={INPUT_CLASS + ' flex items-center opacity-60 cursor-not-allowed bg-muted'}>
+                        {dureeMois} mois
+                      </div>
+                    </div>
+                  )}
+                </div>
+
                 {versements.map((v, i) => (
-                  <div key={i} className="grid grid-cols-[1fr_1fr_auto] gap-2 items-center">
+                  <div key={i} className="grid grid-cols-2 gap-2 items-center">
                     <div>
                       {i === 0 && <label className="text-xs text-muted-foreground mb-1 block">Montant (€)</label>}
-                      <input
-                        type="number"
-                        placeholder="ex : 15 000"
-                        value={v.montant}
-                        onChange={e => updateVersement(i, 'montant', e.target.value)}
-                        disabled={generated}
-                        className={INPUT_CLASS + (generated ? ' opacity-50 cursor-not-allowed' : '')}
-                      />
+                      <div className="relative">
+                        <input
+                          type="number"
+                          placeholder="ex : 15 000"
+                          value={v.montant}
+                          onChange={e => updateVersement(i, 'montant', e.target.value)}
+                          disabled={generated}
+                          className={INPUT_CLASS + ' pr-10' + (generated ? ' opacity-50 cursor-not-allowed' : '')}
+                        />
+                        <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs font-medium text-muted-foreground bg-muted px-1.5 py-0.5 rounded-md pointer-events-none">
+                          T{i + 1}
+                        </span>
+                      </div>
                     </div>
                     <div>
                       {i === 0 && <label className="text-xs text-muted-foreground mb-1 block">Date prévue</label>}
@@ -154,11 +183,6 @@ export default function ConventionTab({ candidatureId, convention: initialConven
                         disabled={generated}
                         className={INPUT_CLASS + (generated ? ' opacity-50 cursor-not-allowed' : '')}
                       />
-                    </div>
-                    <div className={i === 0 ? 'mt-5' : ''}>
-                      <span className="text-xs font-medium text-muted-foreground bg-muted px-2 py-1 rounded-md">
-                        T{i + 1}
-                      </span>
                     </div>
                   </div>
                 ))}
@@ -198,27 +222,17 @@ export default function ConventionTab({ candidatureId, convention: initialConven
                         <div className="h-1.5 rounded bg-muted w-4/5" />
                         <div className="h-1.5 rounded bg-muted w-full" />
                         <div className="h-1.5 rounded bg-muted w-3/4" />
-                        <div className="h-1.5 rounded bg-muted w-full" />
                         <div className="h-px bg-border my-2" />
                         <div className="h-1.5 rounded bg-muted w-full" />
                         <div className="h-1.5 rounded bg-muted w-4/5" />
                         <div className="h-1.5 rounded bg-muted w-2/3" />
-                        <div className="h-1.5 rounded bg-muted w-full" />
                         <div className="h-px bg-border my-2" />
                         <div className="h-1.5 rounded bg-muted w-full" />
                         <div className="h-1.5 rounded bg-muted w-3/4" />
-                        <div className="h-1.5 rounded bg-muted w-full" />
-                        <div className="h-1.5 rounded bg-muted w-2/3" />
-                        <div className="h-px bg-border my-2" />
-                        <div className="h-1.5 rounded bg-muted w-4/5" />
-                        <div className="h-1.5 rounded bg-muted w-full" />
                         <div className="h-1.5 rounded bg-muted w-3/5" />
-                        <div className="h-1.5 rounded bg-muted w-full" />
                         <div className="h-px bg-border my-2" />
                         <div className="h-1.5 rounded bg-muted w-full" />
                         <div className="h-1.5 rounded bg-muted w-2/3" />
-                        <div className="h-1.5 rounded bg-muted w-4/5" />
-                        <div className="h-1.5 rounded bg-muted w-full" />
                       </div>
                     </div>
 

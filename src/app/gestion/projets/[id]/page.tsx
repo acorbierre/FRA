@@ -5,7 +5,7 @@ import { getLaboratoireById } from '@/services/neon/laboratoires'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import ProjetTimeline from '@/components/gestion/projet-timeline'
 import Link from 'next/link'
-import { ArrowLeft, FileText, Banknote, NotebookPen, AlertTriangle, Euro, CalendarDays, User, FlaskConical } from 'lucide-react'
+import { ArrowLeft, AlertTriangle, Euro, CalendarDays, User, FlaskConical, Mail } from 'lucide-react'
 import DateBadge from '@/components/ui/date-badge'
 
 const RAPPORT_STATUT_COLORS: Record<string, string> = {
@@ -42,7 +42,7 @@ export default async function ProjetFichePage({ params }: { params: Promise<{ id
   }
 
   // Candidature liée + chercheur + labo
-  const candidatureId = projet.candidatureId?.[0]
+  const candidatureId = projet.candidatureId
   const candidature = candidatureId ? await getCandidatureById(candidatureId).catch(() => null) : null
   const chercheur = candidature?.utilisateurId
     ? await getUtilisateurById(candidature.utilisateurId).catch(() => null)
@@ -95,34 +95,28 @@ export default async function ProjetFichePage({ params }: { params: Promise<{ id
             <p className="text-xs text-muted-foreground">Durée du projet</p>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="pt-4">
-            {chercheur ? (
-              <div className="flex items-start gap-3">
-                {chercheur.photo?.[0]?.url ? (
-                  <img src={chercheur.photo[0].url} alt="" className="w-10 h-10 rounded-full object-cover shrink-0" />
+        <Card className="relative">
+          {chercheur && (
+            <a
+              href={`mailto:${chercheur.email}`}
+              title={chercheur.email}
+              className="absolute top-4 right-4 p-1.5 rounded-md border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+            >
+              <Mail className="size-3.5" />
+            </a>
+          )}
+          <CardContent className="pt-4 space-y-1">
+            <FlaskConical className="size-4 text-muted-foreground" />
+            <p className="text-xl font-semibold truncate pr-8">{chercheur?.nomComplet ?? '—'}</p>
+            <p className="text-xs text-muted-foreground">
+              {(labo?.nom ?? chercheur?.laboratoireDeclaratif) ? (
+                chercheur?.carteLabId ? (
+                  <><a href={`/carto?lab=${chercheur.carteLabId}`} target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors underline-offset-2 hover:underline">{labo?.nom ?? chercheur.laboratoireDeclaratif}</a>{' · Chercheur principal'}</>
                 ) : (
-                  <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center shrink-0">
-                    <User className="size-4 text-muted-foreground" />
-                  </div>
-                )}
-                <div className="min-w-0">
-                  <p className="text-sm font-medium truncate">{chercheur.nomComplet}</p>
-                  <p className="text-xs text-muted-foreground truncate">{chercheur.email}</p>
-                  {(labo?.nom ?? chercheur.laboratoireDeclaratif) && (
-                    <p className="text-xs text-muted-foreground truncate mt-0.5 flex items-center gap-1">
-                      <FlaskConical className="size-3 shrink-0" />
-                      {labo?.nom ?? chercheur.laboratoireDeclaratif}
-                    </p>
-                  )}
-                </div>
-              </div>
-            ) : (
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <User className="size-4" />
-                <p className="text-xs">Candidat non renseigné</p>
-              </div>
-            )}
+                  <>{labo?.nom ?? chercheur?.laboratoireDeclaratif}{' · Chercheur principal'}</>
+                )
+              ) : 'Chercheur principal'}
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -163,10 +157,7 @@ export default async function ProjetFichePage({ params }: { params: Promise<{ id
       {candidature && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2">
-              <NotebookPen className="size-4 text-muted-foreground" />
-              Candidature liée
-            </CardTitle>
+            <CardTitle>Candidature liée</CardTitle>
           </CardHeader>
           <CardContent className="text-sm space-y-3">
             <div className="flex items-start justify-between gap-3">
@@ -192,10 +183,7 @@ export default async function ProjetFichePage({ params }: { params: Promise<{ id
       {conventions.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2">
-              <Banknote className="size-4 text-muted-foreground" />
-              Conventions ({conventions.length})
-            </CardTitle>
+            <CardTitle>Conventions ({conventions.length})</CardTitle>
           </CardHeader>
           <CardContent className="divide-y divide-border -my-1">
             {conventions.map(conv => {
@@ -251,10 +239,7 @@ export default async function ProjetFichePage({ params }: { params: Promise<{ id
       {rapports.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2">
-              <FileText className="size-4 text-muted-foreground" />
-              Rapports ({rapports.length})
-            </CardTitle>
+            <CardTitle>Rapports ({rapports.length})</CardTitle>
           </CardHeader>
           <CardContent className="divide-y divide-border -my-1">
             {rapports

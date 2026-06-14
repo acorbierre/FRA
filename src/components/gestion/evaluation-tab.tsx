@@ -14,9 +14,10 @@ interface Props {
   evaluations: Evaluation[]
   nbSoumises: number
   statut: string
+  onAccepted?: () => void
 }
 
-export default function EvaluationTab({ candidatureId, reviewers, evaluations, nbSoumises, statut }: Props) {
+export default function EvaluationTab({ candidatureId, reviewers, evaluations, nbSoumises, statut, onAccepted }: Props) {
   const router = useRouter()
   const [eval1, eval2] = evaluations
   const note1 = eval1?.noteFinale ?? null
@@ -39,7 +40,10 @@ export default function EvaluationTab({ candidatureId, reviewers, evaluations, n
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ statut }),
       })
-      if (res.ok) router.refresh()
+      if (res.ok) {
+        router.refresh()
+        if (statut === 'Retenue') onAccepted?.()
+      }
     } finally {
       setLoading(null)
     }

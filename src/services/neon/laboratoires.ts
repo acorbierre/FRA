@@ -13,9 +13,11 @@ const LaboratoireSchema = z.object({
 function mapRow(r: Record<string, unknown>): Laboratoire {
   const row = LaboratoireSchema.parse(r)
   const carteLabIdRaw = r.carte_lab_id
+  const carteNomRaw = r.carte_nom
   return {
     id:          row.id,
     nom:         row.nom,
+    carteNom:    carteNomRaw != null ? String(carteNomRaw) : undefined,
     institution: row.institution ?? '',
     ville:       row.ville ?? '',
     siteWeb:     row.site_web ?? undefined,
@@ -25,7 +27,7 @@ function mapRow(r: Record<string, unknown>): Laboratoire {
 
 export async function getLaboratoires(): Promise<Laboratoire[]> {
   const rows = await sql`
-    SELECT l.*, cl.id AS carte_lab_id
+    SELECT l.*, cl.id AS carte_lab_id, cl.nom AS carte_nom
     FROM laboratoires l
     LEFT JOIN carte_laboratoires cl ON cl.labo_neon_id = l.id
     ORDER BY l.nom
@@ -34,7 +36,12 @@ export async function getLaboratoires(): Promise<Laboratoire[]> {
 }
 
 export async function getLaboratoireById(id: string): Promise<Laboratoire> {
-  const rows = await sql`SELECT * FROM laboratoires WHERE id = ${id}`
+  const rows = await sql`
+    SELECT l.*, cl.id AS carte_lab_id, cl.nom AS carte_nom
+    FROM laboratoires l
+    LEFT JOIN carte_laboratoires cl ON cl.labo_neon_id = l.id
+    WHERE l.id = ${id}
+  `
   if (!rows[0]) throw new Error(`Laboratoire ${id} not found`)
   return mapRow(rows[0])
 }

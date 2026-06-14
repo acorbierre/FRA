@@ -13,6 +13,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     versements?: VersementInput[]
     generateOnly?: boolean
     signOnly?: boolean
+    dateDebut?: string
   }
 
   const conventions = await getConventions()
@@ -41,10 +42,19 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 
   const candidature = await getCandidatureById(convention.candidatureId)
 
+  let dateFinPrevue: string | undefined
+  if (body.dateDebut && candidature.dureeMois) {
+    const fin = new Date(body.dateDebut)
+    fin.setMonth(fin.getMonth() + candidature.dureeMois)
+    dateFinPrevue = fin.toISOString().split('T')[0]
+  }
+
   const projet = await createProjet({
     titre: candidature.titre,
     montantAccorde: convention.montantTotal,
     candidatureId: convention.candidatureId,
+    dateDebut: body.dateDebut,
+    dateFinPrevue,
   })
 
   // Créer les jalons à partir des versements déjà enregistrés

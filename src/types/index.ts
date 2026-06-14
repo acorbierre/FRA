@@ -23,6 +23,7 @@ export type {
 export interface Laboratoire {
   id: string
   nom: string
+  carteNom?: string
   institution?: string
   ville?: string
   siteWeb?: string
@@ -55,6 +56,7 @@ export interface Utilisateur {
   statutCompte: UtilisateurStatutCompte
   laboratoireDeclaratif?: string
   laboratoireId?: string[]
+  carteLabId?: string | null
 }
 
 export interface Candidature {

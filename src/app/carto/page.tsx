@@ -10,13 +10,14 @@ export default async function CartePage({ searchParams }: { searchParams: Promis
   const sp = await searchParams
   const initialLabId = sp.lab ?? null
   const rows = await sql`
-    SELECT id, nom, ville, pays, lat, lon, type, fra_funded, labo_neon_id, url,
+    SELECT DISTINCT ON (LOWER(nom), ville)
+           id, nom, ville, pays, lat, lon, type, fra_funded, labo_neon_id, url,
            alz_pub_count, cited_by_count, works_count, topics, top_collabs
     FROM carte_laboratoires
     WHERE lat IS NOT NULL AND lon IS NOT NULL
     AND pays = 'FR'
     AND (fra_funded = TRUE OR source IN ('openalex', 'hal'))
-    ORDER BY fra_funded DESC, alz_pub_count DESC NULLS LAST
+    ORDER BY LOWER(nom), ville, fra_funded DESC, alz_pub_count DESC NULLS LAST
   `
 
   const labs = rows.map((r: any) => ({

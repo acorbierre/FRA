@@ -254,7 +254,7 @@ export default function ChatInterface() {
         <div className="max-w-3xl mx-auto px-6 py-8 space-y-8">
           {messages.length === 0 && !streaming && (
             <p className="text-sm text-muted-foreground text-center pt-16">
-              Posez une question sur les candidatures, les évaluations ou les chercheurs.
+              Posez une question sur les projets, les équipes de recherche ou l'activité de la FRA…
             </p>
           )}
 

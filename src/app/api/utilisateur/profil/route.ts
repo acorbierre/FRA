@@ -14,9 +14,9 @@ export async function PATCH(request: NextRequest) {
     const utilisateur = await getUtilisateurByEmail(email)
     if (!utilisateur) return NextResponse.json({ error: 'Profil introuvable.' }, { status: 404 })
 
-    const { prenom, nom, telephone, laboratoire, bio } = await request.json()
+    const { prenom, nom, telephone, laboratoire, bio, ville, carteLabId } = await request.json()
 
-    const updated = await updateUtilisateur(utilisateur.id, { prenom, nom, telephone, bio, laboratoire })
+    const updated = await updateUtilisateur(utilisateur.id, { prenom, nom, telephone, bio, ville, laboratoire, carteLabId: carteLabId ?? null })
 
     return NextResponse.json(updated)
   } catch (err) {

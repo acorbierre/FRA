@@ -160,11 +160,13 @@ export default function ProjetTimeline({
                 className="absolute -translate-x-1/2 group/vmark"
                 style={{ left: `${left}%` }}
               >
-                <div className={`flex items-center justify-center size-4 rounded-full border text-[9px] font-bold shadow-sm ${
-                  done
-                    ? 'bg-green-100 border-green-400 text-green-700'
-                    : 'bg-background border-muted-foreground/30 text-muted-foreground'
-                }`}>
+                <div
+                  className={`flex items-center justify-center size-6 rounded-full text-[9px] font-bold shadow-sm ${done ? 'bg-green-100 text-green-700' : ''}`}
+                  style={!done ? {
+                    backgroundColor: 'color-mix(in oklch, var(--color-primary) 10%, white)',
+                    color: 'var(--color-primary)',
+                  } : undefined}
+                >
                   {done ? '✓' : `V${v.numero}`}
                 </div>
                 {/* Tooltip */}

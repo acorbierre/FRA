@@ -24,7 +24,7 @@ async function buildContext(): Promise<string> {
     getRapports(),
     getAllJalons(),
     getAllEvaluations(),
-    sql`SELECT nom, ville, pays, type, fra_funded FROM carte_laboratoires ORDER BY fra_funded DESC, nom ASC`,
+    sql`SELECT nom, ville, pays, type, fra_funded, alz_pub_count FROM carte_laboratoires ORDER BY fra_funded DESC, nom ASC`,
   ])
 
   const evalMap = toutesEvaluations.reduce<Record<string, typeof toutesEvaluations>>((acc, e) => {
@@ -67,10 +67,16 @@ ${evalsStr}`
     `- ${u.nomComplet} (${u.email}) | Rôles: ${u.role.join(', ')} | Labo: ${u.laboratoireDeclaratif ?? '—'}`
   ).join('\n')
 
+  // Map candidatureId → chercheur
+  const candidatureMap = Object.fromEntries(candidatures.map(c => [c.id, c]))
+
   // Projets financés
-  const projetsStr = projets.map(p =>
-    `### Projet ID:${p.id}
+  const projetsStr = projets.map(p => {
+    const cand = p.candidatureId ? candidatureMap[p.candidatureId] : null
+    const chercheur = cand?.utilisateurId ? utilisateurMap[cand.utilisateurId] : null
+    return `### Projet ID:${p.id}
 Titre: ${p.titre}${p.titreCourt ? ` (${p.titreCourt})` : ''}
+Chercheur: ${chercheur ? `${chercheur.nomComplet} (${chercheur.email}) — ${chercheur.laboratoireDeclaratif ?? '—'}` : '—'}
 Thématique: ${p.thematique ?? '—'}
 Ville: ${p.ville ?? '—'}
 Année sélection: ${p.anneeSelection ?? '—'}
@@ -78,11 +84,11 @@ International: ${p.dimensionInternationale ? 'Oui' : 'Non'}
 Statut: ${p.statut}
 Montant accordé: ${p.montantAccorde ? `${p.montantAccorde.toLocaleString('fr-FR')} €` : '—'}
 Début: ${p.dateDebut ?? '—'} | Fin prévue: ${p.dateFinPrevue ?? '—'}${p.dateFinReelle ? ` | Fin réelle: ${p.dateFinReelle}` : ''}`
-  ).join('\n\n')
+  }).join('\n\n')
 
   // Laboratoires
   const laboratoiresStr = laboratoires.map(l =>
-    `- ${l.nom}${l.institution ? ` (${l.institution})` : ''}${l.ville ? ` — ${l.ville}` : ''}`
+    `- ${l.carteNom ?? l.nom}${l.institution ? ` (${l.institution})` : ''}${l.ville ? ` — ${l.ville}` : ''}`
   ).join('\n')
 
   // Conventions
@@ -107,7 +113,7 @@ Début: ${p.dateDebut ?? '—'} | Fin prévue: ${p.dateFinPrevue ?? '—'}${p.da
 
   // Cartographie des labos de recherche
   const carteLabsStr = (carteLabs as any[]).map(l =>
-    `- ${l.nom} | ${l.ville}${l.pays && l.pays !== 'France' ? `, ${l.pays}` : ''} | ${l.fra_funded ? 'Soutenu par la FRA' : 'Labo partenaire'}`
+    `- ${l.nom} | ${l.ville}${l.pays && l.pays !== 'France' ? `, ${l.pays}` : ''} | ${l.fra_funded ? 'Soutenu par la FRA' : 'Labo partenaire'}${l.alz_pub_count ? ` | ${l.alz_pub_count} publications Alzheimer` : ''}`
   ).join('\n')
 
   return `## Cartographie des laboratoires de recherche (${(carteLabs as any[]).length} labos)
@@ -155,7 +161,7 @@ export async function POST(req: Request) {
 
   const systemPrompt = `Tu es un assistant IA intégré au portail de gestion de la Fondation pour la Recherche (FRA). Tu as accès en temps réel à toutes les données du portail.
 
-Réponds toujours en français, de manière précise et structurée. Utilise des titres en gras pour structurer tes réponses longues.
+Réponds toujours en français, de manière précise et structurée. Utilise des titres en gras pour structurer tes réponses longues. Ne fais jamais de remarques sur la qualité ou la structure des données (doublons, entrées multiples, etc.) — réponds directement à la question posée.
 
 IMPORTANT — Citations de sources : chaque fois que tu mentionnes une candidature ou un projet spécifique, tu DOIS citer la source avec ce format exactement, placé en fin de phrase ou de paragraphe :
 - Pour une candidature : [SOURCE:/gestion/candidatures/ID|Titre court]

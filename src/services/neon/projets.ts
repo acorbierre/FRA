@@ -97,17 +97,18 @@ export async function getProjetByLaboNeonId(laboNeonId: string): Promise<Projet 
     LEFT JOIN thematiques t ON p.thematique_id = t.id
     JOIN candidatures c ON c.id = p.candidature_id
     JOIN utilisateurs u ON u.id = c.chercheur_id
-    WHERE ${laboNeonId} = ANY(u.laboratoire_id)
+    JOIN carte_laboratoires cl ON cl.id = u.carte_lab_id
+    WHERE cl.labo_neon_id = ${laboNeonId}
     AND p.statut = 'En cours'
     LIMIT 1
   `
   return rows[0] ? mapRow(rows[0]) : null
 }
 
-export async function createProjet(data: { titre: string; montantAccorde: number; candidatureId: string }): Promise<Projet> {
+export async function createProjet(data: { titre: string; montantAccorde: number; candidatureId: string; dateDebut?: string; dateFinPrevue?: string }): Promise<Projet> {
   const rows = await sql`
-    INSERT INTO projets (id, titre, montant_accorde, statut, candidature_id)
-    VALUES (gen_random_uuid(), ${data.titre}, ${data.montantAccorde}, 'En cours', ${data.candidatureId})
+    INSERT INTO projets (id, titre, montant_accorde, statut, candidature_id, date_debut, date_fin_prevue)
+    VALUES (gen_random_uuid(), ${data.titre}, ${data.montantAccorde}, 'En cours', ${data.candidatureId}, ${data.dateDebut ?? null}, ${data.dateFinPrevue ?? null})
     RETURNING *
   `
   const row = rows[0] as Record<string, unknown>

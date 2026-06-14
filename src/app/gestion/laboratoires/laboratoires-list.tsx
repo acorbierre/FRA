@@ -11,7 +11,7 @@ export default function LaboratoiresListe({ labos }: { labos: Laboratoire[] }) {
 
   const filtered = query.trim()
     ? labos.filter(l =>
-        `${l.nom} ${l.institution} ${l.ville ?? ''}`
+        `${l.carteNom ?? ''} ${l.nom} ${l.institution} ${l.ville ?? ''}`
           .toLowerCase()
           .includes(query.toLowerCase())
       )
@@ -19,7 +19,7 @@ export default function LaboratoiresListe({ labos }: { labos: Laboratoire[] }) {
 
   const groups: Record<string, Laboratoire[]> = {}
   for (const l of filtered) {
-    const letter = (l.nom?.[0] ?? '?').toUpperCase()
+    const letter = ((l.carteNom ?? l.nom)?.[0] ?? '?').toUpperCase()
     if (!groups[letter]) groups[letter] = []
     groups[letter].push(l)
   }
@@ -63,7 +63,7 @@ export default function LaboratoiresListe({ labos }: { labos: Laboratoire[] }) {
                 </div>
 
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium group-hover:text-primary transition-colors">{l.nom}</p>
+                  <p className="text-sm font-medium group-hover:text-primary transition-colors">{l.carteNom ?? l.nom}</p>
                   <p className="text-xs text-muted-foreground truncate">{l.institution}</p>
                 </div>
 

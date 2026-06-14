@@ -107,6 +107,7 @@ export default function CandidatureDetailTabs({ candidature: c, chercheurNom, re
             evaluations={evaluations}
             nbSoumises={nbSoumises}
             statut={statut}
+            onAccepted={() => setActiveTab('convention')}
           />
         )}
 
@@ -114,6 +115,7 @@ export default function CandidatureDetailTabs({ candidature: c, chercheurNom, re
           <ConventionTab
             candidatureId={c.id}
             convention={convention}
+            dureeMois={c.dureeMois}
           />
         )}
       </div>

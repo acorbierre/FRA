@@ -10,6 +10,12 @@ const TYPE_LABELS: Record<string, string> = {
   evaluation_transmise: 'Évaluation transmise',
 }
 
+function getNotifUrl(n: Pick<Notification, 'candidatureId' | 'type'>): string | null {
+  if (!n.candidatureId) return null
+  const tab = n.type === 'evaluation_transmise' ? '?tab=evaluation' : ''
+  return `/gestion/candidatures/${n.candidatureId}${tab}`
+}
+
 const TOAST_SESSION_KEY = 'notif_last_toasted'
 
 function timeAgo(dateStr: string): string {
@@ -118,8 +124,8 @@ export default function NotificationBell() {
               <ul className="max-h-80 overflow-y-auto divide-y divide-border">
                 {notifications.map(n => (
                   <li key={n.id} className={cn('px-4 py-3', !n.read && 'bg-primary/5')}>
-                    {n.candidatureId ? (
-                      <a href={`/gestion/candidatures/${n.candidatureId}`} className="flex items-start gap-3 hover:opacity-70 transition-opacity" onClick={() => setOpen(false)}>
+                    {getNotifUrl(n) ? (
+                      <a href={getNotifUrl(n)!} className="flex items-start gap-3 hover:opacity-70 transition-opacity" onClick={() => setOpen(false)}>
                         <NotifRow n={n} />
                       </a>
                     ) : (
@@ -134,25 +140,36 @@ export default function NotificationBell() {
       </div>
 
       {/* Toast */}
-      {toast && (
-        <div className="fixed top-[72px] right-6 z-50 w-96 bg-card border border-border rounded-2xl shadow-xl overflow-hidden animate-in slide-in-from-top-2 fade-in duration-300">
-          <div className="flex items-start gap-3 px-4 py-3.5">
-            <Avatar url={toast.avatarUrl} />
-            <div className="flex-1 min-w-0">
-              <p className="text-xs font-semibold text-primary mb-0.5">{TYPE_LABELS[toast.type] ?? toast.type}</p>
-              <p className="text-sm text-foreground leading-snug line-clamp-2">{toast.message}</p>
-              <p className="text-xs text-muted-foreground mt-1">{timeAgo(toast.createdAt)}</p>
+      {toast && (() => {
+        const toastUrl = getNotifUrl(toast)
+        const toastContent = (
+          <>
+            <div className="flex items-start gap-3 px-4 py-3.5">
+              <Avatar url={toast.avatarUrl} />
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-semibold text-primary mb-0.5">{TYPE_LABELS[toast.type] ?? toast.type}</p>
+                <p className="text-sm text-foreground leading-snug line-clamp-2">{toast.message}</p>
+                <p className="text-xs text-muted-foreground mt-1">{timeAgo(toast.createdAt)}</p>
+              </div>
+              <button onClick={e => { e.preventDefault(); e.stopPropagation(); dismissToast() }} className="text-muted-foreground hover:text-foreground transition-colors cursor-pointer flex-shrink-0 mt-0.5">
+                <X className="size-3.5" />
+              </button>
             </div>
-            <button onClick={dismissToast} className="text-muted-foreground hover:text-foreground transition-colors cursor-pointer flex-shrink-0 mt-0.5">
-              <X className="size-3.5" />
-            </button>
+            <div className="h-0.5 bg-primary/20">
+              <div className="h-full bg-primary origin-left animate-[shrink_5s_linear_forwards]" />
+            </div>
+          </>
+        )
+        return toastUrl ? (
+          <a href={toastUrl} onClick={dismissToast} className="fixed top-[72px] right-6 z-50 w-96 bg-card border border-border rounded-2xl shadow-xl overflow-hidden animate-in slide-in-from-top-2 fade-in duration-300 hover:shadow-2xl transition-shadow block">
+            {toastContent}
+          </a>
+        ) : (
+          <div className="fixed top-[72px] right-6 z-50 w-96 bg-card border border-border rounded-2xl shadow-xl overflow-hidden animate-in slide-in-from-top-2 fade-in duration-300">
+            {toastContent}
           </div>
-          {/* Barre de progression */}
-          <div className="h-0.5 bg-primary/20">
-            <div className="h-full bg-primary origin-left animate-[shrink_5s_linear_forwards]" />
-          </div>
-        </div>
-      )}
+        )
+      })()}
     </>
   )
 }

@@ -18,6 +18,7 @@ const UtilisateurSchema = z.object({
   statut_compte:          z.enum(['Invité', 'Actif']).nullish(),
   laboratoire_declaratif: z.string().nullish(),
   laboratoire_id:         z.array(z.string()).nullish(),
+  carte_lab_id:           z.string().nullish(),
 })
 
 function mapRow(r: Record<string, unknown>): Utilisateur {
@@ -38,6 +39,7 @@ function mapRow(r: Record<string, unknown>): Utilisateur {
     statutCompte:          row.statut_compte ?? 'Invité',
     laboratoireDeclaratif: row.laboratoire_declaratif ?? undefined,
     laboratoireId:         row.laboratoire_id ?? undefined,
+    carteLabId:            row.carte_lab_id ?? undefined,
   }
 }
 
@@ -69,14 +71,15 @@ export async function createUtilisateur(data: {
   telephone?: string
   bio?: string
   laboratoire?: string
+  carteLabId?: string | null
   role?: string
 }): Promise<Utilisateur> {
   const id = crypto.randomUUID()
   const nomComplet = `${data.prenom} ${data.nom}`
   const role = data.role ?? 'Candidat'
   const rows = await sql`
-    INSERT INTO utilisateurs (id, nom_complet, prenom, nom, email, telephone, bio, laboratoire_declaratif, role, statut_compte)
-    VALUES (${id}, ${nomComplet}, ${data.prenom}, ${data.nom}, ${data.email}, ${data.telephone ?? null}, ${data.bio ?? null}, ${data.laboratoire ?? null}, ARRAY[${role}]::text[], 'Actif')
+    INSERT INTO utilisateurs (id, nom_complet, prenom, nom, email, telephone, bio, laboratoire_declaratif, carte_lab_id, role, statut_compte)
+    VALUES (${id}, ${nomComplet}, ${data.prenom}, ${data.nom}, ${data.email}, ${data.telephone ?? null}, ${data.bio ?? null}, ${data.laboratoire ?? null}, ${data.carteLabId ?? null}, ARRAY[${role}]::text[], 'Actif')
     RETURNING *
   `
   return mapRow(rows[0])
@@ -88,23 +91,28 @@ export async function updateUtilisateurPhoto(id: string, photoUrl: string): Prom
 
 export async function updateUtilisateur(
   id: string,
-  data: Partial<Pick<Utilisateur, 'prenom' | 'nom' | 'bio' | 'telephone'> & { laboratoire: string }>
+  data: Partial<Pick<Utilisateur, 'prenom' | 'nom' | 'bio' | 'telephone' | 'ville'> & { laboratoire: string; carteLabId: string | null }>
 ): Promise<Utilisateur> {
   const rows = await sql`SELECT * FROM utilisateurs WHERE id = ${id}`
   if (!rows[0]) throw new Error(`Utilisateur ${id} not found`)
   const current = mapRow(rows[0])
 
-  const prenom    = data.prenom    ?? current.prenom
-  const nom       = data.nom       ?? current.nom
-  const bio       = data.bio       !== undefined ? data.bio       : current.bio
-  const telephone = data.telephone !== undefined ? data.telephone : current.telephone
-  const labo      = data.laboratoire !== undefined ? data.laboratoire : current.laboratoireDeclaratif
+  const prenom     = data.prenom    ?? current.prenom
+  const nom        = data.nom       ?? current.nom
+  const bio        = data.bio       !== undefined ? data.bio       : current.bio
+  const telephone  = data.telephone !== undefined ? data.telephone : current.telephone
+  const ville      = data.ville     !== undefined ? data.ville     : current.ville
+  const labo       = data.laboratoire !== undefined ? data.laboratoire : current.laboratoireDeclaratif
+  const carteLabId = 'carteLabId' in data ? data.carteLabId : current.carteLabId
   const nomComplet = `${prenom} ${nom}`
 
   const updated = await sql`
     UPDATE utilisateurs
     SET nom_complet = ${nomComplet}, prenom = ${prenom}, nom = ${nom},
-        bio = ${bio ?? null}, telephone = ${telephone ?? null}, laboratoire_declaratif = ${labo ?? null}
+        bio = ${bio ?? null}, telephone = ${telephone ?? null},
+        ville = ${ville ?? null},
+        laboratoire_declaratif = ${labo ?? null},
+        carte_lab_id = ${carteLabId ?? null}
     WHERE id = ${id}
     RETURNING *
   `

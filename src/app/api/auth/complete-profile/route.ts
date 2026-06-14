@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Email introuvable.' }, { status: 400 })
     }
 
-    const { prenom, nom, telephone, laboratoire, bio } = await request.json()
+    const { prenom, nom, telephone, laboratoire, bio, carteLabId } = await request.json()
 
     const existing = await getUtilisateurByEmail(email)
     if (existing) {
@@ -28,6 +28,7 @@ export async function POST(request: NextRequest) {
         telephone: telephone?.trim(),
         laboratoire: laboratoire?.trim(),
         bio: bio?.trim(),
+        carteLabId: carteLabId ?? null,
       })
       return NextResponse.json({ utilisateurId: existing.id })
     }
@@ -39,6 +40,7 @@ export async function POST(request: NextRequest) {
       telephone: telephone?.trim(),
       bio: bio?.trim(),
       laboratoire: laboratoire?.trim(),
+      carteLabId: carteLabId ?? null,
     })
 
     return NextResponse.json({ utilisateurId: utilisateur.id }, { status: 201 })
