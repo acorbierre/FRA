@@ -23,8 +23,11 @@ interface Props {
 
 type Tab = 'dossier' | 'evaluation' | 'convention'
 
-export default function CandidatureDetailTabs({ candidature: c, chercheurNom, reviewers, evaluations, statutColors, statutLabelsGestion, convention, defaultTab = 'dossier' }: Props) {
+export default function CandidatureDetailTabs({ candidature: c, chercheurNom, reviewers, evaluations, statutColors, statutLabelsGestion, convention: initialConvention, defaultTab = 'dossier' }: Props) {
   const [activeTab, setActiveTab] = useState<Tab>(defaultTab)
+  const [convention, setConvention] = useState<Convention | null>(initialConvention)
+  const [conventionGenerated, setConventionGenerated] = useState(false)
+  const [conventionDone, setConventionDone] = useState(false)
   const statut = c.statut ?? 'Brouillon'
   const nbSoumises = evaluations.filter(e => e.statut === 'Soumise').length
 
@@ -116,6 +119,11 @@ export default function CandidatureDetailTabs({ candidature: c, chercheurNom, re
             candidatureId={c.id}
             convention={convention}
             dureeMois={c.dureeMois}
+            onConventionCreated={setConvention}
+            generated={conventionGenerated}
+            onGenerated={() => setConventionGenerated(true)}
+            done={conventionDone}
+            onDone={() => setConventionDone(true)}
           />
         )}
       </div>

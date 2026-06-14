@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { getUtilisateurByEmail, getCandidaturesByUtilisateur } from '@/services/neon'
 import { getProjetByCandidatureId } from '@/services/neon/projets'
 import { getJalonsByProjet } from '@/services/neon/jalons'
+import { getConventionByCandidatureId } from '@/services/neon/conventions'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { APPEL_ANNEE } from '@/lib/config'
 import { getAppSettings } from '@/services/neon/settings'
@@ -30,13 +31,14 @@ export default async function EspacePage() {
   const candidature = candidatures[0] ?? null
 
   const projet = candidature ? await getProjetByCandidatureId(candidature.id) : null
+  const convention = (!projet && candidature) ? await getConventionByCandidatureId(candidature.id) : null
   const jalons = projet ? await getJalonsByProjet(projet.id) : []
 
   return (
     <div className="max-w-4xl space-y-6 pb-16">
       <div className="max-w-2xl space-y-6">
         <div>
-          <h1 className="font-heading text-2xl font-semibold tracking-tight">
+          <h1 className="text-2xl font-semibold tracking-tight">
             Bonjour, {utilisateur!.prenom}
           </h1>
           <p className="text-muted-foreground mt-1">
@@ -53,6 +55,23 @@ export default async function EspacePage() {
           <CardContent>
             <Link href="/espace/projet" className="btn-primary inline-flex items-center gap-2">
               Rapports et suivi du projet <ArrowRight className="size-4" />
+            </Link>
+          </CardContent>
+        </Card>
+      ) : convention ? (
+        <Card>
+          <CardHeader className="flex flex-row items-start justify-between gap-4">
+            <div>
+              <CardTitle className="text-base">Ma convention</CardTitle>
+              <CardDescription className="mt-1">{convention.numeroConvention}</CardDescription>
+            </div>
+            <span className="shrink-0 rounded-full px-3.5 py-1 text-sm font-medium bg-blue-50 text-blue-700">
+              En cours
+            </span>
+          </CardHeader>
+          <CardContent>
+            <Link href="/espace/convention" className="btn-primary inline-flex items-center gap-2">
+              Gérer ma convention <ArrowRight className="size-4" />
             </Link>
           </CardContent>
         </Card>
@@ -93,6 +112,27 @@ export default async function EspacePage() {
           </CardContent>
         </Card>
       )}
+
+      {convention && !projet && (
+        <div className="space-y-3">
+          <h2 className="text-base font-semibold">Pièces à préparer</h2>
+          <div className="rounded-xl border border-border divide-y divide-border text-sm">
+            {[
+              'RIB de l\'établissement',
+              'Convention signée (à retourner à la FRA)',
+              'Accord de l\'établissement de rattachement',
+              'CV scientifique du porteur de projet',
+              'Budget prévisionnel détaillé',
+              'Attestation d\'assurance responsabilité civile',
+            ].map(piece => (
+              <div key={piece} className="flex items-center gap-3 px-4 py-3">
+                <div className="size-4 rounded border border-border shrink-0" />
+                <span className="text-foreground">{piece}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
       </div>
 
       {(() => {
@@ -102,7 +142,7 @@ export default async function EspacePage() {
           const nextIndex = sorted.findIndex(j => new Date(j.datePrevue) >= now)
           return (
             <div className="space-y-8 mt-14 max-w-2xl">
-              <h2 className="font-heading text-base">Prochaines étapes</h2>
+              <h2 className="text-base font-semibold">Prochaines étapes</h2>
               <div className="relative flex">
                 <div className="absolute left-[calc(10%)] right-[calc(10%)] top-[56px] h-px bg-border" />
                 {sorted.map((j, i) => {
@@ -132,7 +172,7 @@ export default async function EspacePage() {
           const nextIndex = etapes.findIndex(e => new Date(e.date_prevue) >= now)
           return (
             <div className="space-y-8 mt-14 max-w-2xl">
-              <h2 className="font-heading text-base">Prochaines étapes</h2>
+              <h2 className="text-base font-semibold">Prochaines étapes</h2>
               <div className="relative flex">
                 <div className="absolute left-[calc(10%)] right-[calc(10%)] top-[56px] h-px bg-border" />
                 {etapes.map((e, i) => {

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { FileText, ArrowRight, Loader2, CheckCircle2, FileType, Banknote, FileCheck, Wand2 } from 'lucide-react'
 import type { Convention } from '@/types'
@@ -8,6 +8,11 @@ interface Props {
   candidatureId: string
   convention: Convention | null
   dureeMois?: number | null
+  onConventionCreated?: (convention: Convention) => void
+  generated?: boolean
+  onGenerated?: () => void
+  done?: boolean
+  onDone?: () => void
 }
 
 const STATUT_STYLES: Record<string, string> = {
@@ -26,14 +31,12 @@ function addMonths(months: number): string {
 
 const INPUT_CLASS = 'w-full h-9 rounded-lg border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30'
 
-export default function ConventionTab({ candidatureId, convention: initialConvention, dureeMois }: Props) {
+export default function ConventionTab({ candidatureId, convention, dureeMois, onConventionCreated, generated = false, onGenerated, done = false, onDone }: Props) {
   const router = useRouter()
-  const [convention, setConvention] = useState<Convention | null>(initialConvention)
   const [loading, setLoading]       = useState(false)
+  const autoCreating = useRef(false)
   const [generating, setGenerating] = useState(false)
-  const [generated, setGenerated]   = useState(false)
   const [converting, setConverting] = useState(false)
-  const [done, setDone]             = useState(false)
   const [dateDebut, setDateDebut]   = useState(new Date().toISOString().split('T')[0])
 
   const [versements, setVersements] = useState<VersementRow[]>([
@@ -46,12 +49,19 @@ export default function ConventionTab({ candidatureId, convention: initialConven
     setVersements(prev => prev.map((v, idx) => idx === i ? { ...v, [field]: value } : v))
   }
 
+  useEffect(() => {
+    if (!convention && !autoCreating.current) {
+      autoCreating.current = true
+      handleAccepter()
+    }
+  }, [])
+
   async function handleAccepter() {
     setLoading(true)
     try {
       const res = await fetch(`/api/gestion/candidatures/${candidatureId}/accepter`, { method: 'POST' })
       const data = await res.json()
-      setConvention(data.convention)
+      if (data.convention) onConventionCreated?.(data.convention)
     } finally {
       setLoading(false)
     }
@@ -69,7 +79,7 @@ export default function ConventionTab({ candidatureId, convention: initialConven
           generateOnly: true,
         }),
       })
-      if (res.ok) setGenerated(true)
+      if (res.ok) onGenerated?.()
     } finally {
       setGenerating(false)
     }
@@ -85,7 +95,7 @@ export default function ConventionTab({ candidatureId, convention: initialConven
         body: JSON.stringify({ signOnly: true, dateDebut }),
       })
       if (res.ok) {
-        setDone(true)
+        onDone?.()
         setTimeout(() => router.push('/gestion/suivi'), 1200)
       }
     } finally {
@@ -93,25 +103,11 @@ export default function ConventionTab({ candidatureId, convention: initialConven
     }
   }
 
-  // Pas encore de convention
   if (!convention) {
     return (
-      <div className="p-8 flex flex-col items-center gap-4 text-center">
-        <div className="size-12 rounded-full bg-muted flex items-center justify-center">
-          <FileText className="size-5 text-muted-foreground" />
-        </div>
-        <div>
-          <p className="font-medium text-sm">Aucune convention créée</p>
-          <p className="text-xs text-muted-foreground mt-1">Saisir la convention pour cette candidature.</p>
-        </div>
-        <button
-          onClick={handleAccepter}
-          disabled={loading}
-          className="inline-flex items-center gap-2 h-11 px-4 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 cursor-pointer"
-        >
-          {loading ? <Loader2 className="size-4 animate-spin" /> : <FileText className="size-4" />}
-          Saisir la convention
-        </button>
+      <div className="p-8 flex items-center justify-center gap-2 text-sm text-muted-foreground">
+        <Loader2 className="size-4 animate-spin" />
+        Création de la convention…
       </div>
     )
   }
@@ -133,7 +129,7 @@ export default function ConventionTab({ candidatureId, convention: initialConven
                 <div className="size-12 rounded-full bg-muted flex items-center justify-center mb-5">
                   <Banknote className="size-5 text-muted-foreground" />
                 </div>
-                <p className="font-heading font-semibold text-base mb-5">Échéancier de versements</p>
+                <p className="font-semibold text-base mb-5">Échéancier de versements</p>
 
                 <div className="grid grid-cols-2 gap-4 mb-4">
                   <div>
@@ -210,7 +206,7 @@ export default function ConventionTab({ candidatureId, convention: initialConven
                   <div className="size-12 rounded-full bg-muted flex items-center justify-center mb-5">
                     <FileCheck className="size-5 text-muted-foreground" />
                   </div>
-                  <p className="font-heading font-semibold text-base mb-5">Convention Docusign</p>
+                  <p className="font-semibold text-base mb-5">Convention Docusign</p>
                   <div className="relative">
                     {/* Faux document PDF */}
                     <div className="rounded-lg border border-border bg-white shadow-sm overflow-hidden select-none">
@@ -242,7 +238,7 @@ export default function ConventionTab({ candidatureId, convention: initialConven
                         <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${STATUT_STYLES[convention.statut ?? 'En cours']}`}>
                           {convention.statut}
                         </span>
-                        <p className="font-heading font-semibold text-base mt-2">{convention.numeroConvention}</p>
+                        <p className="font-semibold text-base mt-2">{convention.numeroConvention}</p>
                       </div>
                       <button
                         onClick={handleConvertir}
