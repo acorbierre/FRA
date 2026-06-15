@@ -25,7 +25,7 @@ function getTeamsUrl(c: Candidature, statutLabel: string) {
     ...(c.budgetDemande ? [`Budget demandé : ${c.budgetDemande.toLocaleString('fr-FR')} €`] : []),
     ...(c.dureeMois ? [`Durée : ${c.dureeMois} mois`] : []),
   ]
-  return `https://teams.microsoft.com/l/chat/0/0?message=${encodeURIComponent(lines.join('\n'))}`
+  return `https://teams.microsoft.com/l/chat/0/0?users=&message=${encodeURIComponent(lines.join('\n'))}`
 }
 
 function getThematiqueIcon(label?: string | null): LucideIcon {

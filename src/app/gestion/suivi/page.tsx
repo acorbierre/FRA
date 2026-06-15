@@ -50,7 +50,7 @@ function getTeamsUrl(p: Projet, versePct: number, verse: number) {
     ...(p.montantAccorde && verse > 0 ? [`Versé : ${verse.toLocaleString('fr-FR')} € (${versePct} %)`] : []),
     ...(p.dateDebut && p.dateFinPrevue ? [`Période : ${new Date(p.dateDebut).toLocaleDateString('fr-FR')} → ${new Date(p.dateFinPrevue).toLocaleDateString('fr-FR')}`] : []),
   ]
-  return `https://teams.microsoft.com/l/chat/0/0?message=${encodeURIComponent(lines.join('\n'))}`
+  return `https://teams.microsoft.com/l/chat/0/0?users=&message=${encodeURIComponent(lines.join('\n'))}`
 }
 
 export default async function SuiviPage() {

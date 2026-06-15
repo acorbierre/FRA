@@ -45,7 +45,7 @@ function getTeamsUrl(j: Jalon) {
     `Statut : ${JALON_STATUT_LABELS[j.statut]}`,
     ...(j.montant != null ? [`Montant : ${j.montant.toLocaleString('fr-FR')} €`] : []),
   ]
-  return `https://teams.microsoft.com/l/chat/0/0?message=${encodeURIComponent(lines.join('\n'))}`
+  return `https://teams.microsoft.com/l/chat/0/0?users=&message=${encodeURIComponent(lines.join('\n'))}`
 }
 
 // ---------------------------------------------------------------------------
