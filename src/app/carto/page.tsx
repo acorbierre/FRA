@@ -17,7 +17,7 @@ export default async function CartePage({ searchParams }: { searchParams: Promis
     WHERE lat IS NOT NULL AND lon IS NOT NULL
     AND pays = 'FR'
     AND (fra_funded = TRUE OR source IN ('openalex', 'hal'))
-    ORDER BY LOWER(nom), ville, fra_funded DESC, alz_pub_count DESC NULLS LAST
+    ORDER BY LOWER(nom), ville, fra_funded DESC, (cited_by_count > 0) DESC, alz_pub_count DESC NULLS LAST
   `
 
   const labs = rows.map((r: any) => ({
