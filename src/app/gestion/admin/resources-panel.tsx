@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { Database, Network, Users, GitBranch, ExternalLink, Clock } from 'lucide-react'
+import { Database, Network, Users, GitBranch, ExternalLink, Clock, Layers } from 'lucide-react'
 
 type ResourceCard = {
   icon: React.ElementType
@@ -32,6 +32,13 @@ const RESOURCES: ResourceCard[] = [
     title: 'Dashboard Clerk',
     description: 'Gestion des utilisateurs, sessions actives et configuration de l\'authentification.',
     href: 'https://dashboard.clerk.com',
+    external: true,
+  },
+  {
+    icon: Layers,
+    title: 'Composants UI',
+    description: 'Catalogue du design system FRA.',
+    href: '/fra-ui',
     external: true,
   },
   {

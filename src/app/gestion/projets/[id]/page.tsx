@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import ProjetTimeline from '@/components/gestion/projet-timeline'
 import Link from 'next/link'
 import { ArrowLeft, AlertTriangle, Euro, CalendarDays, User, FlaskConical, Mail } from 'lucide-react'
+import { PageContainer } from '@/components/ui/page-container'
 import DateBadge from '@/components/ui/date-badge'
 
 const RAPPORT_STATUT_COLORS: Record<string, string> = {
@@ -65,7 +66,7 @@ export default async function ProjetFichePage({ params }: { params: Promise<{ id
   const dureeProjet = duree(projet.dateDebut, projet.dateFinPrevue)
 
   return (
-    <div className="max-w-5xl space-y-6">
+    <PageContainer>
       <div>
         <Link href="/gestion/suivi?tab=projets" className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-4 transition-colors">
           <ArrowLeft className="size-4" /> Suivi des projets
@@ -271,7 +272,7 @@ export default async function ProjetFichePage({ params }: { params: Promise<{ id
           </CardContent>
         </Card>
       )}
-    </div>
+    </PageContainer>
   )
 }
 

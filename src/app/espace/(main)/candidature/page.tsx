@@ -6,6 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { APPEL_ANNEE, FIELD_LABELS } from '@/lib/config'
 import { getAppSettings } from '@/services/neon/settings'
 import type { Candidature } from '@/types'
+import { PageHeader } from '@/components/ui/page-header'
+import { PageContainer } from '@/components/ui/page-container'
 
 export default async function CandidaturePage() {
   const { userId } = await auth()
@@ -27,11 +29,8 @@ export default async function CandidaturePage() {
   const statut = c.statut ?? 'Brouillon'
 
   return (
-    <div className="max-w-2xl space-y-6">
-      <div>
-        <h1 className="page-title">Ma candidature</h1>
-        <p className="page-subtitle">Appel à projets {APPEL_ANNEE}</p>
-      </div>
+    <PageContainer className="max-w-2xl space-y-6">
+      <PageHeader title="Ma candidature" subtitle={`Appel à projets ${APPEL_ANNEE}`} />
 
       {statut === 'Soumise' && (
         <div className="rounded-lg bg-green-100 border border-green-200 px-4 py-3 text-sm text-green-800 flex items-center gap-2">
@@ -69,7 +68,7 @@ export default async function CandidaturePage() {
 
         </CardContent>
       </Card>
-    </div>
+    </PageContainer>
   )
 }
 

@@ -1,6 +1,8 @@
 import { getProjets, getConventions, getRapports, getVersements } from '@/services/neon'
 import { getAppSettings } from '@/services/neon/settings'
 import TitreProjet from '@/components/gestion/titre-projet'
+import { PageHeader } from '@/components/ui/page-header'
+import { PageContainer } from '@/components/ui/page-container'
 import Link from 'next/link'
 import { Mail, FlaskConical, Scan, Users, Dna, Shield, Microscope, type LucideIcon } from 'lucide-react'
 import type { Projet, Rapport, Versement } from '@/types'
@@ -98,11 +100,8 @@ export default async function SuiviPage() {
   }
 
   return (
-    <div className="max-w-5xl space-y-6">
-      <div>
-        <h1 className="page-title">Suivi des projets</h1>
-        <p className="page-subtitle">{projetsEnCours.length} projet{projetsEnCours.length > 1 ? 's' : ''} en gestion</p>
-      </div>
+    <PageContainer>
+      <PageHeader title="Suivi des projets" subtitle={`${projetsEnCours.length} projet${projetsEnCours.length > 1 ? 's' : ''} en gestion`} />
 
       {projetsEnCours.length === 0
         ? <p className="text-sm text-muted-foreground">Aucun projet.</p>
@@ -189,6 +188,6 @@ export default async function SuiviPage() {
             })}
           </div>
       }
-    </div>
+    </PageContainer>
   )
 }

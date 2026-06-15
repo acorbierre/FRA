@@ -4,6 +4,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowLeft, Mail, Phone, User } from 'lucide-react'
 import { rolePillClass, roleLabel } from '@/lib/role-colors'
+import { PageContainer } from '@/components/ui/page-container'
 
 const STATUT_STYLES: Record<string, string> = {
   'En cours': 'bg-blue-50 text-blue-700',
@@ -19,7 +20,7 @@ export default async function UtilisateurFichePage({ params }: { params: Promise
   ])
 
   return (
-    <div className="max-w-2xl space-y-6">
+    <PageContainer className="max-w-2xl space-y-6">
       <div>
         <Link href="/gestion/utilisateurs" className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-4 transition-colors">
           <ArrowLeft className="size-4" /> Utilisateurs
@@ -94,6 +95,6 @@ export default async function UtilisateurFichePage({ params }: { params: Promise
           </CardContent>
         </Card>
       )}
-    </div>
+    </PageContainer>
   )
 }

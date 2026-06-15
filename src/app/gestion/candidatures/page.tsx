@@ -1,6 +1,8 @@
 import { getAllCandidatures, getAllUtilisateurs } from '@/services/neon'
 import { getAppSettings } from '@/services/neon/settings'
 import CandidaturesTabs from './candidatures-tabs'
+import { PageHeader } from '@/components/ui/page-header'
+import { PageContainer } from '@/components/ui/page-container'
 
 export default async function CandidaturesPage() {
   const [candidatures, utilisateurs, settings] = await Promise.all([
@@ -12,17 +14,14 @@ export default async function CandidaturesPage() {
   const actives = candidatures.filter(c => c.statut !== 'Brouillon')
 
   return (
-    <div className="max-w-5xl space-y-6">
-      <div>
-        <h1 className="page-title">Candidatures</h1>
-        <p className="page-subtitle">{actives.length} candidature{actives.length > 1 ? 's' : ''}</p>
-      </div>
+    <PageContainer>
+      <PageHeader title="Candidatures" subtitle={`${actives.length} candidature${actives.length > 1 ? 's' : ''}`} />
       <CandidaturesTabs
         candidatures={actives}
         chercheurMap={utilisateurMap}
         statutColors={settings.statut_colors}
         statutLabelsGestion={settings.statut_labels_gestion}
       />
-    </div>
+    </PageContainer>
   )
 }

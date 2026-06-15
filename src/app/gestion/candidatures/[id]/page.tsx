@@ -3,6 +3,7 @@ import { getConventionByCandidatureId } from '@/services/neon/conventions'
 import { getAppSettings } from '@/services/neon/settings'
 import { notFound } from 'next/navigation'
 import { APPEL_ANNEE } from '@/lib/config'
+import { PageContainer } from '@/components/ui/page-container'
 import CandidatureDetailTabs from '@/components/gestion/candidature-detail-tabs'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
@@ -22,7 +23,7 @@ export default async function CandidatureDetailPage({ params, searchParams }: { 
   ])
 
   return (
-    <div className="max-w-5xl space-y-6">
+    <PageContainer>
 
       <div className="flex items-center gap-4">
         <Link href="/gestion/candidatures" className="text-muted-foreground hover:text-foreground transition-colors">
@@ -45,6 +46,6 @@ export default async function CandidatureDetailPage({ params, searchParams }: { 
         defaultTab={defaultTab}
       />
 
-    </div>
+    </PageContainer>
   )
 }

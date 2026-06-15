@@ -1,6 +1,8 @@
 import { getProjets, getAllCandidatures, getConventions, getAllUtilisateurs } from '@/services/neon'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import DonutChart from '@/components/gestion/donut-chart'
+import { PageHeader } from '@/components/ui/page-header'
+import { PageContainer } from '@/components/ui/page-container'
 import { Microscope, Euro, Users, GraduationCap } from 'lucide-react'
 import { APPEL_ANNEE } from '@/lib/config'
 
@@ -87,11 +89,8 @@ export default async function ActivitePage() {
   ]
 
   return (
-    <div className="max-w-5xl space-y-8">
-      <div>
-        <h1 className="page-title">Activité de la FRA</h1>
-        <p className="page-subtitle">Bilan de l'appel à projets {APPEL_ANNEE}</p>
-      </div>
+    <PageContainer className="max-w-5xl space-y-8">
+      <PageHeader title="Activité de la FRA" subtitle={`Bilan de l'appel à projets ${APPEL_ANNEE}`} />
 
       {/* KPIs */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
@@ -137,6 +136,6 @@ export default async function ActivitePage() {
           </CardContent>
         </Card>
       </div>
-    </div>
+    </PageContainer>
   )
 }

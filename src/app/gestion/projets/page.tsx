@@ -2,6 +2,8 @@ import { getProjets } from '@/services/neon'
 import { getAppSettings } from '@/services/neon/settings'
 import { getThematiques } from '@/services/neon/thematiques'
 import ProjetsListe from './projets-list'
+import { PageHeader } from '@/components/ui/page-header'
+import { PageContainer } from '@/components/ui/page-container'
 
 export default async function ProjetsPage() {
   const [allProjets, settings, thematiques] = await Promise.all([
@@ -10,11 +12,8 @@ export default async function ProjetsPage() {
   const projets = allProjets.filter(p => p.statut === 'Terminé')
 
   return (
-    <div className="max-w-5xl space-y-6">
-      <div>
-        <h1 className="page-title">Projets financés</h1>
-        <p className="page-subtitle">{projets.length} projet{projets.length > 1 ? 's' : ''}</p>
-      </div>
+    <PageContainer>
+      <PageHeader title="Projets financés" subtitle={`${projets.length} projet${projets.length > 1 ? 's' : ''}`} />
 
       <ProjetsListe
         projets={projets}
@@ -22,6 +21,6 @@ export default async function ProjetsPage() {
         projetLabels={settings.projet_labels}
         thematiques={thematiques}
       />
-    </div>
+    </PageContainer>
   )
 }

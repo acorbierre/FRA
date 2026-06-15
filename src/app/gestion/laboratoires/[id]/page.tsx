@@ -3,6 +3,7 @@ import { sql } from '@/lib/db'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import Link from 'next/link'
 import { ArrowLeft, Globe, MapPin, Map } from 'lucide-react'
+import { PageContainer } from '@/components/ui/page-container'
 
 const STATUT_STYLES: Record<string, string> = {
   'En cours': 'bg-blue-50 text-blue-700',
@@ -27,7 +28,7 @@ export default async function LaboratoireFichePage({ params }: { params: Promise
   )
 
   return (
-    <div className="max-w-2xl space-y-6">
+    <PageContainer className="max-w-2xl space-y-6">
       <div>
         <Link href="/gestion/laboratoires" className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-4 transition-colors">
           <ArrowLeft className="size-4" /> Laboratoires
@@ -109,6 +110,6 @@ export default async function LaboratoireFichePage({ params }: { params: Promise
           </CardContent>
         </Card>
       )}
-    </div>
+    </PageContainer>
   )
 }

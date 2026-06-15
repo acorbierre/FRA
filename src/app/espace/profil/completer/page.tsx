@@ -2,6 +2,7 @@ import { auth, clerkClient } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 import { getUtilisateurByEmail } from '@/services/neon'
 import CompleterProfilForm from './completer-form'
+import { PageHeader } from '@/components/ui/page-header'
 
 export default async function CompleterProfilPage() {
   const { userId } = await auth()
@@ -18,10 +19,7 @@ export default async function CompleterProfilPage() {
   return (
     <main className="min-h-screen flex items-center justify-center bg-muted/40 p-4">
       <div className="w-full max-w-lg space-y-6">
-        <div>
-          <h1 className="page-title">Bienvenue</h1>
-          <p className="page-subtitle">Complétez votre profil pour accéder à votre espace candidat.</p>
-        </div>
+        <PageHeader title="Bienvenue" subtitle="Complétez votre profil pour accéder à votre espace candidat." />
         <CompleterProfilForm prenom={utilisateur?.prenom} nom={utilisateur?.nom} />
       </div>
     </main>

@@ -49,6 +49,8 @@
 }
 
 :root {
+  --fra-primary: #8231a8;
+  --fra-primary-hover: #6e2990;
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
@@ -132,10 +134,10 @@
   height: 2.75rem !important;
   font-size: 0.875rem !important;
   font-weight: 500 !important;
-  background-color: #8231a8 !important;
+  background-color: var(--fra-primary) !important;
 }
 .cl-formButtonPrimary:hover {
-  background-color: #6e2990 !important;
+  background-color: var(--fra-primary-hover) !important;
 }
 
 

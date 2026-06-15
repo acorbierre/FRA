@@ -2,6 +2,8 @@ import { auth, clerkClient } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 import { getUtilisateurByEmail } from '@/services/neon'
 import ProfileEditor from '@/app/espace/(main)/profil/profile-editor'
+import { PageHeader } from '@/components/ui/page-header'
+import { PageContainer } from '@/components/ui/page-container'
 
 export default async function ReviewerProfilPage() {
   const { userId } = await auth()
@@ -14,12 +16,9 @@ export default async function ReviewerProfilPage() {
   if (!utilisateur) redirect('/sign-in')
 
   return (
-    <div className="max-w-3xl space-y-6">
-      <div>
-        <h1 className="page-title">Mon profil</h1>
-        <p className="page-subtitle">Vos informations personnelles et professionnelles.</p>
-      </div>
+    <PageContainer className="max-w-3xl space-y-6">
+      <PageHeader title="Mon profil" subtitle="Vos informations personnelles et professionnelles." />
       <ProfileEditor utilisateur={utilisateur} />
-    </div>
+    </PageContainer>
   )
 }

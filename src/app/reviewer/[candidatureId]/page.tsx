@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import EvaluationForm from '@/components/reviewer/evaluation-form'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
+import { PageContainer } from '@/components/ui/page-container'
 
 export default async function ReviewerCandidaturePage({ params }: { params: Promise<{ candidatureId: string }> }) {
   const { candidatureId } = await params
@@ -37,7 +38,7 @@ export default async function ReviewerCandidaturePage({ params }: { params: Prom
   }
 
   return (
-    <div className="max-w-3xl space-y-6">
+    <PageContainer className="max-w-3xl space-y-6">
 
       <div className="flex items-center gap-4">
         <Link href="/reviewer" className="text-muted-foreground hover:text-foreground transition-colors">
@@ -81,7 +82,7 @@ export default async function ReviewerCandidaturePage({ params }: { params: Prom
         </CardContent>
       </Card>
 
-    </div>
+    </PageContainer>
   )
 }
 

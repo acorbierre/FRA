@@ -4,6 +4,8 @@ import { getAppSettings } from '@/services/neon/settings'
 import { getThematiques } from '@/services/neon/thematiques'
 import UsersPanel from './users-panel'
 import AdminTabs from './admin-tabs'
+import { PageHeader } from '@/components/ui/page-header'
+import { PageContainer } from '@/components/ui/page-container'
 
 export default async function AdminPage() {
   const { userId } = await auth()
@@ -27,16 +29,13 @@ export default async function AdminPage() {
   )
 
   return (
-    <div className="max-w-5xl space-y-6">
-      <div>
-        <h1 className="page-title">Administration</h1>
-        <p className="page-subtitle">Gestion des utilisateurs et des accès</p>
-      </div>
+    <PageContainer>
+      <PageHeader title="Administration" subtitle="Gestion des utilisateurs et des accès" />
       <AdminTabs
         usersPanel={<UsersPanel users={users} currentUserEmail={currentUserEmail} registeredEmails={registeredEmails} />}
         settings={settings}
         thematiques={thematiques}
       />
-    </div>
+    </PageContainer>
   )
 }
