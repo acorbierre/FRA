@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { ArrowRight, BookOpen, Search } from 'lucide-react'
+import { ArrowRight, BookOpen, Target, Search } from 'lucide-react'
 import { type Lab } from '@/data/alzheimer-labs'
 import { DOT_COLOR, LIGHT_COLOR, dominantCity, titleCase, specializationRatio, parseName } from './map-utils'
 
@@ -114,6 +114,12 @@ export function CityPanel({ labs, sortBy, onSortChange, compositeScore, onLabCli
                   <span className="flex items-center gap-1">
                     <BookOpen size={12} className="flex-shrink-0" />
                     {lab.alzPubCount.toLocaleString('fr-FR')} pub. Alzheimer
+                  </span>
+                ) : null}
+                {specializationRatio(lab) !== null ? (
+                  <span className="flex items-center gap-1">
+                    <Target size={12} className="flex-shrink-0" />
+                    {Math.round((specializationRatio(lab) ?? 0) * 100)}&nbsp;%
                   </span>
                 ) : null}
               </div>

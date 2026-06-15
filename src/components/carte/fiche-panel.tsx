@@ -41,6 +41,22 @@ interface ProjetFRA {
   dateFinPrevue?: string
 }
 
+function KpiCard({ tooltip, opacity, children }: { tooltip?: string; opacity?: boolean; children: React.ReactNode }) {
+  return (
+    <div className={`relative group rounded-xl border border-slate-200 p-4 bg-slate-100/70${opacity ? ' opacity-35' : ''}`}>
+      {children}
+      {tooltip && (
+        <div className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-50 hidden group-hover:block">
+          <div className="bg-slate-800 text-white text-xs rounded-lg px-3 py-2 shadow-lg w-[320px] text-center leading-snug whitespace-normal">
+            {tooltip}
+          </div>
+          <div className="w-2 h-2 bg-slate-800 rotate-45 mx-auto -mt-1" />
+        </div>
+      )}
+    </div>
+  )
+}
+
 export function FichePanel({ lab, publications, closingFiche, onBack, onClose, onOpenLab }: Props) {
   const [tab, setTab] = useState<Tab>('overview')
   const [projetFRA, setProjetFRA] = useState<ProjetFRA | null | undefined>(undefined)
@@ -121,35 +137,44 @@ export function FichePanel({ lab, publications, closingFiche, onBack, onClose, o
           <>
             {/* KPI cards — 4 colonnes */}
             <div className="grid grid-cols-4 gap-3 mb-6 items-stretch">
-              <div className="rounded-xl border border-slate-200 p-4 bg-slate-100/70">
+              <KpiCard tooltip="Publications mentionnant Alzheimer · Source : OpenAlex">
                 <div className="flex items-center gap-1.5 text-slate-500 text-xs font-semibold uppercase tracking-wide mb-2">
                   <BookOpen size={11} /> Pub. Alzheimer
                 </div>
                 <p className="text-3xl font-bold font-heading" style={{ color: DOT_COLOR }}>
                   {lab.alzPubCount ? lab.alzPubCount.toLocaleString('fr-FR') : '—'}
                 </p>
-              </div>
+              </KpiCard>
 
-              <div className="rounded-xl border border-slate-200 p-4 bg-slate-100/70 opacity-35">
+              <KpiCard opacity>
                 <div className="flex items-center gap-1.5 text-slate-500 text-xs font-semibold uppercase tracking-wide mb-2">
                   <TrendingUp size={11} /> Impact
                 </div>
                 <p className="text-3xl font-bold font-heading text-slate-700">—</p>
-              </div>
+              </KpiCard>
 
-              <div className="rounded-xl border border-slate-200 p-4 bg-slate-100/70 opacity-35">
+              <KpiCard tooltip="% de publications sur Alzheimer · Sources : OpenAlex (pub. Alz) + HAL (total)">
                 <div className="flex items-center gap-1.5 text-slate-500 text-xs font-semibold uppercase tracking-wide mb-2">
                   <Target size={11} /> Spécialisation
                 </div>
-                <p className="text-3xl font-bold font-heading text-slate-700">—</p>
-              </div>
+                {specializationRatio(lab) !== null ? (
+                  <>
+                    <p className="text-3xl font-bold font-heading" style={{ color: DOT_COLOR }}>
+                      {Math.round((specializationRatio(lab) ?? 0) * 100)}&nbsp;%
+                    </p>
+                    <p className="text-[#62748e] text-xs mt-0.5">des publications</p>
+                  </>
+                ) : (
+                  <p className="text-3xl font-bold font-heading text-slate-700">—</p>
+                )}
+              </KpiCard>
 
-              <div className="rounded-xl border border-slate-200 p-4 bg-slate-100/70 opacity-35">
+              <KpiCard opacity>
                 <div className="flex items-center gap-1.5 text-slate-500 text-xs font-semibold uppercase tracking-wide mb-2">
                   <Share2 size={11} /> Réseau
                 </div>
                 <p className="text-3xl font-bold font-heading text-slate-700">—</p>
-              </div>
+              </KpiCard>
             </div>
 
             {/* Diagnostic IA */}
