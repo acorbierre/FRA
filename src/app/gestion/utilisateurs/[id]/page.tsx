@@ -1,13 +1,22 @@
-import { getUtilisateurById } from '@/services/neon'
+import { getUtilisateurById, getProjetsByUtilisateurId } from '@/services/neon'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowLeft, Mail, Phone, User } from 'lucide-react'
 import { rolePillClass, roleLabel } from '@/lib/role-colors'
 
+const STATUT_STYLES: Record<string, string> = {
+  'En cours': 'bg-blue-50 text-blue-700',
+  'Suspendu':  'bg-amber-50 text-amber-700',
+  'Terminé':   'bg-green-50 text-green-700',
+}
+
 export default async function UtilisateurFichePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  const c = await getUtilisateurById(id)
+  const [c, projets] = await Promise.all([
+    getUtilisateurById(id),
+    getProjetsByUtilisateurId(id),
+  ])
 
   return (
     <div className="max-w-2xl space-y-6">
@@ -62,6 +71,27 @@ export default async function UtilisateurFichePage({ params }: { params: Promise
         <Card>
           <CardHeader><CardTitle className="text-base">Présentation</CardTitle></CardHeader>
           <CardContent className="text-sm whitespace-pre-wrap text-muted-foreground">{c.bio}</CardContent>
+        </Card>
+      )}
+
+      {projets.length > 0 && (
+        <Card>
+          <CardHeader><CardTitle className="text-base">Projets associés ({projets.length})</CardTitle></CardHeader>
+          <CardContent className="divide-y divide-border -my-1">
+            {projets.map(p => (
+              <Link key={p.id} href={`/gestion/projets/${p.id}`} className="py-3 flex items-center justify-between hover:bg-muted/50 -mx-6 px-6 transition-colors">
+                <p className="text-sm font-medium">{p.titreCourt ?? p.titre}</p>
+                <div className="flex items-center gap-3 shrink-0">
+                  {p.montantAccorde > 0 && (
+                    <span className="text-xs text-muted-foreground tabular-nums">{p.montantAccorde.toLocaleString('fr-FR')} €</span>
+                  )}
+                  <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${STATUT_STYLES[p.statut ?? 'En cours'] ?? 'bg-zinc-100 text-zinc-700'}`}>
+                    {p.statut}
+                  </span>
+                </div>
+              </Link>
+            ))}
+          </CardContent>
         </Card>
       )}
     </div>

@@ -1,15 +1,22 @@
-import { getLaboratoireById, getAllUtilisateurs } from '@/services/neon'
+import { getLaboratoireById, getAllUtilisateurs, getProjetsByLaboNeonId } from '@/services/neon'
 import { sql } from '@/lib/db'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import Link from 'next/link'
 import { ArrowLeft, Globe, MapPin, Map } from 'lucide-react'
 
+const STATUT_STYLES: Record<string, string> = {
+  'En cours': 'bg-blue-50 text-blue-700',
+  'Suspendu':  'bg-amber-50 text-amber-700',
+  'Terminé':   'bg-green-50 text-green-700',
+}
+
 export default async function LaboratoireFichePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  const [labo, utilisateurs, carteRows] = await Promise.all([
+  const [labo, utilisateurs, carteRows, projets] = await Promise.all([
     getLaboratoireById(id),
     getAllUtilisateurs(),
     sql`SELECT id FROM carte_laboratoires WHERE labo_neon_id = ${id} LIMIT 1`,
+    getProjetsByLaboNeonId(id),
   ])
   const carteLabId = carteRows[0]?.id ?? null
 
@@ -77,6 +84,27 @@ export default async function LaboratoireFichePage({ params }: { params: Promise
                   ))}
                 </div>
               </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
+      {projets.length > 0 && (
+        <Card>
+          <CardHeader><CardTitle className="text-base">Projets associés ({projets.length})</CardTitle></CardHeader>
+          <CardContent className="divide-y divide-border -my-1">
+            {projets.map(p => (
+              <Link key={p.id} href={`/gestion/projets/${p.id}`} className="py-3 flex items-center justify-between hover:bg-muted/50 -mx-6 px-6 transition-colors">
+                <p className="text-sm font-medium">{p.titreCourt ?? p.titre}</p>
+                <div className="flex items-center gap-3 shrink-0">
+                  {p.montantAccorde > 0 && (
+                    <span className="text-xs text-muted-foreground tabular-nums">{p.montantAccorde.toLocaleString('fr-FR')} €</span>
+                  )}
+                  <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${STATUT_STYLES[p.statut ?? 'En cours'] ?? 'bg-zinc-100 text-zinc-700'}`}>
+                    {p.statut}
+                  </span>
+                </div>
+              </Link>
             ))}
           </CardContent>
         </Card>

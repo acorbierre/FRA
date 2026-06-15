@@ -105,6 +105,32 @@ export async function getProjetByLaboNeonId(laboNeonId: string): Promise<Projet 
   return rows[0] ? mapRow(rows[0]) : null
 }
 
+export async function getProjetsByLaboNeonId(laboNeonId: string): Promise<Projet[]> {
+  const rows = await sql`
+    SELECT p.*, t.label AS thematique_label
+    FROM projets p
+    LEFT JOIN thematiques t ON p.thematique_id = t.id
+    JOIN candidatures c ON c.id = p.candidature_id
+    JOIN utilisateurs u ON u.id = c.chercheur_id
+    JOIN carte_laboratoires cl ON cl.id = u.carte_lab_id
+    WHERE cl.labo_neon_id = ${laboNeonId}
+    ORDER BY p.statut, p.titre
+  `
+  return rows.map(mapRow)
+}
+
+export async function getProjetsByUtilisateurId(utilisateurId: string): Promise<Projet[]> {
+  const rows = await sql`
+    SELECT p.*, t.label AS thematique_label
+    FROM projets p
+    LEFT JOIN thematiques t ON p.thematique_id = t.id
+    JOIN candidatures c ON c.id = p.candidature_id
+    WHERE c.chercheur_id = ${utilisateurId}
+    ORDER BY p.statut, p.titre
+  `
+  return rows.map(mapRow)
+}
+
 export async function createProjet(data: { titre: string; montantAccorde: number; candidatureId: string; dateDebut?: string; dateFinPrevue?: string }): Promise<Projet> {
   const rows = await sql`
     INSERT INTO projets (id, titre, montant_accorde, statut, candidature_id, date_debut, date_fin_prevue)
