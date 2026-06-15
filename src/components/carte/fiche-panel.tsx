@@ -130,67 +130,25 @@ export function FichePanel({ lab, publications, closingFiche, onBack, onClose, o
                 </p>
               </div>
 
-              <div className="rounded-xl border border-slate-200 p-4 bg-slate-100/70">
+              <div className="rounded-xl border border-slate-200 p-4 bg-slate-100/70 opacity-35">
                 <div className="flex items-center gap-1.5 text-slate-500 text-xs font-semibold uppercase tracking-wide mb-2">
                   <TrendingUp size={11} /> Impact
                 </div>
-                {lab.citedByCount && lab.worksCount ? (
-                  <>
-                    <p className="text-3xl font-bold font-heading text-slate-700">
-                      {Math.round(lab.citedByCount / lab.worksCount).toLocaleString('fr-FR')}
-                    </p>
-                    <p className="text-[#62748e] text-xs mt-0.5">cit. moy. / pub.</p>
-                  </>
-                ) : (
-                  <p className="text-3xl font-bold font-heading text-slate-700">—</p>
-                )}
+                <p className="text-3xl font-bold font-heading text-slate-700">—</p>
               </div>
 
-              <div className="rounded-xl border border-slate-200 p-4 bg-slate-100/70">
+              <div className="rounded-xl border border-slate-200 p-4 bg-slate-100/70 opacity-35">
                 <div className="flex items-center gap-1.5 text-slate-500 text-xs font-semibold uppercase tracking-wide mb-2">
                   <Target size={11} /> Spécialisation
                 </div>
-                {specializationRatio(lab) !== null ? (
-                  <>
-                    <p className="text-3xl font-bold font-heading" style={{ color: DOT_COLOR }}>
-                      {Math.round((specializationRatio(lab) ?? 0) * 100)}&nbsp;%
-                    </p>
-                    <p className="text-[#62748e] text-xs mt-0.5">des publications</p>
-                  </>
-                ) : (
-                  <p className="text-3xl font-bold font-heading text-slate-700">—</p>
-                )}
+                <p className="text-3xl font-bold font-heading text-slate-700">—</p>
               </div>
 
-              <div className="rounded-xl border border-slate-200 p-4 bg-slate-100/70">
+              <div className="rounded-xl border border-slate-200 p-4 bg-slate-100/70 opacity-35">
                 <div className="flex items-center gap-1.5 text-slate-500 text-xs font-semibold uppercase tracking-wide mb-2">
                   <Share2 size={11} /> Réseau
                 </div>
-                {lab.topCollabs && lab.topCollabs.length > 0 ? (
-                  <div className="flex flex-col gap-1.5 mt-1">
-                    {lab.topCollabs.slice(0, 5).map((c, i) => (
-                      <div key={i} className="flex items-center justify-between gap-2">
-                        <div className="flex items-center gap-1.5 min-w-0">
-                          <div className="w-1 h-1 rounded-full flex-shrink-0" style={{ background: DOT_COLOR, opacity: 1 - i * 0.15 }} />
-                          {c.labId && onOpenLab ? (
-                            <button
-                              onClick={() => onOpenLab(c.labId!)}
-                              className="text-xs truncate hover:underline cursor-pointer text-left"
-                              style={{ color: DOT_COLOR }}
-                            >
-                              {c.nom}
-                            </button>
-                          ) : (
-                            <span className="text-slate-700 text-xs truncate">{c.nom}</span>
-                          )}
-                        </div>
-                        <span className="text-[#62748e] text-xs flex-shrink-0">{c.count}</span>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-3xl font-bold font-heading text-slate-700">—</p>
-                )}
+                <p className="text-3xl font-bold font-heading text-slate-700">—</p>
               </div>
             </div>
 

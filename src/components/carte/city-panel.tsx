@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { ArrowRight, BookOpen, TrendingUp, Target, Sparkles, Search } from 'lucide-react'
+import { ArrowRight, BookOpen, Search } from 'lucide-react'
 import { type Lab } from '@/data/alzheimer-labs'
 import { DOT_COLOR, LIGHT_COLOR, dominantCity, titleCase, specializationRatio, parseName } from './map-utils'
 
@@ -113,25 +113,7 @@ export function CityPanel({ labs, sortBy, onSortChange, compositeScore, onLabCli
                 {lab.alzPubCount ? (
                   <span className="flex items-center gap-1">
                     <BookOpen size={12} className="flex-shrink-0" />
-                    {lab.alzPubCount.toLocaleString('fr-FR')} pub.
-                  </span>
-                ) : null}
-                {lab.citedByCount && lab.worksCount ? (
-                  <span className="flex items-center gap-1">
-                    <TrendingUp size={12} className="flex-shrink-0" />
-                    {Math.round(lab.citedByCount / lab.worksCount).toLocaleString('fr-FR')}
-                  </span>
-                ) : null}
-                {specializationRatio(lab) !== null ? (
-                  <span className="flex items-center gap-1">
-                    <Target size={12} className="flex-shrink-0" />
-                    {Math.round((specializationRatio(lab) ?? 0) * 100)}&nbsp;%
-                  </span>
-                ) : null}
-                {(lab.alzPubCount ?? 0) > 0 && (lab.worksCount ?? 0) > 0 ? (
-                  <span className="flex items-center gap-1">
-                    <Sparkles size={12} className="flex-shrink-0" />
-                    {Math.round(compositeScore(lab) * 100)}&nbsp;/ 100
+                    {lab.alzPubCount.toLocaleString('fr-FR')} pub. Alzheimer
                   </span>
                 ) : null}
               </div>
