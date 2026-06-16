@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { ExternalLink, BookOpen, Tag, TrendingUp, Target, ArrowRight, Share2 } from 'lucide-react'
+import { createPortal } from 'react-dom'
+import { ExternalLink, BookOpen, Tag, TrendingUp, Target, ArrowRight, Share2, X } from 'lucide-react'
 import { type Lab } from '@/data/alzheimer-labs'
 import { PanelTopbar } from './panel-topbar'
 import { DOT_COLOR, LIGHT_COLOR, formatCount, specializationRatio, parseName } from './map-utils'
@@ -41,18 +42,13 @@ interface ProjetFRA {
   dateFinPrevue?: string
 }
 
-function KpiCard({ tooltip, opacity, children }: { tooltip?: string; opacity?: boolean; children: React.ReactNode }) {
+function KpiCard({ opacity, onClick, children }: { opacity?: boolean; onClick?: () => void; children: React.ReactNode }) {
   return (
-    <div className={`relative group rounded-xl border border-slate-200 p-4 bg-slate-100/70${opacity ? ' opacity-35' : ''}`}>
+    <div
+      className={`rounded-xl border border-slate-200 p-4 bg-slate-100/70${opacity ? ' opacity-35' : ''}${onClick ? ' cursor-pointer hover:border-purple-300 transition-colors' : ''}`}
+      onClick={onClick}
+    >
       {children}
-      {tooltip && (
-        <div className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-50 hidden group-hover:block">
-          <div className="bg-slate-800 text-white text-xs rounded-lg px-3 py-2 shadow-lg w-[320px] text-center leading-snug whitespace-normal">
-            {tooltip}
-          </div>
-          <div className="w-2 h-2 bg-slate-800 rotate-45 mx-auto -mt-1" />
-        </div>
-      )}
     </div>
   )
 }
@@ -60,6 +56,13 @@ function KpiCard({ tooltip, opacity, children }: { tooltip?: string; opacity?: b
 export function FichePanel({ lab, publications, closingFiche, onBack, onClose, onOpenLab }: Props) {
   const [tab, setTab] = useState<Tab>('overview')
   const [projetFRA, setProjetFRA] = useState<ProjetFRA | null | undefined>(undefined)
+  const [showCollabs, setShowCollabs] = useState(false)
+  const [collabsClosing, setCollabsClosing] = useState(false)
+
+  function closeCollabs() {
+    setCollabsClosing(true)
+    setTimeout(() => { setShowCollabs(false); setCollabsClosing(false) }, 180)
+  }
 
   useEffect(() => {
     if (!lab.neonId) { setProjetFRA(null); return }
@@ -137,7 +140,7 @@ export function FichePanel({ lab, publications, closingFiche, onBack, onClose, o
           <>
             {/* KPI cards — 4 colonnes */}
             <div className="grid grid-cols-4 gap-3 mb-6 items-stretch">
-              <KpiCard tooltip="Publications mentionnant Alzheimer · Source : OpenAlex">
+              <KpiCard>
                 <div className="flex items-center gap-1.5 text-slate-500 text-xs font-semibold uppercase tracking-wide mb-2">
                   <BookOpen size={11} /> Pub. Alzheimer
                 </div>
@@ -146,36 +149,101 @@ export function FichePanel({ lab, publications, closingFiche, onBack, onClose, o
                 </p>
               </KpiCard>
 
-              <KpiCard opacity>
-                <div className="flex items-center gap-1.5 text-slate-500 text-xs font-semibold uppercase tracking-wide mb-2">
-                  <TrendingUp size={11} /> Impact
-                </div>
-                <p className="text-3xl font-bold font-heading text-slate-700">—</p>
-              </KpiCard>
+              {(() => {
+                const citPerPub = (lab.citedByCount && lab.worksCount)
+                  ? Math.round(lab.citedByCount / lab.worksCount)
+                  : null
+                return (
+                  <KpiCard opacity={!citPerPub}>
+                    <div className="flex items-center gap-1.5 text-slate-500 text-xs font-semibold uppercase tracking-wide mb-2">
+                      <TrendingUp size={11} /> Impact
+                    </div>
+                    <p className="text-3xl font-bold font-heading" style={{ color: citPerPub ? DOT_COLOR : undefined }}>
+                      {citPerPub || '—'}
+                    </p>
+                    {citPerPub ? <p className="text-[#62748e] text-xs mt-0.5">citations / pub.</p> : null}
+                  </KpiCard>
+                )
+              })()}
 
-              <KpiCard tooltip="% de publications sur Alzheimer · Sources : OpenAlex (pub. Alz) + HAL (total)">
+              <KpiCard opacity={specializationRatio(lab) === null}>
                 <div className="flex items-center gap-1.5 text-slate-500 text-xs font-semibold uppercase tracking-wide mb-2">
                   <Target size={11} /> Spécialisation
                 </div>
-                {specializationRatio(lab) !== null ? (
-                  <>
-                    <p className="text-3xl font-bold font-heading" style={{ color: DOT_COLOR }}>
-                      {Math.round((specializationRatio(lab) ?? 0) * 100)}&nbsp;%
-                    </p>
-                    <p className="text-[#62748e] text-xs mt-0.5">des publications</p>
-                  </>
-                ) : (
-                  <p className="text-3xl font-bold font-heading text-slate-700">—</p>
-                )}
+                {(() => {
+                  const ratio = specializationRatio(lab)
+                  if (ratio === null) return <p className="text-3xl font-bold font-heading text-slate-700">—</p>
+                  const pct = ratio * 100
+                  const display = pct < 1 ? '< 1' : Math.round(pct).toString()
+                  return (
+                    <>
+                      <p className="text-3xl font-bold font-heading" style={{ color: DOT_COLOR }}>
+                        {display}&nbsp;%
+                      </p>
+                      <p className="text-[#62748e] text-xs mt-0.5">des publications</p>
+                    </>
+                  )
+                })()}
               </KpiCard>
 
-              <KpiCard opacity>
+              <KpiCard
+                opacity={!lab.topCollabs?.length}
+                onClick={lab.topCollabs?.length ? () => setShowCollabs(true) : undefined}
+              >
                 <div className="flex items-center gap-1.5 text-slate-500 text-xs font-semibold uppercase tracking-wide mb-2">
                   <Share2 size={11} /> Réseau
                 </div>
-                <p className="text-3xl font-bold font-heading text-slate-700">—</p>
+                <p className="text-3xl font-bold font-heading" style={{ color: lab.topCollabs?.length ? DOT_COLOR : undefined }}>
+                  {lab.topCollabs?.length ? lab.topCollabs.length : '—'}
+                </p>
+                {lab.topCollabs?.length ? <p className="text-[#62748e] text-xs mt-0.5">co-laboratoires</p> : null}
               </KpiCard>
             </div>
+
+            {/* Modale co-laboratoires — rendue via portal pour échapper aux transforms des ancêtres */}
+            {showCollabs && lab.topCollabs?.length ? createPortal(
+              <div
+                className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+                style={{ animation: `${collabsClosing ? 'fichefade-out' : 'fichefade'} 0.18s ease forwards` }}
+                onClick={closeCollabs}
+              >
+                <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+                <div
+                  className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[70vh] flex flex-col"
+                  style={{ animation: `${collabsClosing ? 'fichefade-out' : 'fichefade'} 0.22s ease forwards` }}
+                  onClick={e => e.stopPropagation()}
+                >
+                  <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+                    <p className="font-heading font-semibold text-slate-800">Co-laboratoires ({lab.topCollabs.length})</p>
+                    <button onClick={closeCollabs} className="text-slate-400 hover:text-slate-600 cursor-pointer">
+                      <X size={18} />
+                    </button>
+                  </div>
+                  <div className="overflow-y-auto divide-y divide-slate-50 px-6">
+                    {lab.topCollabs.map((c, i) => (
+                      <div key={c.id} className="py-3 flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <span className="text-xs font-bold w-5 text-right flex-shrink-0" style={{ color: DOT_COLOR }}>{i + 1}</span>
+                          {c.labId && onOpenLab ? (
+                            <button
+                              className="text-sm font-medium text-left hover:underline cursor-pointer truncate"
+                              style={{ color: DOT_COLOR }}
+                              onClick={() => { setShowCollabs(false); onOpenLab(c.labId!) }}
+                            >
+                              {c.nom}
+                            </button>
+                          ) : (
+                            <span className="text-sm text-slate-700 truncate">{c.nom}</span>
+                          )}
+                        </div>
+                        <span className="text-xs text-slate-400 flex-shrink-0">{c.count} co-pub.</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>,
+              document.body
+            ) : null}
 
             {/* Diagnostic IA */}
             <DiagnosticBlock lab={lab} publications={publications} />

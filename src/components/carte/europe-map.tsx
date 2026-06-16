@@ -16,7 +16,7 @@ import { CityPanel } from './city-panel'
 
 interface Props { labs: Lab[]; initialLabId?: string | null }
 
-type TopSort = 'publications' | 'specialisation' | 'composite'
+type TopSort = 'publications' | 'specialisation' | 'impact' | 'composite'
 type SortBy  = 'publications' | 'impact' | 'specialisation' | 'composite' | 'alpha' | 'fra'
 
 // ── State machine ──────────────────────────────────────────────────────────────

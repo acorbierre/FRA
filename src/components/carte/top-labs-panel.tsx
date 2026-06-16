@@ -1,12 +1,12 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { ChevronDown, Target, Sparkles, BookOpen } from 'lucide-react'
+import { ChevronDown, Target, Sparkles, BookOpen, TrendingUp } from 'lucide-react'
 import { type Lab } from '@/data/alzheimer-labs'
 import { PanelTopbar } from './panel-topbar'
 import { DOT_COLOR, parseName } from './map-utils'
 
-type TopSort = 'publications' | 'specialisation' | 'composite'
+type TopSort = 'publications' | 'specialisation' | 'impact' | 'composite'
 
 interface Props {
   labs: Lab[]
@@ -20,13 +20,23 @@ interface Props {
 
 
 function metricLabel(lab: Lab, topSort: TopSort, compositeScore: (l: Lab) => number): string {
-  if (topSort === 'specialisation') return `${Math.round(((lab.alzPubCount ?? 0) / (lab.worksCount ?? 1)) * 100)}\u202f%`
-  if (topSort === 'composite')      return `${Math.round(compositeScore(lab) * 100)}\u202f/ 100`
+  if (topSort === 'specialisation') {
+    const ratio = lab.worksCount ? (lab.alzPubCount ?? 0) / lab.worksCount : 0
+    if (ratio <= 0 || ratio > 1) return '—'
+    const pct = ratio * 100
+    return `${pct < 1 ? '< 1' : Math.round(pct)}\u202f%`
+  }
+  if (topSort === 'impact') {
+    const cit = lab.citedByCount && lab.worksCount ? Math.round(lab.citedByCount / lab.worksCount) : 0
+    return cit > 0 ? `${cit} citations\u202f/ pub.` : '—'
+  }
+  if (topSort === 'composite') return `${Math.round(compositeScore(lab) * 100)}\u202f/ 100`
   return `${(lab.alzPubCount ?? 0).toLocaleString('fr-FR')} publications`
 }
 
 function SortIcon({ sort, size = 20 }: { sort: TopSort; size?: number }) {
   if (sort === 'specialisation') return <Target size={size} strokeWidth={2.5} />
+  if (sort === 'impact')         return <TrendingUp size={size} strokeWidth={2.5} />
   if (sort === 'composite')      return <Sparkles size={size} strokeWidth={2.5} />
   return <BookOpen size={size} strokeWidth={2.5} />
 }
@@ -34,16 +44,18 @@ function SortIcon({ sort, size = 20 }: { sort: TopSort; size?: number }) {
 const TITLES: Record<TopSort, string> = {
   publications:   'Publications Alzheimer',
   specialisation: 'Spécialisation Alzheimer',
+  impact:         'Score d\'impact',
   composite:      'Pertinence pour la FRA',
 }
 
 const BODIES: Record<TopSort, React.ReactNode> = {
   publications:   <>Le nombre de publications Alzheimer est extrait de HAL, référentiel officiel des unités de recherche françaises. Il reflète le volume de contributions d'un laboratoire sur la thématique Alzheimer et maladies apparentées.</>,
   specialisation: <>Le taux de spécialisation correspond à la part des publications Alzheimer dans la production scientifique totale du laboratoire. Un taux élevé indique un laboratoire fortement centré sur la thématique — un critère de pertinence complémentaire au volume brut de publications.</>,
+  impact:         <>Le score d'impact correspond au nombre moyen de citations reçues par publication, toutes thématiques confondues. Il mesure l'influence scientifique globale du laboratoire. Source&nbsp;: OpenAlex.</>,
   composite:      <>La pertinence FRA croise trois indicateurs pour identifier les laboratoires à la fois influents, actifs sur Alzheimer et centrés sur le sujet&nbsp;: score d'impact (40&nbsp;%), volume de publications Alzheimer (35&nbsp;%) et taux de spécialisation (25&nbsp;%). Chaque métrique est normalisée de 0 à 100 par rapport au maximum du dataset, puis pondérée pour donner un score global sur 100.</>,
 }
 
-const SORT_KEYS: TopSort[] = ['publications', 'specialisation', 'composite']
+const SORT_KEYS: TopSort[] = ['publications', 'specialisation', 'impact', 'composite']
 
 function IntroBlock({ topSort, onSortChange }: { topSort: TopSort; onSortChange: (s: TopSort) => void }) {
   const [open, setOpen] = useState(false)
@@ -97,11 +109,16 @@ function IntroBlock({ topSort, onSortChange }: { topSort: TopSort; onSortChange:
 
 export function TopLabsPanel({ labs, topSort, onSortChange, compositeScore, onLabClick, onBack, onClose }: Props) {
   const sorted = [...labs].filter(l => {
-    if (topSort === 'specialisation') return (l.worksCount ?? 0) > 0 && (l.alzPubCount ?? 0) > 0
-    if (topSort === 'composite')      return (l.alzPubCount ?? 0) > 0 && (l.worksCount ?? 0) > 0
+    if (topSort === 'specialisation') {
+      if (!l.worksCount || !l.alzPubCount) return false
+      return (l.alzPubCount / l.worksCount) <= 1
+    }
+    if (topSort === 'impact')    return (l.citedByCount ?? 0) > 0 && (l.worksCount ?? 0) > 0
+    if (topSort === 'composite') return (l.alzPubCount ?? 0) > 0 && (l.worksCount ?? 0) > 0
     return (l.alzPubCount ?? 0) > 0
   }).sort((a, b) => {
     if (topSort === 'specialisation') return ((b.alzPubCount ?? 0) / (b.worksCount ?? 1)) - ((a.alzPubCount ?? 0) / (a.worksCount ?? 1))
+    if (topSort === 'impact')         return ((b.citedByCount ?? 0) / (b.worksCount || 1)) - ((a.citedByCount ?? 0) / (a.worksCount || 1))
     if (topSort === 'composite')      return compositeScore(b) - compositeScore(a)
     return (b.alzPubCount ?? 0) - (a.alzPubCount ?? 0)
   }).slice(0, 20)

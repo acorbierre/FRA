@@ -119,7 +119,7 @@ export function CityPanel({ labs, sortBy, onSortChange, compositeScore, onLabCli
                 {specializationRatio(lab) !== null ? (
                   <span className="flex items-center gap-1">
                     <Target size={12} className="flex-shrink-0" />
-                    {Math.round((specializationRatio(lab) ?? 0) * 100)}&nbsp;%
+                    {(() => { const pct = (specializationRatio(lab) ?? 0) * 100; return pct < 1 ? '< 1' : Math.round(pct) })()}&nbsp;%
                   </span>
                 ) : null}
               </div>
